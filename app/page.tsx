@@ -8,6 +8,7 @@ import { PhotoConverter } from '@/components/PhotoConverter';
 import { RightVerticalTabStrip, FooterStamps } from '@/components/DoodleDecorations';
 import { getStorageStats } from '@/lib/storage';
 import { StoredConversion } from '@/lib/types';
+import { initBrowserAgentApi } from '@/lib/browserAgentApi';
 
 const VideoConverter = dynamic(
   () => import('@/components/VideoConverter').then((mod) => mod.VideoConverter),
@@ -68,6 +69,11 @@ export default function Home() {
 
   useEffect(() => {
     refreshStorageStats();
+    const api = initBrowserAgentApi();
+    const unsubscribe = api.subscribe(() => {
+      refreshStorageStats();
+    });
+    return () => unsubscribe();
   }, []);
 
   const handleConversionSuccess = (_item: StoredConversion) => {

@@ -164,6 +164,26 @@ Every transformation runs through client-side browser APIs:
 ### 5. Connecting External Agents via MCP Server
 PhotoNow includes a built-in Model Context Protocol (MCP) server adhering to the JSON-RPC 2.0 specification at `/api/mcp`.
 
+#### Zero-Cloud Autonomous AI Agent Architecture
+PhotoNow is designed with **ZERO cloud infrastructure** (no AWS S3, no remote cloud databases, no external paid APIs). Conversions happen either inside the **user's/agent's browser** or **ephemerally in-memory (RAM)**.
+
+1. **Pathway A: Autonomous AI Agent via MCP (`convert_image`)**
+   - When an AI agent (Claude Desktop, Cursor) calls `convert_image` and passes `imageBase64`, the conversion executes **100% in-memory (RAM)** using the local native engine.
+   - Zero bytes are stored in the cloud.
+   - The agent receives the converted Base64 data URI directly in the JSON-RPC response and writes the converted file to your local disk.
+
+2. **Pathway B: Browser Automation Agents (`window.__photoConvertAgent`)**
+   - AI agents controlling a browser (Chrome DevTools MCP, Puppeteer, Playwright, Claude Computer Use) can execute conversions directly inside the browser DOM via:
+     ```javascript
+     const res = await window.__photoConvertAgent.convertImage({
+       base64: "data:image/png;base64,...",
+       format: "webp",
+       quality: 0.85
+     });
+     console.log(res.base64); // Converted image data URI
+     ```
+   - All conversions run locally using the browser's hardware-accelerated Canvas context and IndexedDB.
+
 #### Quick Configuration for Claude Desktop, Antigravity, or Cursor:
 Add this entry to your `mcp_config.json`:
 
@@ -173,7 +193,7 @@ Add this entry to your `mcp_config.json`:
     "photoConvert": {
       "url": "https://photonow.vercel.app/api/mcp",
       "transport": "http",
-      "description": "Hand-Drawn Client-Side Photo & Video Converter with Local Storage persistence"
+      "description": "Zero-Cloud In-Browser & In-Memory Photo & Video Converter"
     }
   }
 }
@@ -182,7 +202,7 @@ Add this entry to your `mcp_config.json`:
 #### Interactive MCP Playground
 1. Click **`[MCP SERVER]`** in the navigation header.
 2. Test RPC methods (`tools/list`, `tools/call`, `initialize`) against `/api/mcp`.
-3. Inspect live JSON-RPC request and response payloads directly in the interface.
+3. Inspect live JSON-RPC request and response payloads with real-time in-memory conversions.
 
 ---
 

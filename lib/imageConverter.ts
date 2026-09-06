@@ -244,3 +244,58 @@ export async function convertImage(
     dimensions: { width: canvas.width, height: canvas.height },
   };
 }
+
+export async function blobToBase64(blob: Blob): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onloadend = () => resolve(reader.result as string);
+    reader.onerror = reject;
+    reader.readAsDataURL(blob);
+  });
+}
+
+export async function base64ToBlob(base64: string): Promise<Blob> {
+  let mimeType = 'image/png';
+  let b64Data = base64;
+  if (base64.startsWith('data:')) {
+    const parts = base64.split(';base64,');
+    mimeType = parts[0].replace('data:', '');
+    b64Data = parts[1] || '';
+  }
+  const byteCharacters = atob(b64Data);
+  const byteArrays = [];
+  for (let offset = 0; offset < byteCharacters.length; offset += 512) {
+    const slice = byteCharacters.slice(offset, offset + 512);
+    const byteNumbers = new Array(slice.length);
+    for (let i = 0; i < slice.length; i++) {
+      byteNumbers[i] = slice.charCodeAt(i);
+    }
+    byteArrays.push(new Uint8Array(byteNumbers));
+  }
+  return new Blob(byteArrays, { type: mimeType });
+}
+
+export async function convertImageFromBase64(
+  base64: string,
+  options: ImageConvertOptions,
+  fileName: string = 'agent_image.png'
+): Promise<{
+  storedConversion: StoredConversion;
+  base64: string;
+  width: number;
+  height: number;
+  format: string;
+  sizeBytes: number;
+}> {
+  const blob = await base64ToBlob(base64);
+  const storedConversion = await convertImage(blob, options, fileName);
+  const resultBase64 = await blobToBase64(storedConversion.blob);
+  return {
+    storedConversion,
+    base64: resultBase64,
+    width: storedConversion.dimensions?.width ?? 0,
+    height: storedConversion.dimensions?.height ?? 0,
+    format: storedConversion.format,
+    sizeBytes: storedConversion.convertedSize,
+  };
+}

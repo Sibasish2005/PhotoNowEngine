@@ -299,6 +299,19 @@ export const AgenticPanel: React.FC<AgenticPanelProps> = ({ onConversionSuccess 
           </div>
         </div>
       )}
+
+      {/* ZERO-CLOUD ARCHITECTURE CALLOUT */}
+      <div className="hand-box" style={{ padding: '14px', background: 'var(--paper-tint)', border: '1.5px dashed var(--ink)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
+          <span style={{ fontSize: '11px', fontWeight: 700 }}>[ZERO-CLOUD ARCHITECTURE: AGENT &amp; BROWSER]</span>
+          <span style={{ fontSize: '9px', background: 'var(--ink)', color: 'var(--ink-inverted)', padding: '2px 6px' }}>
+            100% IN-BROWSER / RAM
+          </span>
+        </div>
+        <p style={{ fontSize: '11px', margin: 0, lineHeight: 1.5, color: 'var(--ink-gray)' }}>
+          Conversions occur strictly inside the client browser runtime (Canvas 2D + Web Audio) or in-memory RAM. Zero cloud storage, zero external paid APIs, and zero privacy leakage. Autonomous AI agents can execute directly via <code>window.__photoConvertAgent</code> or JSON-RPC over MCP.
+        </p>
+      </div>
     </div>
   );
 };

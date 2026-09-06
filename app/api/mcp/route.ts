@@ -9,8 +9,8 @@ const CORS_HEADERS = {
   'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Requested-With',
 };
 
-// Maximum allowed payload size: 1MB for MCP JSON-RPC messages
-const MAX_PAYLOAD_BYTES = 1024 * 1024;
+// Maximum allowed payload size: 10MB for MCP JSON-RPC messages and Base64 images
+const MAX_PAYLOAD_BYTES = 10 * 1024 * 1024;
 
 export async function OPTIONS() {
   return new NextResponse(null, {
@@ -280,14 +280,122 @@ export async function POST(req: NextRequest) {
       // Execute tool dispatch instruction
       let resultData: any = {};
       if (toolName === 'convert_image') {
-        resultData = {
-          success: true,
-          mode: 'client_browser_storage',
-          message: `Ready to convert image to ${String(toolArgs.format || 'WEBP').toUpperCase()} at ${Math.round((Number(toolArgs.quality) || 0.8) * 100)}% quality.`,
-          parametersApplied: toolArgs,
-          storageDestination: 'photoConvert_DB (IndexedDB in browser)',
-          workerNode: node.id,
-        };
+        const targetFormat = String(toolArgs.format || 'webp').toLowerCase();
+        const quality = Math.min(Math.max(Number(toolArgs.quality) || 0.82, 0.05), 1.0);
+        const qualityPercent = Math.round(quality * 100);
+
+        if (toolArgs.imageBase64 && typeof toolArgs.imageBase64 === 'string') {
+          // 1. REAL-TIME ZERO-CLOUD IN-MEMORY CONVERSION
+          try {
+            let b64Str = toolArgs.imageBase64.trim();
+            let inputMime = 'image/png';
+            if (b64Str.startsWith('data:')) {
+              const matches = b64Str.match(/^data:(image\/[a-zA-Z0-9\+\-\.]+);base64,(.*)$/);
+              if (matches) {
+                inputMime = matches[1];
+                b64Str = matches[2];
+              }
+            }
+
+            const inputBuffer = Buffer.from(b64Str, 'base64');
+            const inputSizeBytes = inputBuffer.length;
+
+            const sharpModule = await import('sharp');
+            const sharpInstance = sharpModule.default || sharpModule;
+            let pipeline = sharpInstance(inputBuffer);
+
+            // Metadata check
+            const meta = await pipeline.metadata();
+
+            // Rotate
+            if (toolArgs.rotate === 90 || toolArgs.rotate === 180 || toolArgs.rotate === 270) {
+              pipeline = pipeline.rotate(toolArgs.rotate);
+            }
+
+            // Downscale if requested
+            if (toolArgs.maxWidth || toolArgs.maxHeight) {
+              pipeline = pipeline.resize({
+                width: toolArgs.maxWidth ? Math.min(Number(toolArgs.maxWidth), 8192) : undefined,
+                height: toolArgs.maxHeight ? Math.min(Number(toolArgs.maxHeight), 8192) : undefined,
+                fit: 'inside',
+                withoutEnlargement: true,
+              });
+            }
+
+            // Grayscale
+            if (toolArgs.applyGrayscale) {
+              pipeline = pipeline.grayscale();
+            }
+
+            // Format conversion
+            let outputMime = 'image/webp';
+            if (targetFormat === 'webp') {
+              pipeline = pipeline.webp({ quality: qualityPercent });
+              outputMime = 'image/webp';
+            } else if (targetFormat === 'png') {
+              pipeline = pipeline.png({ compressionLevel: 8 });
+              outputMime = 'image/png';
+            } else if (targetFormat === 'jpeg' || targetFormat === 'jpg') {
+              pipeline = pipeline.jpeg({ quality: qualityPercent });
+              outputMime = 'image/jpeg';
+            } else if (targetFormat === 'avif') {
+              pipeline = pipeline.avif({ quality: qualityPercent });
+              outputMime = 'image/avif';
+            } else {
+              pipeline = pipeline.webp({ quality: qualityPercent });
+              outputMime = 'image/webp';
+            }
+
+            const outputBuffer = await pipeline.toBuffer();
+            const outputMetadata = await sharpInstance(outputBuffer).metadata();
+            const outputSizeBytes = outputBuffer.length;
+            const savedBytes = inputSizeBytes - outputSizeBytes;
+            const percentSaved = inputSizeBytes > 0 ? ((savedBytes / inputSizeBytes) * 100).toFixed(1) : '0';
+
+            const outBase64 = `data:${outputMime};base64,${outputBuffer.toString('base64')}`;
+            const outFileName = toolArgs.fileName
+              ? String(toolArgs.fileName).replace(/\.[^/.]+$/, `.${targetFormat}`)
+              : `converted_photo.${targetFormat}`;
+
+            resultData = {
+              success: true,
+              mode: 'in_memory_zero_cloud',
+              realtimeConversion: true,
+              message: `Converted ${outFileName} to ${targetFormat.toUpperCase()} at ${qualityPercent}% quality in-memory. Zero cloud infrastructure used.`,
+              fileName: outFileName,
+              format: targetFormat,
+              mimeType: outputMime,
+              dimensions: {
+                width: outputMetadata.width || meta.width,
+                height: outputMetadata.height || meta.height,
+              },
+              originalSizeBytes: inputSizeBytes,
+              convertedSizeBytes: outputSizeBytes,
+              savedBytes,
+              percentSaved: `${percentSaved}%`,
+              convertedImageBase64: outBase64,
+              workerNode: node.id,
+            };
+          } catch (err: any) {
+            resultData = {
+              success: false,
+              error: `Image transformation failed: ${err.message}`,
+              mode: 'in_memory_zero_cloud',
+              workerNode: node.id,
+            };
+          }
+        } else {
+          // No imageBase64: return client-side browser instruction
+          resultData = {
+            success: true,
+            mode: 'client_browser_storage',
+            realtimeConversion: false,
+            message: `Ready to convert image to ${targetFormat.toUpperCase()} at ${qualityPercent}% quality. To convert autonomously in real-time without cloud infra, provide the 'imageBase64' parameter.`,
+            parametersApplied: toolArgs,
+            storageDestination: 'photoConvert_DB (IndexedDB in browser)',
+            workerNode: node.id,
+          };
+        }
       } else if (toolName === 'convert_video') {
         resultData = {
           success: true,

@@ -65,7 +65,13 @@ export const McpPlayground: React.FC = () => {
           name: selectedTool,
           arguments:
             selectedTool === 'convert_image'
-              ? { format: 'webp', quality: 0.85, maxWidth: 1200, applySketchFilter: true }
+              ? {
+                  imageBase64: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAFUlEQVR42mP8z8BQz0AEYBxVSF+FABJADveWkH6oAAAAAElFTkSuQmCC',
+                  fileName: 'sample_camera.png',
+                  format: 'webp',
+                  quality: 0.85,
+                  maxWidth: 1200,
+                }
               : selectedTool === 'convert_video'
               ? { action: 'webm', videoScale: 0.75, videoBitrate: 2000000, mute: true }
               : selectedTool === 'extract_poster_frame'

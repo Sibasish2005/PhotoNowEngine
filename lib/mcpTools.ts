@@ -3,10 +3,18 @@ import { McpToolDefinition, ImageConvertOptions, VideoConvertOptions } from './t
 export const MCP_TOOLS: McpToolDefinition[] = [
   {
     name: 'convert_image',
-    description: 'Converts an image client-side to modern formats (WebP, PNG, JPEG, AVIF) with optional resizing, compression, and monochrome sketch filtering.',
+    description: 'Converts an image autonomously in real-time to modern formats (WebP, PNG, JPEG, AVIF) with optional resizing, compression, and grayscale. Supports zero-cloud in-memory conversion when imageBase64 is provided.',
     inputSchema: {
       type: 'object',
       properties: {
+        imageBase64: {
+          type: 'string',
+          description: 'Base64-encoded image data or Data URI (e.g. data:image/png;base64,...). When provided, performs real-time in-memory conversion without any cloud storage.',
+        },
+        fileName: {
+          type: 'string',
+          description: 'Optional file name of the original image (e.g., sample.png)',
+        },
         format: {
           type: 'string',
           enum: ['webp', 'png', 'jpeg', 'avif', 'bmp'],
