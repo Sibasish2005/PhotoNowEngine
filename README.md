@@ -199,6 +199,31 @@ Add this entry to your `mcp_config.json`:
 }
 ```
 
+#### Native Stdio MCP Server (Images, Video, Audio)
+PhotoNow provides a standalone zero-setup Stdio MCP server powered by native Sharp and self-contained static FFmpeg/FFprobe binaries (`@ffmpeg-installer/ffmpeg`, `@ffprobe-installer/ffprobe`). AI agents can read and write files directly on disk, performing conversions, audio extractions, video downscaling, and batch processing without repetitive shell approval prompts:
+
+```json
+{
+  "mcpServers": {
+    "photoConvert": {
+      "command": "node",
+      "args": [
+        "c:/path/to/photoConvert/bin/mcp-server.mjs"
+      ]
+    }
+  }
+}
+```
+
+#### Available Native MCP Tools (7):
+1. `convert_image`: Single image conversion to WebP, PNG, JPEG, AVIF with quality, rotation, and resizing.
+2. `convert_batch`: Converts an entire folder or file list in a single call without multi-turn prompts.
+3. `extract_audio`: Extracts audio tracks from video files (.mp4, .mov, .mkv, .webm) to MP3, WAV, AAC, FLAC, OGG.
+4. `convert_video`: Transcodes, compresses, and downscales video containers with CRF quality control.
+5. `convert_audio`: Converts standalone audio between MP3, WAV, AAC, M4A, FLAC, and OGG.
+6. `get_media_info`: Unified inspector for images, video, and audio files (dimensions, codecs, bitrates, duration).
+7. `optimize_for_agent`: Compresses high-resolution screenshots into token-efficient WebP for LLM vision models.
+
 #### Interactive MCP Playground
 1. Click **`[MCP SERVER]`** in the navigation header.
 2. Test RPC methods (`tools/list`, `tools/call`, `initialize`) against `/api/mcp`.
@@ -210,10 +235,11 @@ Add this entry to your `mcp_config.json`:
 
 | Media Category | Input Formats | Target Output Formats | Available Manipulations |
 | :--- | :--- | :--- | :--- |
-| **Photos / Images** | PNG, JPG, JPEG, WebP, AVIF, BMP, GIF, SVG | `WebP`, `PNG`, `JPEG`, `AVIF`, `BMP` | Resizing, 90°/180°/270° Rotation, Sobel Ink Sketch Shader, Grayscale, Invert, Quality Compression |
-| **Video Files** | MP4, WebM, MOV, OGG | `WebM (VP9/VP8)` | Resolution Scale (100%, 75%, 50%), Custom Bitrate, Audio Strip (Mute) |
-| **Video Snapshots** | MP4, WebM, MOV, OGG | `WebP`, `JPEG`, `PNG` | Sub-second timeline scrubbing, frame extraction |
-| **Audio Extraction** | MP4, WebM, MOV, OGG | `WAV (16-bit PCM RIFF)` | Multi-channel audio decoding, sample rate preservation |
+| **Photos / Images** | PNG, JPG, JPEG, WebP, AVIF, BMP, GIF, SVG, TIFF | `WebP`, `PNG`, `JPEG`, `AVIF`, `BMP` | Resizing, 90°/180°/270° Rotation, Sobel Ink Sketch Shader, Grayscale, Invert, Quality Compression |
+| **Video Files** | MP4, WebM, MOV, MKV, AVI, FLV, WMV | `MP4`, `WebM`, `MKV`, `MOV` | CRF Compression, Preset Speed Tuning, Resolution Scale (divisible by 2), Audio Strip (Mute) |
+| **Video Snapshots** | MP4, WebM, MOV, MKV | `WebP`, `JPEG`, `PNG` | Sub-second timeline scrubbing, frame extraction |
+| **Audio Extraction** | MP4, WebM, MOV, MKV, AVI | `MP3`, `WAV`, `AAC`, `M4A`, `FLAC`, `OGG` | Multi-channel audio extraction, bitrate configuration, mono/stereo |
+| **Audio Conversion**| MP3, WAV, AAC, M4A, FLAC, OGG | `MP3`, `WAV`, `AAC`, `M4A`, `FLAC`, `OGG` | Bitrate tuning, sample rate conversion (44.1kHz, 48kHz) |
 
 ---
 
@@ -222,11 +248,11 @@ Add this entry to your `mcp_config.json`:
 - **Framework**: [Next.js 16 (Turbopack, App Router)](https://nextjs.org/)
 - **Language**: [TypeScript 5](https://www.typescriptlang.org/)
 - **Styling**: Vanilla CSS Variables + Hand-drawn design system (Zero CSS runtime overhead)
-- **Image Pipeline**: Native HTML5 Canvas 2D API + OffscreenCanvas
-- **Video & Audio Pipeline**: HTMLMediaElement, MediaStream (`captureStream`), MediaRecorder API, Web Audio API (`AudioContext`)
+- **Local Server Engine**: Native Sharp (libvips 8.16) + Bundled Static FFmpeg/FFprobe (`fluent-ffmpeg`, `@ffmpeg-installer/ffmpeg`, `@ffprobe-installer/ffprobe`)
+- **Browser Media Pipeline**: Native HTML5 Canvas 2D, MediaStream (`captureStream`), MediaRecorder API, Web Audio API (`AudioContext`)
 - **Local Persistence**: Browser IndexedDB (`photoConvert_DB`)
 - **Packaging**: [JSZip](https://stuk.github.io/jszip/)
-- **Protocol**: Model Context Protocol (MCP) JSON-RPC 2.0 specification
+- **Protocol**: Model Context Protocol (MCP) JSON-RPC 2.0 specification (Stdio + HTTP)
 
 ---
 

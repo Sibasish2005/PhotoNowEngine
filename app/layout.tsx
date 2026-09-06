@@ -19,32 +19,35 @@ const monoFont = Space_Mono({
 export const metadata: Metadata = {
   metadataBase: new URL('https://photonow.vercel.app'),
   title: {
-    default: 'PhotoNow — Zero-Cloud Photo & Video MCP Tool Server for AI Agents',
-    template: '%s | PhotoNow Zero-Cloud MCP Engine',
+    default: 'PhotoNow — Zero-Cloud Multimedia MCP Tool Server for AI Agents (Images, Video, Audio)',
+    template: '%s | PhotoNow Zero-Cloud Multimedia MCP Engine',
   },
   description:
-    'The #1 Zero-Cloud Model Context Protocol (MCP) tool server built for autonomous AI agents (Claude Desktop, Cursor, Antigravity, browser subagents). Real-time in-memory photo conversion (WebP, AVIF, PNG), WebM video transcoding, and 16-bit WAV audio extraction. 100% in-browser & RAM, zero cloud storage, zero server uploads.',
+    'The #1 Zero-Cloud Multimedia Model Context Protocol (MCP) tool server built for autonomous AI agents (Claude Desktop, Cursor, Antigravity, browser subagents). Bundles self-contained static FFmpeg/FFprobe binaries & native Sharp for image conversion (WebP, AVIF, PNG), video transcoding & compression (MP4, WebM, MKV, MOV), and audio extraction (MP3, WAV, AAC, FLAC). 100% offline, zero external setup, zero cloud storage, zero server uploads.',
   applicationName: 'PhotoNow MCP Engine',
   alternates: {
     canonical: 'https://photonow.vercel.app',
   },
   keywords: [
     'zero cloud photo converter',
-    'autonomous ai agent image conversion',
-    'mcp tool server for ai agents',
-    'real time in memory image conversion',
+    'zero cloud multimedia mcp server',
+    'ffmpeg mcp tool server',
+    'extract audio from video mcp',
+    'video converter mcp tool',
+    'convert video to mp4 webm mcp',
+    'audio converter mcp tool',
+    'autonomous ai agent media conversion',
     'model context protocol media server',
-    'claude desktop mcp image converter',
-    'cursor mcp photo converter',
-    'antigravity mcp video tool',
+    'claude desktop mcp multimedia server',
+    'cursor mcp video converter',
+    'antigravity mcp multimedia tool',
     'in browser media converter',
-    'window.__photoConvertAgent',
-    'offline video to webm mcp',
-    'extract wav audio mcp tool',
-    'sobel sketch filter mcp',
+    'zero setup ffmpeg mcp',
+    'offline video compression mcp',
+    'extract wav mp3 audio mcp',
     'indexeddb media storage',
-    'private photo converter no cloud',
-    'zero cloud infrastructure image optimization',
+    'private multimedia converter no cloud',
+    'zero cloud infrastructure image video audio',
     'free open source mcp media tools',
   ],
   authors: [{ name: 'PhotoNow Engineering', url: 'https://photonow.vercel.app' }],
@@ -52,9 +55,9 @@ export const metadata: Metadata = {
   publisher: 'PhotoNow Engineering',
   category: 'Developer Tools',
   openGraph: {
-    title: 'PhotoNow — Zero-Cloud Photo & Video MCP Tool Server for AI Agents',
+    title: 'PhotoNow — Zero-Cloud Multimedia MCP Tool Server for AI Agents',
     description:
-      'Autonomous zero-cloud media converter for AI agents. Convert images to WebP/AVIF, transcode videos to WebM, and decode WAV audio in-memory or directly in browser runtime with zero cloud uploads.',
+      'Autonomous zero-cloud multimedia converter for AI agents. Convert images to WebP/AVIF, transcode videos to MP4/WebM, extract MP3/WAV audio, and inspect media metadata with bundled static FFmpeg and native Sharp.',
     url: 'https://photonow.vercel.app',
     siteName: 'PhotoNow Zero-Cloud MCP Engine',
     type: 'website',
@@ -64,15 +67,15 @@ export const metadata: Metadata = {
         url: 'https://photonow.vercel.app/og-card.png',
         width: 1200,
         height: 630,
-        alt: 'PhotoNow — Zero-Cloud Photo & Video MCP Server for AI Agents',
+        alt: 'PhotoNow — Zero-Cloud Multimedia MCP Server for AI Agents',
       },
     ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'PhotoNow — Zero-Cloud Photo & Video MCP Tool Server for AI Agents',
+    title: 'PhotoNow — Zero-Cloud Multimedia MCP Tool Server for AI Agents',
     description:
-      'Zero cloud storage. 100% private in-memory & in-browser media converter for Claude Desktop, Cursor, Antigravity & autonomous AI agents.',
+      'Zero cloud storage. 100% private offline media converter (Images, Video, Audio) for Claude Desktop, Cursor, Antigravity & autonomous AI agents.',
     images: ['https://photonow.vercel.app/og-card.png'],
   },
   robots: {
@@ -107,21 +110,21 @@ export default function RootLayout({
     name: 'PhotoNow MCP Engine',
     url: 'https://photonow.vercel.app',
     description:
-      'Zero-Cloud Autonomous Photo & Video Converter for AI Agents (Claude Desktop, Cursor, Antigravity) and modern web browsers.',
+      'Zero-Cloud Autonomous Multimedia Converter (Images, Video, Audio) for AI Agents (Claude Desktop, Cursor, Antigravity) and modern web browsers.',
   };
 
   const jsonLdSoftware = {
     '@context': 'https://schema.org',
     '@type': 'SoftwareApplication',
-    name: 'PhotoNow Zero-Cloud MCP Engine',
+    name: 'PhotoNow Zero-Cloud Multimedia MCP Engine',
     operatingSystem: 'Windows, macOS, Linux (Cross-Platform Browser & Node.js MCP Runtime)',
     applicationCategory: 'DeveloperApplication',
-    applicationSubCategory: 'AI Agent Media Tool / Image & Video Converter',
-    softwareVersion: '1.2.0',
+    applicationSubCategory: 'AI Agent Media Tool / Multimedia Converter (Images, Video, Audio)',
+    softwareVersion: '2.0.0',
     url: 'https://photonow.vercel.app',
     codeRepository: 'https://github.com/Sibasish2005/PhotoNowEngine',
     description:
-      'The #1 zero-cloud Model Context Protocol (MCP) server engineered specifically for AI agents (Claude Desktop, Antigravity, Cursor, Claude Code, LangChain). Provides real-time in-memory image conversion, single and batch directory processing on disk without repetitive permission prompts, in-browser agent automation (window.__photoConvertAgent), WebM video transcoding, poster extraction, and WAV audio decoding without cloud infrastructure.',
+      'The #1 zero-cloud Model Context Protocol (MCP) server engineered specifically for AI agents (Claude Desktop, Antigravity, Cursor, Claude Code, LangChain). Provides real-time in-memory image conversion, single and batch directory processing on disk without repetitive permission prompts, bundled static FFmpeg video transcoding and compression (MP4, WebM, MKV, MOV), audio track extraction (MP3, WAV, AAC, FLAC), and unified media inspection without external software installation or cloud infrastructure.',
     offers: {
       '@type': 'Offer',
       price: '0',
@@ -129,17 +132,18 @@ export default function RootLayout({
     },
     featureList: [
       'Plug-and-Play Stdio MCP Server (bin/mcp-server.mjs) for Claude Desktop, Cursor, and Antigravity',
+      'Bundled Self-Contained Static FFmpeg/FFprobe Binaries (Zero System Dependencies)',
       'Single & Batch File Conversion in a Single Tool Call (convert_image, convert_batch)',
+      'Video Container Transcoding, Resolution Downscaling & CRF Compression (convert_video)',
+      'Audio Track Extraction from Video to MP3, WAV, AAC, FLAC, OGG (extract_audio)',
+      'Standalone Audio Format Conversion & Sample Rate Tuning (convert_audio)',
+      'Unified Metadata Inspector for Images, Audio & Video (get_media_info)',
+      'LLM Vision Screenshot Optimizer for Token Efficiency (optimize_for_agent)',
       'Zero Shell Script Permission Prompts during Agent Conversations',
       'Model Context Protocol (MCP) JSON-RPC 2.0 Server Endpoint (/api/mcp)',
       'Real-Time In-Memory Image Conversion via Native Sharp (libvips 8.16) in ~250ms',
       'In-Browser Agent Execution Engine (window.__photoConvertAgent)',
       '100% Zero-Cloud Architecture (Zero Cloud Storage, Zero Remote Databases, 0 API Keys)',
-      'Photo Conversion & Compression (WebP, AVIF, PNG, JPEG, BMP)',
-      'Hardware-Accelerated WebM Video Transcoding in Browser via MediaRecorder',
-      'Sub-Second Video Frame Extraction & Snapshot Seeker',
-      'Web Audio 16-bit PCM WAV Audio Extractor',
-      'Sobel Convolution Ink Sketch Shader',
       'Local IndexedDB Storage with Batch JSZip Archive Export',
     ],
   };
@@ -147,9 +151,9 @@ export default function RootLayout({
   const jsonLdHowTo = {
     '@context': 'https://schema.org',
     '@type': 'HowTo',
-    name: 'How to Convert Photos and Videos Offline for AI Agents Using PhotoNow MCP',
+    name: 'How to Convert Photos, Videos, and Audio Offline for AI Agents Using PhotoNow MCP',
     description:
-      'Step-by-step guide to configure and use the PhotoNow MCP server in Claude Desktop, Cursor, or Antigravity for zero-permission single and batch media conversion.',
+      'Step-by-step guide to configure and use the PhotoNow Multimedia MCP server in Claude Desktop, Cursor, or Antigravity for zero-permission single and batch media conversion.',
     totalTime: 'PT2M',
     step: [
       {
@@ -162,15 +166,15 @@ export default function RootLayout({
       {
         '@type': 'HowToStep',
         position: 2,
-        name: 'Prompt Your AI Agent for Single or Batch Conversion',
-        text: 'Ask the agent: "Convert all images in C:/Photos to WebP at 85% quality" or "Optimize this screenshot for your vision model".',
+        name: 'Prompt Your AI Agent for Image, Video, or Audio Conversion',
+        text: 'Ask the agent: "Convert C:/Photos to WebP", "Extract MP3 audio from recording.mp4", or "Compress this video to MP4 at 720p".',
         url: 'https://photonow.vercel.app/',
       },
       {
         '@type': 'HowToStep',
         position: 3,
-        name: 'Autonomous In-Memory Execution with Zero Prompts',
-        text: 'The AI agent executes convert_image or convert_batch directly on your local filesystem using native Sharp, transforming media in ~250ms without repetitive shell approvals.',
+        name: 'Autonomous Execution with Zero External Setup or Prompts',
+        text: 'The AI agent executes convert_image, convert_video, or extract_audio directly on your local filesystem using bundled static FFmpeg and Sharp without asking for repetitive shell approvals.',
         url: 'https://photonow.vercel.app/api/mcp',
       },
     ],
@@ -182,10 +186,18 @@ export default function RootLayout({
     mainEntity: [
       {
         '@type': 'Question',
-        name: 'What is PhotoNow MCP and what does it do?',
+        name: 'What is PhotoNow MCP and what multimedia tools does it provide?',
         acceptedAnswer: {
           '@type': 'Answer',
-          text: 'PhotoNow is the #1 zero-cloud Model Context Protocol (MCP) server for AI agents. It gives agents (like Claude Desktop, Cursor, and Antigravity) native tools to convert, compress, and resize images (WebP, AVIF, PNG, JPEG), batch-process entire folders, transcode videos to WebM, extract poster frames, and decode audio to WAV with zero cloud storage, zero latency, and zero permission prompts.',
+          text: 'PhotoNow is the #1 zero-cloud Model Context Protocol (MCP) multimedia server for AI agents. It provides 7 native tools: convert_image (WebP/AVIF/PNG/JPEG), convert_batch (entire folders in 1 call), convert_video (MP4/WebM/MKV transcoding and downscaling), extract_audio (video-to-audio extraction to MP3/WAV/AAC), convert_audio (audio format conversion), get_media_info (unified inspector for image/audio/video), and optimize_for_agent (token-efficient vision downscaling).',
+        },
+      },
+      {
+        '@type': 'Question',
+        name: 'Does PhotoNow require me to manually install FFmpeg on my system?',
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: 'No. PhotoNow bundles self-contained static FFmpeg and FFprobe binaries via @ffmpeg-installer/ffmpeg and @ffprobe-installer/ffprobe. AI agents can transcode videos, compress resolutions, and extract audio tracks out of the box with zero external dependencies.',
         },
       },
       {
@@ -201,23 +213,15 @@ export default function RootLayout({
         name: 'How does PhotoNow eliminate repetitive permission prompts in Claude Desktop and Cursor?',
         acceptedAnswer: {
           '@type': 'Answer',
-          text: 'Traditional scripts force the AI agent to execute multiple raw PowerShell or bash commands to read bytes, invoke curl, and write files, prompting the user for approval 7 to 10 times per image. PhotoNow operates as a native Stdio MCP server, allowing the agent to invoke convert_image or convert_batch directly as native tools. By clicking "Always Allow" once in your MCP client, the agent converts single files and entire batches completely autonomously.',
+          text: 'Traditional scripts force the AI agent to execute multiple raw PowerShell or bash commands to read bytes, invoke curl, and write files, prompting the user for approval 7 to 10 times per image. PhotoNow operates as a native Stdio MCP server, allowing the agent to invoke media tools directly. By clicking "Always Allow" once in your MCP client, the agent performs single and batch conversions completely autonomously.',
         },
       },
       {
         '@type': 'Question',
-        name: 'Can AI agents convert images autonomously in real time using PhotoNow?',
+        name: 'Does PhotoNow store, upload, or transmit media to external cloud servers?',
         acceptedAnswer: {
           '@type': 'Answer',
-          text: 'Yes. AI agents connect to PhotoNow either locally via Stdio (node ./bin/mcp-server.mjs) or remotely via HTTP JSON-RPC 2.0 (https://photonow.vercel.app/api/mcp) with Base64 payloads. PhotoNow transforms images in-memory in under 250 milliseconds with zero cloud infrastructure.',
-        },
-      },
-      {
-        '@type': 'Question',
-        name: 'Does PhotoNow store, upload, or transmit photos or videos to external cloud servers?',
-        acceptedAnswer: {
-          '@type': 'Answer',
-          text: 'No. PhotoNow performs 100% of all image processing, video transcoding, and audio decoding directly in client RAM or browser memory (HTML5 Canvas 2D, Web Audio). No user files are ever uploaded to AWS S3, Cloudflare, or remote cloud databases.',
+          text: 'No. PhotoNow performs 100% of all image processing, video transcoding, and audio decoding directly in client RAM, local disk, or browser memory (HTML5 Canvas 2D, Web Audio). No user files are ever uploaded to AWS S3, Cloudflare, or remote cloud databases.',
         },
       },
       {

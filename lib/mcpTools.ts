@@ -113,16 +113,116 @@ export const MCP_TOOLS: McpToolDefinition[] = [
   },
   {
     name: 'extract_audio',
-    description: 'Decodes video audio track and saves directly to uncompressed 16-bit PCM WAV.',
+    description: 'Decodes video audio track and saves directly to MP3, WAV, AAC, M4A, FLAC, or OGG.',
     inputSchema: {
       type: 'object',
       properties: {
-        format: {
+        inputPath: {
           type: 'string',
-          enum: ['wav'],
+          description: 'Path to source video file on disk',
+        },
+        outputFormat: {
+          type: 'string',
+          enum: ['mp3', 'wav', 'aac', 'm4a', 'flac', 'ogg'],
+          default: 'mp3',
           description: 'Audio format output',
         },
+        bitrate: {
+          type: 'string',
+          default: '192k',
+          description: 'Audio bitrate for lossy formats',
+        },
+        channels: {
+          type: 'number',
+          enum: [1, 2],
+          default: 2,
+          description: 'Audio channels: 1 (mono) or 2 (stereo)',
+        },
       },
+    },
+  },
+  {
+    name: 'convert_audio',
+    description: 'Converts standalone audio files between MP3, WAV, AAC, M4A, FLAC, and OGG.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        inputPath: {
+          type: 'string',
+          description: 'Path to audio file on disk',
+        },
+        format: {
+          type: 'string',
+          enum: ['mp3', 'wav', 'aac', 'm4a', 'flac', 'ogg'],
+          default: 'mp3',
+        },
+        bitrate: {
+          type: 'string',
+          default: '192k',
+        },
+        sampleRate: {
+          type: 'number',
+        },
+      },
+      required: ['inputPath'],
+    },
+  },
+  {
+    name: 'convert_batch',
+    description: 'Batch converts entire folders or arrays of images on disk with zero repetitive prompts.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        directoryPath: {
+          type: 'string',
+          description: 'Folder path to scan and convert',
+        },
+        format: {
+          type: 'string',
+          enum: ['webp', 'png', 'jpeg', 'avif'],
+          default: 'webp',
+        },
+        quality: {
+          type: 'number',
+          default: 82,
+        },
+        recursive: {
+          type: 'boolean',
+          default: false,
+        },
+      },
+    },
+  },
+  {
+    name: 'get_media_info',
+    description: 'Unified metadata inspector for images, audio, and video files.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        filePath: {
+          type: 'string',
+          description: 'Path to image, audio, or video file',
+        },
+      },
+      required: ['filePath'],
+    },
+  },
+  {
+    name: 'optimize_for_agent',
+    description: 'Optimizes high-resolution screenshots into compact WebP for LLM vision models.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        inputPath: {
+          type: 'string',
+          description: 'Path to image file',
+        },
+        maxDimension: {
+          type: 'number',
+          default: 1280,
+        },
+      },
+      required: ['inputPath'],
     },
   },
   {

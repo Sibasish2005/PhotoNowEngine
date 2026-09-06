@@ -3,6 +3,14 @@ import path from 'path';
 import fs from 'fs/promises';
 import fsSync from 'fs';
 import sharp from 'sharp';
+import ffmpeg from 'fluent-ffmpeg';
+import ffmpegInstaller from '@ffmpeg-installer/ffmpeg';
+import ffprobeInstaller from '@ffprobe-installer/ffprobe';
+
+const ffmpegPath = ffmpegInstaller.path || ffmpegInstaller.default?.path;
+const ffprobePath = ffprobeInstaller.path || ffprobeInstaller.default?.path;
+if (ffmpegPath) ffmpeg.setFfmpegPath(ffmpegPath);
+if (ffprobePath) ffmpeg.setFfprobePath(ffprobePath);
 
 const TEST_DIR = path.resolve('./tests/sandbox');
 
@@ -73,18 +81,46 @@ class McpTestClient {
   }
 }
 
-async function runTests() {
-  console.log('🚀 Starting PhotoNow MCP Server Automated Verification Test...\n');
+function generateSyntheticVideo(destPath) {
+  return new Promise((resolve, reject) => {
+    ffmpeg()
+      .input('testsrc=duration=2:size=320x240:rate=15')
+      .inputFormat('lavfi')
+      .input('sine=frequency=1000:duration=2')
+      .inputFormat('lavfi')
+      .outputOptions(['-c:v libx264', '-c:a aac', '-pix_fmt yuv420p'])
+      .save(destPath)
+      .on('end', resolve)
+      .on('error', reject);
+  });
+}
 
-  // 1. Prepare sandbox directory and test images
+function generateSyntheticAudio(destPath) {
+  return new Promise((resolve, reject) => {
+    ffmpeg()
+      .input('sine=frequency=440:duration=2')
+      .inputFormat('lavfi')
+      .audioCodec('libmp3lame')
+      .save(destPath)
+      .on('end', resolve)
+      .on('error', reject);
+  });
+}
+
+async function runTests() {
+  console.log('🚀 Starting PhotoNow Multimedia MCP Server Automated Verification Test...\n');
+
+  // 1. Prepare sandbox directory and test assets
   await fs.rm(TEST_DIR, { recursive: true, force: true });
   await fs.mkdir(TEST_DIR, { recursive: true });
 
   const img1Path = path.join(TEST_DIR, 'sample_photo1.png');
   const img2Path = path.join(TEST_DIR, 'sample_photo2.jpg');
   const img3Path = path.join(TEST_DIR, 'sample_photo3.png');
+  const video1Path = path.join(TEST_DIR, 'sample_video.mp4');
+  const audio1Path = path.join(TEST_DIR, 'sample_audio.mp3');
 
-  // Generate real high-res test images using sharp
+  // Generate synthetic test images
   await sharp({
     create: {
       width: 1920,
@@ -118,10 +154,15 @@ async function runTests() {
     .png()
     .toFile(img3Path);
 
-  console.log('✓ Created 3 synthetic test images in sandbox:');
-  console.log(`  - ${path.basename(img1Path)} (${(await fs.stat(img1Path)).size} bytes, 1920x1080)`);
-  console.log(`  - ${path.basename(img2Path)} (${(await fs.stat(img2Path)).size} bytes, 1200x800)`);
-  console.log(`  - ${path.basename(img3Path)} (${(await fs.stat(img3Path)).size} bytes, 800x600)\n`);
+  // Generate synthetic test video & audio
+  await generateSyntheticVideo(video1Path);
+  await generateSyntheticAudio(audio1Path);
+
+  console.log('✓ Created synthetic test media in sandbox:');
+  console.log(`  - Image: ${path.basename(img1Path)} (1920x1080)`);
+  console.log(`  - Image: ${path.basename(img2Path)} (1200x800)`);
+  console.log(`  - Video: ${path.basename(video1Path)} (${(await fs.stat(video1Path)).size} bytes)`);
+  console.log(`  - Audio: ${path.basename(audio1Path)} (${(await fs.stat(audio1Path)).size} bytes)\n`);
 
   // 2. Launch MCP Server
   const client = new McpTestClient(path.resolve('./bin/mcp-server.mjs'));
@@ -131,7 +172,7 @@ async function runTests() {
     // 3. Initialize MCP session
     const initRes = await client.sendRequest('initialize', {
       protocolVersion: '2024-11-05',
-      clientInfo: { name: 'PhotoNowTestRunner', version: '1.0.0' },
+      clientInfo: { name: 'PhotoNowTestRunner', version: '2.0.0' },
       capabilities: {},
     });
     client.sendNotification('notifications/initialized');
@@ -140,9 +181,20 @@ async function runTests() {
     // 4. Discover Tools
     const toolsRes = await client.sendRequest('tools/list', {});
     const toolNames = toolsRes.tools.map((t) => t.name);
-    console.log('✓ Discovered MCP Tools:', toolNames);
-    if (!toolNames.includes('convert_image') || !toolNames.includes('convert_batch')) {
-      throw new Error('Missing core tools in tools/list');
+    console.log('✓ Discovered MCP Tools (7):', toolNames);
+    const expectedTools = [
+      'convert_image',
+      'convert_batch',
+      'extract_audio',
+      'convert_video',
+      'convert_audio',
+      'get_media_info',
+      'optimize_for_agent',
+    ];
+    for (const expected of expectedTools) {
+      if (!toolNames.includes(expected)) {
+        throw new Error(`Missing required tool: ${expected}`);
+      }
     }
 
     // 5. Test convert_image (Single File)
@@ -161,21 +213,8 @@ async function runTests() {
     if (!fsSync.existsSync(expectedWebp1)) {
       throw new Error(`Expected output file not found: ${expectedWebp1}`);
     }
-    const webp1Stat = await fs.stat(expectedWebp1);
-    console.log(`  Output file verified: ${expectedWebp1} (${webp1Stat.size} bytes, saved: ${singleData.details.percentSaved})`);
 
-    // 6. Test get_media_info
-    console.log('\n--- Testing Tool: get_media_info ---');
-    const infoRes = await client.sendRequest('tools/call', {
-      name: 'get_media_info',
-      arguments: {
-        filePath: expectedWebp1,
-      },
-    });
-    const infoData = JSON.parse(infoRes.content[0].text);
-    console.log(`  Inspected WebP: format=${infoData.format}, width=${infoData.width}, height=${infoData.height}`);
-
-    // 7. Test convert_batch (Batch Folder Conversion in 1 Call)
+    // 6. Test convert_batch
     console.log('\n--- Testing Tool: convert_batch ---');
     const batchOutputDir = path.join(TEST_DIR, 'batch_output_webp');
     const batchRes = await client.sendRequest('tools/call', {
@@ -189,14 +228,97 @@ async function runTests() {
     });
     const batchData = JSON.parse(batchRes.content[0].text);
     console.log('convert_batch summary:', batchData.summary);
-
     const convertedFiles = await fs.readdir(batchOutputDir);
-    console.log(`  Files created in ${batchOutputDir}:`, convertedFiles);
     if (convertedFiles.length < 3) {
       throw new Error(`Expected at least 3 converted files, found: ${convertedFiles.length}`);
     }
 
-    // 8. Test optimize_for_agent
+    // 7. Test extract_audio (NEW)
+    console.log('\n--- Testing Tool: extract_audio ---');
+    const extractRes = await client.sendRequest('tools/call', {
+      name: 'extract_audio',
+      arguments: {
+        inputPath: video1Path,
+        outputFormat: 'mp3',
+        bitrate: '192k',
+      },
+    });
+    const extractData = JSON.parse(extractRes.content[0].text);
+    console.log('extract_audio result:', extractData.message);
+    const extractedMp3 = path.join(TEST_DIR, 'sample_video.mp3');
+    if (!fsSync.existsSync(extractedMp3)) {
+      throw new Error(`Extracted audio not found at: ${extractedMp3}`);
+    }
+    console.log(`  Extracted MP3 size: ${(await fs.stat(extractedMp3)).size} bytes`);
+
+    // 8. Test convert_video (NEW)
+    console.log('\n--- Testing Tool: convert_video ---');
+    const videoConvRes = await client.sendRequest('tools/call', {
+      name: 'convert_video',
+      arguments: {
+        inputPath: video1Path,
+        format: 'webm',
+        preset: 'fast',
+        maxWidth: 240,
+      },
+    });
+    const videoConvData = JSON.parse(videoConvRes.content[0].text);
+    console.log('convert_video result:', videoConvData.message);
+    const convertedWebm = path.join(TEST_DIR, 'sample_video.webm');
+    if (!fsSync.existsSync(convertedWebm)) {
+      throw new Error(`Converted video not found at: ${convertedWebm}`);
+    }
+    console.log(`  Converted WebM size: ${(await fs.stat(convertedWebm)).size} bytes`);
+
+    // 9. Test convert_audio (NEW)
+    console.log('\n--- Testing Tool: convert_audio ---');
+    const audioConvRes = await client.sendRequest('tools/call', {
+      name: 'convert_audio',
+      arguments: {
+        inputPath: audio1Path,
+        format: 'wav',
+      },
+    });
+    const audioConvData = JSON.parse(audioConvRes.content[0].text);
+    console.log('convert_audio result:', audioConvData.message);
+    const convertedWav = path.join(TEST_DIR, 'sample_audio.wav');
+    if (!fsSync.existsSync(convertedWav)) {
+      throw new Error(`Converted WAV audio not found at: ${convertedWav}`);
+    }
+    console.log(`  Converted WAV size: ${(await fs.stat(convertedWav)).size} bytes`);
+
+    // 10. Test get_media_info (UPGRADED: inspect image, video, audio)
+    console.log('\n--- Testing Tool: get_media_info (Unified Inspector) ---');
+    // Inspect Image
+    const imgInfoRes = await client.sendRequest('tools/call', {
+      name: 'get_media_info',
+      arguments: { filePath: expectedWebp1 },
+    });
+    const imgInfo = JSON.parse(imgInfoRes.content[0].text);
+    console.log(`  ✓ Image Info: type=${imgInfo.mediaType}, format=${imgInfo.format}, dims=${imgInfo.dimensions}`);
+    if (imgInfo.mediaType !== 'image') throw new Error('Expected mediaType=image');
+
+    // Inspect Video
+    const videoInfoRes = await client.sendRequest('tools/call', {
+      name: 'get_media_info',
+      arguments: { filePath: video1Path },
+    });
+    const videoInfo = JSON.parse(videoInfoRes.content[0].text);
+    console.log(`  ✓ Video Info: type=${videoInfo.mediaType}, duration=${videoInfo.durationFormatted}, res=${videoInfo.video?.resolution}, codec=${videoInfo.video?.codec}`);
+    if (videoInfo.mediaType !== 'video') throw new Error('Expected mediaType=video');
+    if (!videoInfo.video) throw new Error('Expected video stream metadata');
+
+    // Inspect Audio
+    const audioInfoRes = await client.sendRequest('tools/call', {
+      name: 'get_media_info',
+      arguments: { filePath: convertedWav },
+    });
+    const audioInfo = JSON.parse(audioInfoRes.content[0].text);
+    console.log(`  ✓ Audio Info: type=${audioInfo.mediaType}, duration=${audioInfo.durationFormatted}, codec=${audioInfo.audio?.codec}, rate=${audioInfo.audio?.sampleRate}`);
+    if (audioInfo.mediaType !== 'audio') throw new Error('Expected mediaType=audio');
+    if (!audioInfo.audio) throw new Error('Expected audio stream metadata');
+
+    // 11. Test optimize_for_agent
     console.log('\n--- Testing Tool: optimize_for_agent ---');
     const optRes = await client.sendRequest('tools/call', {
       name: 'optimize_for_agent',
@@ -211,7 +333,7 @@ async function runTests() {
       throw new Error(`Optimized file does not exist: ${optData.optimizedFilePath}`);
     }
 
-    console.log('\n🎉 ALL MCP TOOLS VERIFIED SUCCESSFULLY! 100% PASSING!\n');
+    console.log('\n🎉 ALL 7 MULTIMEDIA MCP TOOLS VERIFIED SUCCESSFULLY! 100% PASSING!\n');
   } finally {
     client.stop();
   }
