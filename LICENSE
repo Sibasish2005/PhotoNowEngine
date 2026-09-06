@@ -1,0 +1,55 @@
+MIT License
+
+Copyright (c) 2026 Sibasish Chakraborti
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+---
+
+### Third-Party Open Source Software Acknowledgements & Licenses
+
+PhotoNow Engine bundles or interfaces with the following open-source libraries and binaries:
+
+1. **FFmpeg & FFprobe**
+   - Bundled via `@ffmpeg-installer/ffmpeg` and `@ffprobe-installer/ffprobe`.
+   - Licensed under the GNU Lesser General Public License (LGPL) version 2.1 or later / GNU General Public License (GPL) version 3.0.
+   - Website: https://ffmpeg.org/
+   - FFmpeg is a trademark of Fabrice Bellard and the FFmpeg project developers. PhotoNow does not modify the compiled upstream static binaries.
+
+2. **Sharp & libvips**
+   - Licensed under the Apache License, Version 2.0 (Sharp) and the GNU Lesser General Public License (LGPL) version 3.0 or later (libvips).
+   - Website: https://sharp.pixelplumbing.com/ and https://www.libvips.org/
+   - Copyright (c) Lovell Fuller and contributors.
+
+3. **fluent-ffmpeg**
+   - Licensed under the MIT License.
+   - Copyright (c) 2012-2015 Nicolas Froidure, Sven Boekhoff, and contributors.
+
+4. **Model Context Protocol (MCP) TypeScript SDK**
+   - Licensed under the MIT License.
+   - Copyright (c) Anthropic, PBC.
+   - Website: https://modelcontextprotocol.io/
+
+5. **JSZip**
+   - Licensed under the MIT License or GPLv3.
+   - Copyright (c) Stuart Knightley, David Duponchel, Franz Buchinger, António Afonso.
+
+6. **Next.js & React**
+   - Licensed under the MIT License.
+   - Copyright (c) Vercel, Inc. and Meta Platforms, Inc.

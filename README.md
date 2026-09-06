@@ -8,6 +8,7 @@
 [![Next.js 16](https://img.shields.io/badge/Next.js-16.3-black?style=flat-square&logo=next.js)](https://nextjs.org/)
 [![Storage](https://img.shields.io/badge/Storage-IndexedDB-black?style=flat-square)](https://developer.mozilla.org/en-US/docs/Web/API/IndexedDB_API)
 [![Privacy](https://img.shields.io/badge/Privacy-100%25%20Local%20%2F%20Zero%20Cloud-black?style=flat-square)](#zero-cloud-privacy)
+[![License: MIT](https://img.shields.io/badge/License-MIT-black?style=flat-square)](./LICENSE)
 
 ---
 
@@ -296,6 +297,22 @@ npm run lint    # Runs ESLint checks
 
 ---
 
+## Legal, Privacy & Compliance
+
+- **[Privacy Policy](https://photonow.vercel.app/privacy)**: 100% in-browser and local disk processing. Zero server uploads, zero cloud storage, zero tracking cookies, and zero AI model training.
+- **[Terms of Service & Acceptable Use](https://photonow.vercel.app/terms)**: Governing terms for interactive web users and autonomous AI agent MCP connections. Users retain 100% full copyright and ownership of all media.
+- **[Trademarks & Legal Notice](https://photonow.vercel.app/legal)**: Nominative fair use disclosures, commercial independence disclaimers, and DMCA takedown procedures.
+
+---
+
 ## License
 
-MIT License. Crafted for creative engineers and privacy-conscious users who care about speed, offline autonomy, and timeless aesthetics.
+This project is licensed under the **[MIT License](./LICENSE)**. Copyright &copy; 2026 Sibasish Chakraborti.
+
+Bundled third-party binaries and dependencies maintain their respective open-source licenses:
+- **FFmpeg & FFprobe**: LGPL v2.1+ / GPL v3.0 (`@ffmpeg-installer/ffmpeg`, `@ffprobe-installer/ffprobe`)
+- **Sharp & libvips**: Apache-2.0 / LGPL v3.0+
+- **fluent-ffmpeg**: MIT
+- **JSZip**: MIT
+- **Model Context Protocol SDK**: MIT
+

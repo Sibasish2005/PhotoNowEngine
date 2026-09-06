@@ -22,6 +22,7 @@ PhotoNow empowers autonomous AI agents and multimodal LLMs with high-performance
 - **GitHub Repository**: https://github.com/Sibasish2005/PhotoNowEngine
 - **Privacy Policy**: https://photonow.vercel.app/privacy
 - **Terms of Use**: https://photonow.vercel.app/terms
+- **Legal & Trademark Notice**: https://photonow.vercel.app/legal
 - **Architecture & Specs**: https://photonow.vercel.app/ARCHITECTURE.md
 
 ---

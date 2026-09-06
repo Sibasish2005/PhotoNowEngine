@@ -330,3 +330,13 @@ Downscales heavy screenshots to token-efficient WebP for AI vision context windo
   }
 }
 ```
+
+---
+
+## Legal, Privacy & Compliance References
+
+- **Privacy Policy (100% Offline Guarantee)**: https://photonow.vercel.app/privacy
+- **Terms of Service & Acceptable Use Policy**: https://photonow.vercel.app/terms
+- **Trademarks, Nominative Fair Use & Legal Notice**: https://photonow.vercel.app/legal
+- **Open-Source License (MIT)**: https://github.com/Sibasish2005/PhotoNowEngine/blob/main/LICENSE
+
