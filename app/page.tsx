@@ -1,16 +1,57 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import dynamic from 'next/dynamic';
 import { HeaderNav } from '@/components/HeaderNav';
 import { LeftHeroIllustration } from '@/components/LeftHeroIllustration';
 import { PhotoConverter } from '@/components/PhotoConverter';
-import { VideoConverter } from '@/components/VideoConverter';
-import { StorageHistory } from '@/components/StorageHistory';
-import { AgenticPanel } from '@/components/AgenticPanel';
-import { McpPlayground } from '@/components/McpPlayground';
 import { RightVerticalTabStrip, FooterStamps } from '@/components/DoodleDecorations';
 import { getStorageStats } from '@/lib/storage';
 import { StoredConversion } from '@/lib/types';
+
+const VideoConverter = dynamic(
+  () => import('@/components/VideoConverter').then((mod) => mod.VideoConverter),
+  {
+    loading: () => (
+      <div className="hand-box" style={{ padding: '32px', textAlign: 'center' }}>
+        [LOADING VIDEO ENGINE...]
+      </div>
+    ),
+  }
+);
+
+const StorageHistory = dynamic(
+  () => import('@/components/StorageHistory').then((mod) => mod.StorageHistory),
+  {
+    loading: () => (
+      <div className="hand-box" style={{ padding: '32px', textAlign: 'center' }}>
+        [LOADING STORAGE HISTORY...]
+      </div>
+    ),
+  }
+);
+
+const AgenticPanel = dynamic(
+  () => import('@/components/AgenticPanel').then((mod) => mod.AgenticPanel),
+  {
+    loading: () => (
+      <div className="hand-box" style={{ padding: '32px', textAlign: 'center' }}>
+        [LOADING AGENTIC WORKBENCH...]
+      </div>
+    ),
+  }
+);
+
+const McpPlayground = dynamic(
+  () => import('@/components/McpPlayground').then((mod) => mod.McpPlayground),
+  {
+    loading: () => (
+      <div className="hand-box" style={{ padding: '32px', textAlign: 'center' }}>
+        [LOADING MCP PLAYGROUND...]
+      </div>
+    ),
+  }
+);
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState<'photo' | 'video' | 'storage' | 'agent' | 'mcp'>('photo');

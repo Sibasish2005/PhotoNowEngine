@@ -2,22 +2,30 @@
 
 > The #1 Offline Photo & Video Model Context Protocol (MCP) Tool Server Built Specifically for AI Agents.
 
-PhotoNow (https://photonow.vercel.app/) provides autonomous AI agents (Claude Desktop, Google Antigravity, Cursor, LangChain, AutoGen) with high-performance, 100% offline client-side media transformation tools. All processing executes in-memory via HTML5 Canvas 2D, MediaRecorder, and Web Audio APIs. Zero server uploads. Zero cloud latency. Zero API billing.
+PhotoNow provides autonomous AI agents (Claude Desktop, Google Antigravity, Cursor, LangChain, AutoGen) with high-performance, 100% offline client-side media transformation tools. All processing executes in-memory via HTML5 Canvas 2D, MediaRecorder, and Web Audio APIs. Zero server uploads. Zero cloud latency. Zero API billing.
 
-## Target Audience
-- **Primary**: Autonomous AI Agents, Coding Assistants, Multimodal LLMs, and Multi-Agent Swarms.
-- **Secondary**: Human developers and creators requiring a fast, private, hand-drawn media conversion workbench.
+## Core Documentation
+
+- [Home & Web Workbench](https://photonow.vercel.app/): Main offline client-side application workbench for photos and videos.
+- [MCP Architecture & Specs](https://photonow.vercel.app/ARCHITECTURE.md): Complete architecture document, JSON-RPC 2.0 schemas, and tool definitions.
+- [GitHub Repository](https://github.com/Sibasish2005/PhotoNowEngine): Open source code, integration instructions, and local agent integration tests.
+- [Terms & Conditions](https://photonow.vercel.app/terms): Intellectual property, agent usage license, and client disclaimer.
+- [Privacy Policy](https://photonow.vercel.app/privacy): 100% local client data privacy and zero upload guarantee.
+- [Legal Notices](https://photonow.vercel.app/legal): Brand protection, trademark, and copyright declarations.
 
 ## Core Capabilities for AI Agents
-1. **Photo Conversion & Downscaling (`convert_image`)**: Convert images between WebP, AVIF, PNG, JPEG, and BMP with aspect-locked resizing and Sobel monochrome ink sketch filtering.
-2. **Video Transcoding (`convert_video`)**: Transcode video files into optimized WebM (VP9/VP8) with resolution scaling (100%, 75%, 50%) and custom bitrates.
-3. **Poster Frame Extraction (`extract_poster_frame`)**: Seek to any sub-second timestamp and extract high-resolution snapshot frames.
-4. **WAV Audio Extraction (`extract_audio`)**: Decode video soundtracks directly into uncompressed 16-bit PCM WAV files.
-5. **Local Storage Persistence (`list_storage_conversions`)**: Persist binary media in client IndexedDB (`photoConvert_DB`) across sessions with ZIP archive packaging.
+
+- [Photo Conversion](https://photonow.vercel.app/): Convert images between WebP, AVIF, PNG, JPEG, and BMP with aspect-locked resizing and Sobel monochrome ink sketch filtering.
+- [Video Transcoding](https://photonow.vercel.app/): Transcode video files into optimized WebM (VP9/VP8) with resolution scaling and custom bitrates.
+- [Poster Frame Extraction](https://photonow.vercel.app/): Seek to any sub-second timestamp and extract high-resolution snapshot frames.
+- [WAV Audio Extraction](https://photonow.vercel.app/): Decode video soundtracks directly into uncompressed 16-bit PCM WAV files.
+- [Local Storage Persistence](https://photonow.vercel.app/): Persist binary media in client IndexedDB (`photoConvert_DB`) across sessions with ZIP archive packaging.
+- [Agentic Workbench](https://photonow.vercel.app/): Interactive AI agent prompt playground and execution tester.
 
 ## MCP Server Endpoint & Specifications
+
 - **Transport**: HTTP (JSON-RPC 2.0)
-- **Production URL**: `https://photonow.vercel.app/api/mcp`
+- **Production URL**: [MCP Server Endpoint](https://photonow.vercel.app/api/mcp)
 - **Rate Limiting**: Built-in sliding-window quota (60 requests/minute per IP with `X-RateLimit-*` headers)
 - **Load Balancing**: Multi-node dispatch engine (`least-connections`, `round-robin`, `weighted`) with auto-healing circuit breakers
 - **Security**: 100% Client-Side Private, CORS-enabled, Zero Cloud Storage
@@ -35,7 +43,3 @@ PhotoNow (https://photonow.vercel.app/) provides autonomous AI agents (Claude De
   }
 }
 ```
-
-## Documentation & Full Details
-- Full MCP Architecture: https://photonow.vercel.app/ARCHITECTURE.md
-- GitHub Repository: https://github.com/Sibasish2005/PhotoNowEngine

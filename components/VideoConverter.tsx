@@ -141,6 +141,8 @@ export const VideoConverter: React.FC<VideoConverterProps> = ({ onConversionSucc
           }}
         >
           <input
+            id="video-file-input"
+            aria-label="Upload video to transcode or extract"
             ref={fileInputRef}
             type="file"
             accept="video/*"
@@ -206,10 +208,14 @@ export const VideoConverter: React.FC<VideoConverterProps> = ({ onConversionSucc
           {/* TIMELINE SCRUBBER */}
           <div style={{ marginTop: '12px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px' }}>
-              <span>CURRENT PLAYHEAD: {currentTime.toFixed(2)}S</span>
+              <label htmlFor="video-playhead-scrubber" style={{ cursor: 'pointer' }}>
+                CURRENT PLAYHEAD: {currentTime.toFixed(2)}S
+              </label>
               <span>TOTAL DURATION: {duration.toFixed(2)}S</span>
             </div>
             <input
+              id="video-playhead-scrubber"
+              aria-label="Video Playhead Scrubber Position"
               type="range"
               min="0"
               max={duration || 10}
@@ -282,10 +288,14 @@ export const VideoConverter: React.FC<VideoConverterProps> = ({ onConversionSucc
               {posterFormat !== 'png' && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10px' }}>
-                    <span>POSTER QUALITY</span>
+                    <label htmlFor="poster-quality-slider" style={{ cursor: 'pointer' }}>
+                      POSTER QUALITY
+                    </label>
                     <span className="marker-font">{posterQuality}%</span>
                   </div>
                   <input
+                    id="poster-quality-slider"
+                    aria-label="Poster Frame Compression Quality"
                     type="range"
                     min="20"
                     max="100"
@@ -360,8 +370,10 @@ export const VideoConverter: React.FC<VideoConverterProps> = ({ onConversionSucc
                 </div>
               </div>
 
-              <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '11px' }}>
+              <label htmlFor="mute-audio-checkbox" style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '11px' }}>
                 <input
+                  id="mute-audio-checkbox"
+                  aria-label="Mute audio track"
                   type="checkbox"
                   checked={mute}
                   onChange={(e) => setMute(e.target.checked)}

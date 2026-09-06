@@ -124,6 +124,8 @@ export const AgenticPanel: React.FC<AgenticPanelProps> = ({ onConversionSuccess 
         }}
       >
         <input
+          id="agent-media-input"
+          aria-label="Upload media file for AI agent analysis"
           ref={fileInputRef}
           type="file"
           accept="image/*,video/*"

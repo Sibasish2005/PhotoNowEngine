@@ -3,7 +3,7 @@
   --ink: #0A0A0A;
   --ink-inverted: #F2F2F0;
   --ink-gray: #444444;
-  --ink-subtle: #888888;
+  --ink-subtle: #555555;
   --paper-tint: #E8E8E5;
 }
 
@@ -290,7 +290,7 @@ input[type="range"]::-webkit-slider-thumb {
 
 /* SUBTITLE/TAGLINE IN HEADER */
 .header-subtitle {
-  color: var(--ink-subtle);
+  color: var(--ink-gray);
   font-size: 11px;
 }
 

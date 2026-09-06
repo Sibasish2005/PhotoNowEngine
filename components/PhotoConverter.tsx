@@ -117,6 +117,8 @@ export const PhotoConverter: React.FC<PhotoConverterProps> = ({ onConversionSucc
         }}
       >
         <input
+          id="photo-file-input"
+          aria-label="Upload photos to convert"
           ref={fileInputRef}
           type="file"
           accept="image/*"
@@ -202,10 +204,14 @@ export const PhotoConverter: React.FC<PhotoConverterProps> = ({ onConversionSucc
         {['webp', 'jpeg', 'avif'].includes(format) && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px' }}>
-              <span style={{ fontWeight: 700 }}>[2. COMPRESSION QUALITY]</span>
+              <label htmlFor="photo-quality-slider" style={{ fontWeight: 700, cursor: 'pointer' }}>
+                [2. COMPRESSION QUALITY]
+              </label>
               <span className="marker-font" style={{ fontSize: '14px' }}>{quality}%</span>
             </div>
             <input
+              id="photo-quality-slider"
+              aria-label="Compression Quality Percentage"
               type="range"
               min="10"
               max="100"
