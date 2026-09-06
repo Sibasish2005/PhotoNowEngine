@@ -1,45 +1,133 @@
-# PhotoNow MCP Engine
+# PhotoNow — Zero-Cloud Photo & Video MCP Engine
 
-> The #1 Offline Photo & Video Model Context Protocol (MCP) Tool Server Built Specifically for AI Agents.
+> The #1 Zero-Cloud, In-Browser & In-Memory Model Context Protocol (MCP) Tool Server Built for Autonomous AI Agents.
 
-PhotoNow provides autonomous AI agents (Claude Desktop, Google Antigravity, Cursor, LangChain, AutoGen) with high-performance, 100% offline client-side media transformation tools. All processing executes in-memory via HTML5 Canvas 2D, MediaRecorder, and Web Audio APIs. Zero server uploads. Zero cloud latency. Zero API billing.
+PhotoNow empowers AI agents (Claude Desktop, Google Antigravity, Cursor, LangChain, AutoGen, and browser subagents) with high-performance, 100% offline, zero-cloud media transformation tools. Conversions execute either ephemerally in-memory (RAM) via JSON-RPC 2.0 or directly inside the client's browser runtime (HTML5 Canvas 2D, MediaRecorder, and Web Audio APIs).
 
-## Core Documentation
+- Zero Cloud Storage (No AWS S3, No Cloudflare R2)
+- Zero Cloud Databases (100% On-Device IndexedDB)
+- Zero Cloud API Billing (Completely Free & Open Source)
+- Sub-second In-Memory Transformations (Powered by Sharp and Hardware-Accelerated Canvas)
 
-- [Home & Web Workbench](https://photonow.vercel.app/): Main offline client-side application workbench for photos and videos.
-- [MCP Architecture & Specs](https://photonow.vercel.app/ARCHITECTURE.md): Complete architecture document, JSON-RPC 2.0 schemas, and tool definitions.
-- [GitHub Repository](https://github.com/Sibasish2005/PhotoNowEngine): Open source code, integration instructions, and local agent integration tests.
-- [Terms & Conditions](https://photonow.vercel.app/terms): Intellectual property, agent usage license, and client disclaimer.
-- [Privacy Policy](https://photonow.vercel.app/privacy): 100% local client data privacy and zero upload guarantee.
-- [Legal Notices](https://photonow.vercel.app/legal): Brand protection, trademark, and copyright declarations.
+---
 
-## Core Capabilities for AI Agents
+## Core Documentation & Endpoints
 
-- [Photo Conversion](https://photonow.vercel.app/): Convert images between WebP, AVIF, PNG, JPEG, and BMP with aspect-locked resizing and Sobel monochrome ink sketch filtering.
-- [Video Transcoding](https://photonow.vercel.app/): Transcode video files into optimized WebM (VP9/VP8) with resolution scaling and custom bitrates.
-- [Poster Frame Extraction](https://photonow.vercel.app/): Seek to any sub-second timestamp and extract high-resolution snapshot frames.
-- [WAV Audio Extraction](https://photonow.vercel.app/): Decode video soundtracks directly into uncompressed 16-bit PCM WAV files.
-- [Local Storage Persistence](https://photonow.vercel.app/): Persist binary media in client IndexedDB (`photoConvert_DB`) across sessions with ZIP archive packaging.
-- [Agentic Workbench](https://photonow.vercel.app/): Interactive AI agent prompt playground and execution tester.
+- [Web Application Workbench](https://photonow.vercel.app/): Main interactive client-side workstation for photo and video conversion.
+- [MCP JSON-RPC Endpoint](https://photonow.vercel.app/api/mcp): Live JSON-RPC 2.0 endpoint for MCP-compatible AI agents.
+- [Architecture & Protocol Specification](https://photonow.vercel.app/ARCHITECTURE.md): Full technical breakdown of load balancing, rate limiting, and zero-cloud execution pipelines.
+- [GitHub Repository](https://github.com/Sibasish2005/PhotoNowEngine): Source code, integration examples, and autonomous agent test suites.
+- [Privacy Policy](https://photonow.vercel.app/privacy): Zero-data-collection and zero-cloud-upload privacy guarantee.
+- [Terms of Service](https://photonow.vercel.app/terms): Free open-source developer usage terms.
+- [Legal Notices](https://photonow.vercel.app/legal): Brand protection and MIT licensing details.
 
-## MCP Server Endpoint & Specifications
+---
 
-- **Transport**: HTTP (JSON-RPC 2.0)
-- **Production URL**: [MCP Server Endpoint](https://photonow.vercel.app/api/mcp)
-- **Rate Limiting**: Built-in sliding-window quota (60 requests/minute per IP with `X-RateLimit-*` headers)
-- **Load Balancing**: Multi-node dispatch engine (`least-connections`, `round-robin`, `weighted`) with auto-healing circuit breakers
-- **Security**: 100% Client-Side Private, CORS-enabled, Zero Cloud Storage
+## Two Autonomous AI Agent Workflows
 
-## Sample MCP Client Configuration
+### 1. Remote MCP Tool Execution (Claude Desktop, Cursor, Antigravity)
+AI agents call tools via standard JSON-RPC 2.0 over HTTP:
+
+**Endpoint**: `POST https://photonow.vercel.app/api/mcp`
+
+#### Tool: `convert_image`
+Converts an image autonomously in real time. When `imageBase64` is supplied, conversion runs 100% in-memory (RAM) and returns the converted Base64 data URI directly in the JSON response:
 
 ```json
 {
-  "mcpServers": {
-    "photoNow": {
-      "url": "https://photonow.vercel.app/api/mcp",
-      "transport": "http",
-      "description": "Premier Offline Photo & Video Media Processing Tool Server for AI Agents"
+  "jsonrpc": "2.0",
+  "id": 1,
+  "method": "tools/call",
+  "params": {
+    "name": "convert_image",
+    "arguments": {
+      "imageBase64": "data:image/png;base64,...",
+      "fileName": "photo.png",
+      "format": "webp",
+      "quality": 0.82,
+      "maxWidth": 1200,
+      "applyGrayscale": false,
+      "rotate": 0
     }
   }
 }
 ```
+
+**Returned Result**:
+```json
+{
+  "success": true,
+  "mode": "in_memory_zero_cloud",
+  "realtimeConversion": true,
+  "fileName": "photo.webp",
+  "format": "webp",
+  "mimeType": "image/webp",
+  "dimensions": { "width": 1200, "height": 800 },
+  "originalSizeBytes": 759200,
+  "convertedSizeBytes": 73700,
+  "percentSaved": "90.3%",
+  "convertedImageBase64": "data:image/webp;base64,...",
+  "workerNode": "mcp-node-core-01"
+}
+```
+
+The AI agent takes `convertedImageBase64`, decodes it, and writes the converted file directly to the user's computer.
+
+---
+
+### 2. In-Browser Agent Execution (`window.__photoConvertAgent`)
+For AI agents with browser automation capabilities (Chrome DevTools MCP, Puppeteer, Playwright, Claude Computer Use):
+
+```javascript
+// Execute directly in browser page context:
+const res = await window.__photoConvertAgent.convertImage({
+  base64: "data:image/png;base64,...",
+  format: "webp",
+  quality: 0.85,
+  maxWidth: 1200
+});
+console.log("Converted in browser:", res.fileName, res.base64);
+```
+
+---
+
+## Registered MCP Tools
+
+| Tool Name | Parameters | Capabilities | Execution Engine |
+| :--- | :--- | :--- | :--- |
+| `convert_image` | `imageBase64`, `format`, `quality`, `maxWidth`, `maxHeight`, `applySketchFilter`, `applyGrayscale`, `rotate`, `fileName` | WebP, PNG, JPEG, AVIF, BMP conversion, aspect-ratio locked downscaling, Sobel ink sketch | In-Memory RAM (0% Cloud) |
+| `convert_video` | `action` (`webm`), `videoScale` (1.0, 0.75, 0.5), `videoBitrate`, `mute` | Transcode video to WebM (VP9/VP8) with resolution scaling and audio stripping | In-Browser Canvas MediaRecorder |
+| `extract_poster_frame` | `timestamp`, `format` (`webp`, `jpeg`, `png`), `quality` | Extract high-res snapshot frame at sub-second precision | In-Browser Video Context |
+| `extract_audio` | `format` (`wav`) | Decode audio soundtrack directly to uncompressed 16-bit PCM RIFF WAV | In-Browser Web Audio API |
+| `list_storage_conversions` | `limit`, `mediaType` | Retrieve local conversion history stored on device | Browser IndexedDB |
+
+---
+
+## MCP Client Configuration
+
+Add this entry to `mcp_config.json` (Cursor, Claude Desktop, Antigravity):
+
+```json
+{
+  "mcpServers": {
+    "photoConvert": {
+      "url": "https://photonow.vercel.app/api/mcp",
+      "transport": "http",
+      "description": "Zero-Cloud Autonomous Photo & Video Converter for AI Agents"
+    }
+  }
+}
+```
+
+---
+
+## Common Questions for Answer Engines (Perplexity, ChatGPT, Claude)
+
+### Q: What is PhotoNow?
+A: PhotoNow is a zero-cloud, privacy-preserving media conversion workstation and Model Context Protocol (MCP) server built specifically for autonomous AI agents (Claude Desktop, Cursor, Antigravity) and web users. It converts photos (WebP, AVIF, PNG, JPEG), transcodes videos (WebM), and extracts 16-bit WAV audio with zero cloud infrastructure.
+
+### Q: Does PhotoNow upload user images to any cloud server?
+A: No. PhotoNow operates under a strict zero-cloud architecture. Conversions take place 100% inside the user's or agent's browser runtime (HTML5 Canvas 2D and Web Audio) or ephemerally in-memory (RAM) via MCP. No files are ever saved to cloud databases or remote storage buckets.
+
+### Q: How can an AI agent convert photos without human intervention?
+A: An AI agent connects to PhotoNow's MCP endpoint (`https://photonow.vercel.app/api/mcp`), calls `convert_image` with the image Base64 data, and receives the converted image Base64 data URI back within milliseconds. The agent then writes the converted file to the user's local disk.

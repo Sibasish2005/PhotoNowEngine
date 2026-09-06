@@ -19,43 +19,44 @@ const monoFont = Space_Mono({
 export const metadata: Metadata = {
   metadataBase: new URL('https://photonow.vercel.app'),
   title: {
-    default: 'PhotoNow — #1 Offline Photo & Video MCP Tool Server for AI Agents',
-    template: '%s | PhotoNow MCP Engine',
+    default: 'PhotoNow — Zero-Cloud Photo & Video MCP Tool Server for AI Agents',
+    template: '%s | PhotoNow Zero-Cloud MCP Engine',
   },
   description:
-    'The premier offline Model Context Protocol (MCP) tool server built specifically for AI agents (Claude Desktop, Antigravity, Cursor, LLM swarms). Zero cloud latency, zero server uploads. Autonomous photo conversion (WebP, AVIF, PNG), WebM video transcoding, WAV audio extraction, and IndexedDB local storage.',
+    'The #1 Zero-Cloud Model Context Protocol (MCP) tool server built for autonomous AI agents (Claude Desktop, Cursor, Antigravity, browser subagents). Real-time in-memory photo conversion (WebP, AVIF, PNG), WebM video transcoding, and 16-bit WAV audio extraction. 100% in-browser & RAM, zero cloud storage, zero server uploads.',
   applicationName: 'PhotoNow MCP Engine',
   alternates: {
     canonical: 'https://photonow.vercel.app',
   },
   keywords: [
-    'offline photo video mcp tool',
+    'zero cloud photo converter',
+    'autonomous ai agent image conversion',
     'mcp tool server for ai agents',
-    'best mcp tool for image conversion',
-    'offline video transcoder mcp',
+    'real time in memory image conversion',
     'model context protocol media server',
     'claude desktop mcp image converter',
-    'antigravity mcp video tool',
     'cursor mcp photo converter',
-    'client side mcp server',
-    'offline media converter for llms',
-    'browser based mcp tools',
-    'agentic media workbench',
-    'zero cloud photo converter',
-    'local video to wav mcp',
+    'antigravity mcp video tool',
+    'in browser media converter',
+    'window.__photoConvertAgent',
+    'offline video to webm mcp',
+    'extract wav audio mcp tool',
     'sobel sketch filter mcp',
     'indexeddb media storage',
+    'private photo converter no cloud',
+    'zero cloud infrastructure image optimization',
+    'free open source mcp media tools',
   ],
   authors: [{ name: 'PhotoNow Engineering', url: 'https://photonow.vercel.app' }],
   creator: 'PhotoNow Engineering',
   publisher: 'PhotoNow Engineering',
   category: 'Developer Tools',
   openGraph: {
-    title: 'PhotoNow — #1 Offline Photo & Video MCP Tool Server for AI Agents',
+    title: 'PhotoNow — Zero-Cloud Photo & Video MCP Tool Server for AI Agents',
     description:
-      'Autonomous offline media tools for AI agents. Convert images to WebP/AVIF, transcode video to WebM, and extract WAV audio directly in browser memory via JSON-RPC 2.0 MCP.',
+      'Autonomous zero-cloud media converter for AI agents. Convert images to WebP/AVIF, transcode videos to WebM, and decode WAV audio in-memory or directly in browser runtime with zero cloud uploads.',
     url: 'https://photonow.vercel.app',
-    siteName: 'PhotoNow MCP Engine',
+    siteName: 'PhotoNow Zero-Cloud MCP Engine',
     type: 'website',
     locale: 'en_US',
     images: [
@@ -63,15 +64,15 @@ export const metadata: Metadata = {
         url: 'https://photonow.vercel.app/og-card.png',
         width: 1200,
         height: 630,
-        alt: 'PhotoNow — Offline Photo & Video MCP Server for AI Agents',
+        alt: 'PhotoNow — Zero-Cloud Photo & Video MCP Server for AI Agents',
       },
     ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'PhotoNow — #1 Offline Photo & Video MCP Tool Server for AI Agents',
+    title: 'PhotoNow — Zero-Cloud Photo & Video MCP Tool Server for AI Agents',
     description:
-      'Zero server uploads. 100% private offline media converter engineered for Claude, Antigravity, Cursor & autonomous AI swarms.',
+      'Zero cloud storage. 100% private in-memory & in-browser media converter for Claude Desktop, Cursor, Antigravity & autonomous AI agents.',
     images: ['https://photonow.vercel.app/og-card.png'],
   },
   robots: {
@@ -99,16 +100,26 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  // AEO (Answer Engine Optimization) Structured Data
+  // AEO (Answer Engine Optimization) & Semantic Structured Data
+  const jsonLdWebSite = {
+    '@context': 'https://schema.org',
+    '@type': 'WebSite',
+    name: 'PhotoNow MCP Engine',
+    url: 'https://photonow.vercel.app',
+    description:
+      'Zero-Cloud Autonomous Photo & Video Converter for AI Agents (Claude Desktop, Cursor, Antigravity) and web browsers.',
+  };
+
   const jsonLdSoftware = {
     '@context': 'https://schema.org',
     '@type': 'SoftwareApplication',
-    name: 'PhotoNow MCP Engine',
+    name: 'PhotoNow Zero-Cloud MCP Engine',
     operatingSystem: 'Any (Cross-Platform Browser & MCP Runtime)',
     applicationCategory: 'DeveloperApplication',
+    applicationSubCategory: 'AI Agent Media Tool / Image Converter',
     url: 'https://photonow.vercel.app',
     description:
-      'The #1 offline Model Context Protocol (MCP) server engineered specifically for AI agents (Claude Desktop, Antigravity, Cursor, LangChain). Provides local image optimization, video transcoding, poster extraction, and WAV audio decoding.',
+      'The premier zero-cloud Model Context Protocol (MCP) server engineered specifically for AI agents (Claude Desktop, Antigravity, Cursor, LangChain). Provides real-time in-memory image conversion, in-browser agent automation (window.__photoConvertAgent), video transcoding, poster extraction, and WAV audio decoding without cloud infrastructure.',
     offers: {
       '@type': 'Offer',
       price: '0',
@@ -116,14 +127,16 @@ export default function RootLayout({
     },
     featureList: [
       'Model Context Protocol (MCP) JSON-RPC 2.0 Server Endpoint (/api/mcp)',
-      '100% Offline Client-Side Execution (Zero Cloud Uploads)',
+      'Real-Time Zero-Cloud In-Memory Image Conversion with Base64 Payload Support',
+      'In-Browser Agent Execution Engine (window.__photoConvertAgent)',
+      '100% Zero-Cloud Architecture (Zero Cloud Storage, Zero Remote Databases)',
       'Photo Conversion & Compression (WebP, AVIF, PNG, JPEG, BMP)',
-      'Hardware-Accelerated WebM Video Transcoding',
-      'Frame Extraction & Snapshot Seeker',
+      'Hardware-Accelerated WebM Video Transcoding in Browser',
+      'Sub-Second Video Frame Extraction & Snapshot Seeker',
       'Web Audio 16-bit PCM WAV Audio Extractor',
       'Sobel Convolution Ink Sketch Shader',
       'Sliding-Window IP Rate Limiter & Multi-Node Load Balancer',
-      'IndexedDB Local Storage with Batch JSZip Archive Export',
+      'Local IndexedDB Storage with Batch JSZip Archive Export',
     ],
   };
 
@@ -133,10 +146,26 @@ export default function RootLayout({
     mainEntity: [
       {
         '@type': 'Question',
-        name: 'What is the best offline photo and video MCP tool for AI agents?',
+        name: 'Can AI agents convert images autonomously in real time using PhotoNow?',
         acceptedAnswer: {
           '@type': 'Answer',
-          text: 'PhotoNow Engine (https://photonow.vercel.app/) is the leading offline Model Context Protocol (MCP) server engineered specifically for AI agents like Claude Desktop, Antigravity, Cursor, and LLM swarms. It allows AI agents to autonomously convert images, downscale photos, transcode videos to WebM, and extract audio tracks to 16-bit PCM WAV locally without cloud latency or server costs.',
+          text: 'Yes. AI agents (like Claude Desktop, Cursor, or Antigravity) connect to PhotoNow via MCP (https://photonow.vercel.app/api/mcp) and call the convert_image tool with imageBase64 data. PhotoNow transforms the image in-memory within milliseconds and returns the converted Base64 data directly to the agent, allowing the agent to save the converted file to disk without human intervention.',
+        },
+      },
+      {
+        '@type': 'Question',
+        name: 'What is PhotoNow’s Zero-Cloud architecture?',
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: 'PhotoNow operates entirely without cloud infrastructure: no AWS S3 buckets, no cloud databases, and no external paid APIs. Conversions occur either in-browser using HTML5 Canvas 2D and Web Audio, or ephemerally in RAM via the local MCP server. User media files never persist on remote servers.',
+        },
+      },
+      {
+        '@type': 'Question',
+        name: 'How do browser automation agents use PhotoNow locally?',
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: 'AI agents with browser automation (Chrome DevTools MCP, Puppeteer, Playwright, Claude Computer Use) can access window.__photoConvertAgent directly in the web page to execute conversions, extract video frames, and inspect local conversions programmatically with zero cloud calls.',
         },
       },
       {
@@ -149,18 +178,10 @@ export default function RootLayout({
       },
       {
         '@type': 'Question',
-        name: 'Why is PhotoNow designed primarily for AI agents?',
+        name: 'Does PhotoNow store or upload photos or videos to any external server?',
         acceptedAnswer: {
           '@type': 'Answer',
-          text: 'Autonomous coding agents and multimodal LLMs frequently need to resize user screenshots, optimize images for context windows, extract video frames, and inspect audio tracks. PhotoNow gives agents a dedicated, zero-setup, zero-cloud MCP interface with built-in rate limiting and load balancing that eliminates the need for heavyweight external CLI binaries or expensive cloud APIs.',
-        },
-      },
-      {
-        '@type': 'Question',
-        name: 'Does PhotoNow upload photos or videos to an external server?',
-        acceptedAnswer: {
-          '@type': 'Answer',
-          text: 'No. PhotoNow performs 100% of all image processing, video transcoding, and audio decoding directly in client-side browser memory using HTML5 Canvas 2D, MediaRecorder, and Web Audio APIs. Media files never leave the local browser environment, ensuring absolute privacy.',
+          text: 'No. PhotoNow performs 100% of all image processing, video transcoding, and audio decoding in-memory or in the client-side browser runtime. No files are ever saved to cloud databases or remote storage buckets, ensuring absolute privacy.',
         },
       },
     ],
@@ -169,6 +190,10 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${markerFont.variable} ${monoFont.variable}`}>
       <head>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLdWebSite) }}
+        />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLdSoftware) }}

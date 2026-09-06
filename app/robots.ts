@@ -7,13 +7,28 @@ export default function robots(): MetadataRoute.Robots {
     rules: [
       {
         userAgent: '*',
-        allow: ['/', '/llms.txt'],
-        disallow: ['/api/'],
+        allow: ['/', '/llms.txt', '/legal', '/privacy', '/terms'],
+        disallow: ['/api/mcp/worker'],
       },
       {
-        // Explicitly welcome AI and AEO crawlers to index our MCP documentation & llms.txt
-        userAgent: ['GPTBot', 'ClaudeBot', 'Claude-Web', 'PerplexityBot', 'Google-Extended', 'Applebot-Extended'],
-        allow: ['/', '/llms.txt'],
+        // Explicitly welcome Answer Engine Optimization (AEO) & AI Search Agents
+        userAgent: [
+          'GPTBot',
+          'OAI-SearchBot',
+          'ChatGPT-User',
+          'ClaudeBot',
+          'Claude-Web',
+          'anthropic-ai',
+          'PerplexityBot',
+          'Google-Extended',
+          'GoogleOther',
+          'Applebot-Extended',
+          'Meta-ExternalAgent',
+          'cohere-ai',
+          'Bytespider',
+          'CCBot',
+        ],
+        allow: ['/', '/llms.txt', '/api/mcp'],
         disallow: [],
       },
     ],
