@@ -100,7 +100,7 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  // 2. PAYLOAD SIZE GUARD
+  // 2. PAYLOAD SIZE GUARD (Content-Length header check)
   const contentLength = req.headers.get('content-length');
   if (contentLength && parseInt(contentLength, 10) > MAX_PAYLOAD_BYTES) {
     return NextResponse.json(
@@ -127,9 +127,35 @@ export async function POST(req: NextRequest) {
   };
 
   try {
+    let rawText: string;
+    try {
+      rawText = await req.text();
+    } catch {
+      return NextResponse.json(
+        {
+          jsonrpc: '2.0',
+          id: null,
+          error: { code: -32700, message: 'Parse error: Failed to read incoming request stream' },
+        },
+        { status: 400, headers: responseHeaders }
+      );
+    }
+
+    // Guard against chunked transfer encoding payloads exceeding MAX_PAYLOAD_BYTES
+    if (rawText.length > MAX_PAYLOAD_BYTES) {
+      return NextResponse.json(
+        {
+          jsonrpc: '2.0',
+          id: null,
+          error: { code: -32600, message: 'Invalid Request: Payload exceeds maximum limit (1MB)' },
+        },
+        { status: 413, headers: responseHeaders }
+      );
+    }
+
     let body: any;
     try {
-      body = await req.json();
+      body = JSON.parse(rawText);
     } catch {
       return NextResponse.json(
         {

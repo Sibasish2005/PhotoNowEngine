@@ -18,11 +18,14 @@ const DEFAULT_CONFIG: RateLimiterOptions = {
   maxRequests: 60,
 };
 
-// Periodic garbage collection every 60 seconds to prune stale IPs
+// Maximum tracked IPs to prevent memory exhaustion under spoofed flooding
+const MAX_TRACKED_IPS = 10_000;
+
+// Periodic garbage collection every 30 seconds or when table exceeds capacity
 let lastCleanup = Date.now();
 function pruneStaleRecords(windowMs: number) {
   const now = Date.now();
-  if (now - lastCleanup < 60000) return;
+  if (now - lastCleanup < 30000 && ipStore.size < MAX_TRACKED_IPS) return;
   lastCleanup = now;
 
   for (const [ip, record] of ipStore.entries()) {
@@ -33,23 +36,48 @@ function pruneStaleRecords(windowMs: number) {
       record.timestamps = validTimestamps;
     }
   }
+
+  // If still above threshold after pruning stale records, evict oldest entries
+  if (ipStore.size >= MAX_TRACKED_IPS) {
+    let excess = ipStore.size - (MAX_TRACKED_IPS * 0.8);
+    for (const key of ipStore.keys()) {
+      if (excess <= 0) break;
+      ipStore.delete(key);
+      excess--;
+    }
+  }
 }
 
 /**
- * Extracts client IP safely from proxy and direct request headers
+ * Extracts client IP safely from trusted edge proxy headers to prevent spoofing.
+ * On Vercel, `x-vercel-forwarded-for` is injected by the edge infrastructure
+ * and cannot be forged by external clients.
  */
 export function getClientIp(req: NextRequest): string {
-  const xForwardedFor = req.headers.get('x-forwarded-for');
-  if (xForwardedFor) {
-    const ips = xForwardedFor.split(',').map((ip) => ip.trim());
-    if (ips[0]) return ips[0];
+  // 1. Vercel infrastructure header (authoritative, tamper-proof)
+  const vercelIp = req.headers.get('x-vercel-forwarded-for');
+  if (vercelIp) {
+    const ip = vercelIp.split(',')[0]?.trim();
+    if (ip) return ip;
   }
 
+  // 2. Cloudflare Connecting IP
+  const cfConnectingIp = req.headers.get('cf-connecting-ip');
+  if (cfConnectingIp) return cfConnectingIp.trim();
+
+  // 3. Real IP header set by reverse proxy
   const xRealIp = req.headers.get('x-real-ip');
   if (xRealIp) return xRealIp.trim();
 
-  const cfConnectingIp = req.headers.get('cf-connecting-ip');
-  if (cfConnectingIp) return cfConnectingIp.trim();
+  // 4. Standard X-Forwarded-For: use rightmost non-proxy IP to resist prepended spoofing
+  const xForwardedFor = req.headers.get('x-forwarded-for');
+  if (xForwardedFor) {
+    const ips = xForwardedFor.split(',').map((ip) => ip.trim()).filter(Boolean);
+    if (ips.length > 0) {
+      // Return last proxy-verified IP in the chain
+      return ips[ips.length - 1];
+    }
+  }
 
   return '127.0.0.1';
 }
