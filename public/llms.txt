@@ -24,6 +24,7 @@ PhotoNow empowers autonomous AI agents and multimodal LLMs with high-performance
 - **Terms of Use**: https://photonow.vercel.app/terms
 - **Legal & Trademark Notice**: https://photonow.vercel.app/legal
 - **Architecture & Specs**: https://photonow.vercel.app/ARCHITECTURE.md
+- **Step-by-Step Build Guide**: https://photonow.vercel.app/BUILD_FROM_SCRATCH_GUIDE.md
 
 ---
 
