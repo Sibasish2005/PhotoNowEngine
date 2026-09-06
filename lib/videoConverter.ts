@@ -108,6 +108,12 @@ export async function extractVideoAudioToWav(
   file: Blob,
   originalFileName: string
 ): Promise<StoredConversion> {
+  // Safety guard: prevent tab crash if user loads a massive multi-gigabyte video into memory
+  const MAX_AUDIO_EXTRACT_BYTES = 500 * 1024 * 1024; // 500MB
+  if (file.size > MAX_AUDIO_EXTRACT_BYTES) {
+    throw new Error('FILE EXCEEDS BROWSER MEMORY SAFETY LIMIT FOR DIRECT AUDIO EXTRACTION (MAX 500MB).');
+  }
+
   const arrayBuffer = await file.arrayBuffer();
   const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
 

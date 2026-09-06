@@ -135,7 +135,15 @@ export async function convertImage(
   let targetWidth = img.naturalWidth || img.width;
   let targetHeight = img.naturalHeight || img.height;
 
-  // Downscale if exceeds max bounds
+  // Defensive safeguard: clamp max dimension to 8192px to prevent canvas decompression bombs
+  const ABSOLUTE_MAX_DIMENSION = 8192;
+  if (targetWidth > ABSOLUTE_MAX_DIMENSION || targetHeight > ABSOLUTE_MAX_DIMENSION) {
+    const scaleFactor = Math.min(ABSOLUTE_MAX_DIMENSION / targetWidth, ABSOLUTE_MAX_DIMENSION / targetHeight);
+    targetWidth = Math.round(targetWidth * scaleFactor);
+    targetHeight = Math.round(targetHeight * scaleFactor);
+  }
+
+  // Downscale if exceeds user-defined max bounds
   if (options.maxWidth && targetWidth > options.maxWidth) {
     const ratio = options.maxWidth / targetWidth;
     targetWidth = Math.round(targetWidth * ratio);
