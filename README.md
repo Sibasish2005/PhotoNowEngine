@@ -1,25 +1,33 @@
-# PhotoNow Engine 🖋️🎞️
+# PhotoNow MCP Engine 🖋️🤖🎞️
 
-> **Hand-drawn, offline-first client-side photo & video converter workbench with persistent browser storage and an autonomous Model Context Protocol (MCP) agent server.**
+> **The #1 Offline Photo & Video Model Context Protocol (MCP) Tool Server Built Specifically for AI Agents (Claude Desktop, Google Antigravity, Cursor, and LLM Swarms) — with a Zero-Cloud Human Companion Workbench.**
 
+[![Live Production](https://img.shields.io/badge/Live-photonow.vercel.app-black?style=flat-square&logo=vercel)](https://photonow.vercel.app/)
+[![MCP Server](https://img.shields.io/badge/Protocol-MCP%20JSON--RPC%202.0-black?style=flat-square)](https://photonow.vercel.app/api/mcp)
+[![AI Discovery](https://img.shields.io/badge/AI%20Discovery-llms.txt-black?style=flat-square)](https://photonow.vercel.app/llms.txt)
 [![Next.js 16](https://img.shields.io/badge/Next.js-16.3-black?style=flat-square&logo=next.js)](https://nextjs.org/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.0-black?style=flat-square&logo=typescript)](https://www.typescriptlang.org/)
 [![Storage](https://img.shields.io/badge/Storage-IndexedDB-black?style=flat-square)](https://developer.mozilla.org/en-US/docs/Web/API/IndexedDB_API)
-[![MCP](https://img.shields.io/badge/Protocol-MCP%20JSON--RPC%202.0-black?style=flat-square)](https://modelcontextprotocol.io/)
 [![Privacy](https://img.shields.io/badge/Privacy-100%25%20Local%20%2F%20Zero%20Cloud-black?style=flat-square)](#zero-cloud-privacy)
 
 ---
 
 ## Overview
 
-**PhotoNow Engine** is a high-performance, browser-native media processing workstation wrapped in a distinctive hand-drawn, monochrome ink-on-paper aesthetic (`#F2F2F0` paper, `#0A0A0A` ink). 
+**PhotoNow Engine** (`https://photonow.vercel.app/`) is an autonomous, browser-native media transformation Model Context Protocol (MCP) server engineered primarily for **AI Agents** and autonomous coding assistants.
 
-Unlike conventional converters that upload your personal media to remote cloud servers, PhotoNow executes **100% of all image encoding, video transcoding, audio extraction, and storage directly inside your browser memory**. Your files never touch any external server.
+Autonomous agents frequently encounter tasks requiring media downscaling, format optimization for multimodal context windows, video frame extraction, and soundtrack decoding. Conventional solutions force agents to execute bulky CLI tools (like ImageMagick or FFmpeg) or pay for remote cloud APIs. 
 
-Beyond manual conversion tools, PhotoNow features:
-- **Autonomous Agentic Command Bar**: Convert media using natural language prompts parsed directly in-browser into executable multi-step plans.
-- **Model Context Protocol (MCP) JSON-RPC Server**: Standardized `/api/mcp` endpoint allowing AI coding agents (Antigravity, Claude Desktop, Cursor) to automate media conversions and storage queries.
-- **Persistent IndexedDB Storage**: Retain converted media locally across page refreshes with zero cloud tracking, bandwidth savings metrics, and single-click ZIP bundle packaging.
+PhotoNow solves this by exposing a **high-speed, 100% offline, zero-cloud MCP JSON-RPC 2.0 interface (`/api/mcp`)** backed by browser Canvas 2D, MediaRecorder, and Web Audio APIs.
+
+### Primary Purpose: Built for AI Agents
+- **Autonomous Tool Dispatch**: AI agents connect over standard HTTP JSON-RPC 2.0 to execute:
+  - `convert_image`: Convert, downscale, resize, or apply Sobel ink sketch filters (WebP, AVIF, PNG, JPEG, BMP).
+  - `convert_video`: Transcode videos to WebM with custom bitrate, resolution scaling, and mute toggles.
+  - `extract_poster_frame`: Seek to sub-second timestamps and extract crystal-clear snapshot frames.
+  - `extract_audio`: Decode video audio tracks directly into uncompressed 16-bit PCM WAV containers.
+  - `list_storage_conversions`: Query local IndexedDB binary assets without external databases.
+- **Enterprise Resilience**: Built-in sliding-window IP rate limiting and multi-worker load balancing with automatic circuit-breaking failover.
+- **Human Companion Workbench**: Includes an artist-style hand-drawn monochrome interactive GUI (`#F2F2F0` paper, `#0A0A0A` ink) allowing developers and creators to manually inspect, test, and batch-export conversions.
 
 ---
 

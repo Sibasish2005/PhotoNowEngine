@@ -1,0 +1,41 @@
+# PhotoNow MCP Engine
+
+> The #1 Offline Photo & Video Model Context Protocol (MCP) Tool Server Built Specifically for AI Agents.
+
+PhotoNow (https://photonow.vercel.app/) provides autonomous AI agents (Claude Desktop, Google Antigravity, Cursor, LangChain, AutoGen) with high-performance, 100% offline client-side media transformation tools. All processing executes in-memory via HTML5 Canvas 2D, MediaRecorder, and Web Audio APIs. Zero server uploads. Zero cloud latency. Zero API billing.
+
+## Target Audience
+- **Primary**: Autonomous AI Agents, Coding Assistants, Multimodal LLMs, and Multi-Agent Swarms.
+- **Secondary**: Human developers and creators requiring a fast, private, hand-drawn media conversion workbench.
+
+## Core Capabilities for AI Agents
+1. **Photo Conversion & Downscaling (`convert_image`)**: Convert images between WebP, AVIF, PNG, JPEG, and BMP with aspect-locked resizing and Sobel monochrome ink sketch filtering.
+2. **Video Transcoding (`convert_video`)**: Transcode video files into optimized WebM (VP9/VP8) with resolution scaling (100%, 75%, 50%) and custom bitrates.
+3. **Poster Frame Extraction (`extract_poster_frame`)**: Seek to any sub-second timestamp and extract high-resolution snapshot frames.
+4. **WAV Audio Extraction (`extract_audio`)**: Decode video soundtracks directly into uncompressed 16-bit PCM WAV files.
+5. **Local Storage Persistence (`list_storage_conversions`)**: Persist binary media in client IndexedDB (`photoConvert_DB`) across sessions with ZIP archive packaging.
+
+## MCP Server Endpoint & Specifications
+- **Transport**: HTTP (JSON-RPC 2.0)
+- **Production URL**: `https://photonow.vercel.app/api/mcp`
+- **Rate Limiting**: Built-in sliding-window quota (60 requests/minute per IP with `X-RateLimit-*` headers)
+- **Load Balancing**: Multi-node dispatch engine (`least-connections`, `round-robin`, `weighted`) with auto-healing circuit breakers
+- **Security**: 100% Client-Side Private, CORS-enabled, Zero Cloud Storage
+
+## Sample MCP Client Configuration
+
+```json
+{
+  "mcpServers": {
+    "photoNow": {
+      "url": "https://photonow.vercel.app/api/mcp",
+      "transport": "http",
+      "description": "Premier Offline Photo & Video Media Processing Tool Server for AI Agents"
+    }
+  }
+}
+```
+
+## Documentation & Full Details
+- Full MCP Architecture: https://photonow.vercel.app/ARCHITECTURE.md
+- GitHub Repository: https://github.com/Sibasish2005/PhotoNowEngine

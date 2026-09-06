@@ -43,13 +43,13 @@ export const HeaderNav: React.FC<HeaderNavProps> = ({
             fontSize: '12px',
             borderRadius: '2px',
           }}>
-            [NOW]
+            [MCP:AGENT]
           </span>
           <span>PHOTONOW.ENGINE</span>
         </div>
 
         <span style={{ color: 'var(--ink-subtle)', fontSize: '11px' }}>
-          • 100% LOCAL BROWSER RUNTIME •
+          • #1 OFFLINE MEDIA MCP SERVER FOR AI AGENTS •
         </span>
       </div>
 

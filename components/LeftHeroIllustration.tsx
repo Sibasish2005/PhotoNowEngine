@@ -21,15 +21,15 @@ export const LeftHeroIllustration: React.FC = () => {
           borderBottom: '2px solid var(--ink)',
           paddingBottom: '2px',
         }}>
-          HAND-DRAWN CLIENT ENGINE / NO CLOUD
+          #1 OFFLINE MCP TOOL SERVER • BUILT FOR AI AGENTS
         </span>
         <h1 style={{
-          fontSize: 'clamp(3.8rem, 7vw, 6.4rem)',
+          fontSize: 'clamp(3.4rem, 6.5vw, 5.8rem)',
           lineHeight: '0.88',
           letterSpacing: '-1px',
           marginBottom: '12px',
         }}>
-          CONVERT.
+          AGENT MEDIA.
         </h1>
         <p style={{
           fontSize: '12px',
@@ -37,7 +37,7 @@ export const LeftHeroIllustration: React.FC = () => {
           color: 'var(--ink-gray)',
           lineHeight: '1.6',
         }}>
-          OFFLINE-FIRST CLIENT WORKBENCH. ENCODE PHOTOS TO WEBP/AVIF, TRANSCODE VIDEOS, EXTRACT SOUNDTRACKS & POSTER FRAMES PURELY IN BROWSER MEMORY.
+          THE PREMIER OFFLINE PHOTO & VIDEO TOOL SERVER FOR AI AGENTS (CLAUDE, ANTIGRAVITY, CURSOR, SWARMS). AUTONOMOUS WEBP/AVIF ENCODING, WEBM TRANSCODING, WAV SOUNDTRACK EXTRACTION & INDEXEDDB STORAGE VIA JSON-RPC 2.0. (HUMAN WORKBENCH INCLUDED).
         </p>
       </div>
 
