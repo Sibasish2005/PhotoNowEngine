@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import JSZip from 'jszip';
 import { StoredConversion } from '@/lib/types';
-import { getAllConversions, deleteConversion, clearAllConversions, formatBytes, getStorageStats } from '@/lib/storage';
+import { getAllConversions, deleteConversion, clearAllConversions, formatBytes, getStorageStats, sanitizeFileName } from '@/lib/storage';
 
 interface StorageHistoryProps {
   onStorageUpdated: () => void;
@@ -23,14 +23,19 @@ export const StorageHistory: React.FC<StorageHistoryProps> = ({ onStorageUpdated
     setLoading(true);
     try {
       const list = await getAllConversions();
-      // Ensure preview URLs exist for display
-      const hydrated = list.map((item) => {
-        if (!item.previewUrl && item.blob) {
-          return { ...item, previewUrl: URL.createObjectURL(item.blob) };
-        }
-        return item;
+      // Revoke any previous preview URLs to prevent memory leaks
+      setItems((prevItems) => {
+        prevItems.forEach((p) => {
+          if (p.previewUrl) URL.revokeObjectURL(p.previewUrl);
+        });
+        // Ensure fresh preview URLs exist for display
+        return list.map((item) => {
+          if (!item.previewUrl && item.blob) {
+            return { ...item, previewUrl: URL.createObjectURL(item.blob) };
+          }
+          return item;
+        });
       });
-      setItems(hydrated);
 
       const stats = await getStorageStats();
       setStorageStats(stats);
@@ -43,6 +48,15 @@ export const StorageHistory: React.FC<StorageHistoryProps> = ({ onStorageUpdated
 
   useEffect(() => {
     loadData();
+    // Cleanup allocated URLs on unmount
+    return () => {
+      setItems((currentItems) => {
+        currentItems.forEach((p) => {
+          if (p.previewUrl) URL.revokeObjectURL(p.previewUrl);
+        });
+        return [];
+      });
+    };
   }, []);
 
   const handleDelete = async (id: string) => {
@@ -68,7 +82,9 @@ export const StorageHistory: React.FC<StorageHistoryProps> = ({ onStorageUpdated
       const folder = zip.folder('photonow_conversions');
 
       items.forEach((item) => {
-        folder?.file(item.fileName, item.blob);
+        // Sanitize filename to prevent directory traversal / Zip Slip vulnerability
+        const safeName = sanitizeFileName(item.fileName);
+        folder?.file(safeName, item.blob);
       });
 
       const content = await zip.generateAsync({ type: 'blob' });

@@ -45,7 +45,10 @@ export const VideoConverter: React.FC<VideoConverterProps> = ({ onConversionSucc
     setErrorMsg(null);
     setVideoFile(file);
     const url = URL.createObjectURL(file);
-    setVideoUrl(url);
+    setVideoUrl((prev) => {
+      if (prev) URL.revokeObjectURL(prev);
+      return url;
+    });
     setLatestResult(null);
   };
 

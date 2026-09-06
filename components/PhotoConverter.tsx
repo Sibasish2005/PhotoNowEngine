@@ -37,7 +37,12 @@ export const PhotoConverter: React.FC<PhotoConverterProps> = ({ onConversionSucc
     list.forEach((f) => {
       newPreviews[f.name] = URL.createObjectURL(f);
     });
-    setPreviewUrls(newPreviews);
+
+    // Revoke previous URLs before setting new ones
+    setPreviewUrls((prev) => {
+      Object.values(prev).forEach((u) => URL.revokeObjectURL(u));
+      return newPreviews;
+    });
     setLatestResults([]);
   };
 

@@ -1,4 +1,5 @@
 import { ImageConvertOptions, ImageFormat, StoredConversion } from './types';
+import { sanitizeFileName } from './storage';
 
 export function getMimeType(format: ImageFormat): string {
   switch (format) {
@@ -208,7 +209,8 @@ export async function convertImage(
     );
   });
 
-  const baseName = originalFileName.replace(/\.[^/.]+$/, '');
+  const cleanOriginalName = sanitizeFileName(originalFileName);
+  const baseName = cleanOriginalName.replace(/\.[^/.]+$/, '');
   const outFileName = `${baseName}_converted.${options.format}`;
   const origSize = source.size;
   const newSize = convertedBlob.size;

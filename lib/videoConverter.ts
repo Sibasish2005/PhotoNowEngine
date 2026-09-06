@@ -1,4 +1,5 @@
 import { StoredConversion, VideoConvertOptions } from './types';
+import { sanitizeFileName } from './storage';
 
 /**
  * Loads a video file into an HTMLVideoElement and prepares it for processing
@@ -74,7 +75,8 @@ export async function extractVideoPoster(
   // Cleanup video object url
   URL.revokeObjectURL(video.src);
 
-  const baseName = originalFileName.replace(/\.[^/.]+$/, '');
+  const cleanOriginalName = sanitizeFileName(originalFileName);
+  const baseName = cleanOriginalName.replace(/\.[^/.]+$/, '');
   const outFileName = `${baseName}_poster_${targetTime.toFixed(1)}s.${format}`;
   const origSize = file.size;
   const newSize = posterBlob.size;
@@ -121,7 +123,8 @@ export async function extractVideoAudioToWav(
   const wavBlob = audioBufferToWavBlob(audioBuffer);
   await audioCtx.close();
 
-  const baseName = originalFileName.replace(/\.[^/.]+$/, '');
+  const cleanOriginalName = sanitizeFileName(originalFileName);
+  const baseName = cleanOriginalName.replace(/\.[^/.]+$/, '');
   const outFileName = `${baseName}_audio.wav`;
   const origSize = file.size;
   const newSize = wavBlob.size;
@@ -169,116 +172,141 @@ export async function transcodeVideoToWebm(
 
   // Set up MediaStream from canvas
   const stream = canvas.captureStream(30); // 30 fps
+  let audioCtx: AudioContext | null = null;
 
-  // If video has audio and not muted, route audio stream into output
-  if (!options.mute) {
-    try {
-      const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
-      const source = audioCtx.createMediaElementSource(video);
-      const dest = audioCtx.createMediaStreamDestination();
-      source.connect(dest);
-      source.connect(audioCtx.destination);
-      dest.stream.getAudioTracks().forEach((track) => stream.addTrack(track));
-    } catch {
-      // Audio capture stream fallback if already routed or cross-origin
+  try {
+    // If video has audio and not muted, route audio stream into output
+    if (!options.mute) {
+      try {
+        audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
+        const source = audioCtx.createMediaElementSource(video);
+        const dest = audioCtx.createMediaStreamDestination();
+        source.connect(dest);
+        source.connect(audioCtx.destination);
+        dest.stream.getAudioTracks().forEach((track) => stream.addTrack(track));
+      } catch {
+        // Audio capture stream fallback if already routed or cross-origin
+      }
     }
-  }
 
-  // Find best supported mimeType
-  const mimeTypes = [
-    'video/webm;codecs=vp9,opus',
-    'video/webm;codecs=vp8,opus',
-    'video/webm;codecs=vp9',
-    'video/webm;codecs=vp8',
-    'video/webm',
-  ];
-  let selectedMimeType = 'video/webm';
-  for (const m of mimeTypes) {
-    if (MediaRecorder.isTypeSupported(m)) {
-      selectedMimeType = m;
-      break;
+    // Find best supported mimeType
+    const mimeTypes = [
+      'video/webm;codecs=vp9,opus',
+      'video/webm;codecs=vp8,opus',
+      'video/webm;codecs=vp9',
+      'video/webm;codecs=vp8',
+      'video/webm',
+    ];
+    let selectedMimeType = 'video/webm';
+    for (const m of mimeTypes) {
+      if (MediaRecorder.isTypeSupported(m)) {
+        selectedMimeType = m;
+        break;
+      }
     }
-  }
 
-  const bitrate = options.videoBitrate || 2000000; // 2.0 Mbps default
-  const mediaRecorder = new MediaRecorder(stream, {
-    mimeType: selectedMimeType,
-    videoBitsPerSecond: bitrate,
-  });
+    const bitrate = options.videoBitrate || 2000000; // 2.0 Mbps default
+    const mediaRecorder = new MediaRecorder(stream, {
+      mimeType: selectedMimeType,
+      videoBitsPerSecond: bitrate,
+    });
 
-  const chunks: Blob[] = [];
-  mediaRecorder.ondataavailable = (e) => {
-    if (e.data && e.data.size > 0) {
-      chunks.push(e.data);
-    }
-  };
-
-  const recordingPromise = new Promise<Blob>((resolve, reject) => {
-    mediaRecorder.onstop = () => {
-      const blob = new Blob(chunks, { type: 'video/webm' });
-      resolve(blob);
+    const chunks: Blob[] = [];
+    mediaRecorder.ondataavailable = (e) => {
+      if (e.data && e.data.size > 0) {
+        chunks.push(e.data);
+      }
     };
-    mediaRecorder.onerror = (err) => reject(err);
-  });
 
-  // Start recording
-  mediaRecorder.start(100);
-  video.currentTime = 0;
-  await video.play();
+    const recordingPromise = new Promise<Blob>((resolve, reject) => {
+      mediaRecorder.onstop = () => {
+        const blob = new Blob(chunks, { type: 'video/webm' });
+        resolve(blob);
+      };
+      mediaRecorder.onerror = (err) => reject(err);
+    });
 
-  // Draw loop
-  const totalDuration = video.duration || 10;
-  let isCancelled = false;
+    // Start recording
+    mediaRecorder.start(100);
+    video.currentTime = 0;
+    await video.play();
 
-  const drawFrame = () => {
-    if (video.ended || video.paused || isCancelled) return;
-    ctx.drawImage(video, 0, 0, targetWidth, targetHeight);
-    if (onProgress) {
-      const pct = Math.min(Math.round((video.currentTime / totalDuration) * 100), 99);
-      onProgress(pct);
-    }
+    // Draw loop
+    const totalDuration = video.duration || 10;
+    let isCancelled = false;
+
+    const drawFrame = () => {
+      if (video.ended || video.paused || isCancelled) return;
+      ctx.drawImage(video, 0, 0, targetWidth, targetHeight);
+      if (onProgress) {
+        const pct = Math.min(Math.round((video.currentTime / totalDuration) * 100), 99);
+        onProgress(pct);
+      }
+      requestAnimationFrame(drawFrame);
+    };
+
     requestAnimationFrame(drawFrame);
-  };
 
-  requestAnimationFrame(drawFrame);
+    // Wait until playback ends with fallback timeout guard
+    await new Promise<void>((resolve) => {
+      let resolved = false;
+      const onDone = () => {
+        if (!resolved) {
+          resolved = true;
+          isCancelled = true;
+          resolve();
+        }
+      };
+      video.onended = onDone;
+      // Fallback timeout in case playback stalls or fails to fire onended
+      const timeoutMs = Math.max(5000, Math.ceil((totalDuration + 2) * 1000));
+      setTimeout(onDone, timeoutMs);
+    });
 
-  // Wait until playback ends
-  await new Promise<void>((resolve) => {
-    video.onended = () => {
-      resolve();
+    if (mediaRecorder.state !== 'inactive') {
+      mediaRecorder.stop();
+    }
+    const convertedBlob = await recordingPromise;
+
+    if (onProgress) onProgress(100);
+
+    const cleanOriginalName = sanitizeFileName(originalFileName);
+    const baseName = cleanOriginalName.replace(/\.[^/.]+$/, '');
+    const outFileName = `${baseName}_optimized.webm`;
+    const origSize = file.size;
+    const newSize = convertedBlob.size;
+    const saved = origSize - newSize;
+    const percentSaved = origSize > 0 ? ((saved / origSize) * 100).toFixed(1) : '0';
+
+    return {
+      id: `vid_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`,
+      fileName: outFileName,
+      originalName: originalFileName,
+      originalSize: origSize,
+      convertedSize: newSize,
+      savedBytes: saved,
+      percentSaved,
+      mimeType: 'video/webm',
+      format: 'webm',
+      mediaType: 'video',
+      timestamp: Date.now(),
+      blob: convertedBlob,
+      previewUrl: URL.createObjectURL(convertedBlob),
+      dimensions: { width: targetWidth, height: targetHeight },
+      duration: totalDuration,
     };
-  });
-
-  mediaRecorder.stop();
-  const convertedBlob = await recordingPromise;
-
-  if (onProgress) onProgress(100);
-  URL.revokeObjectURL(video.src);
-
-  const baseName = originalFileName.replace(/\.[^/.]+$/, '');
-  const outFileName = `${baseName}_optimized.webm`;
-  const origSize = file.size;
-  const newSize = convertedBlob.size;
-  const saved = origSize - newSize;
-  const percentSaved = origSize > 0 ? ((saved / origSize) * 100).toFixed(1) : '0';
-
-  return {
-    id: `vid_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`,
-    fileName: outFileName,
-    originalName: originalFileName,
-    originalSize: origSize,
-    convertedSize: newSize,
-    savedBytes: saved,
-    percentSaved,
-    mimeType: 'video/webm',
-    format: 'webm',
-    mediaType: 'video',
-    timestamp: Date.now(),
-    blob: convertedBlob,
-    previewUrl: URL.createObjectURL(convertedBlob),
-    dimensions: { width: targetWidth, height: targetHeight },
-    duration: totalDuration,
-  };
+  } finally {
+    // Teardown stream tracks & hardware audio context to prevent resource leaks
+    stream.getTracks().forEach((track) => track.stop());
+    if (audioCtx) {
+      try {
+        await audioCtx.close();
+      } catch {
+        // Ignored
+      }
+    }
+    URL.revokeObjectURL(video.src);
+  }
 }
 
 /**

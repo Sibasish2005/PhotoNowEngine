@@ -134,3 +134,18 @@ export function formatBytes(bytes: number): string {
   const val = bytes / Math.pow(k, i);
   return `${val.toFixed(i === 0 ? 0 : 2)} ${sizes[i] || 'B'}`;
 }
+
+/**
+ * Sanitizes file names to eliminate directory traversal sequences (e.g. '../', '..\\')
+ * and control characters that could trigger Zip Slip or file system exploit vectors.
+ */
+export function sanitizeFileName(rawName: string): string {
+  if (!rawName) return 'file';
+  return rawName
+    .replace(/[\0\r\n\t]/g, '')           // Strip control characters & null bytes
+    .replace(/\.\.+[/\\]+/g, '')          // Strip path traversal sequences (../../)
+    .replace(/[/\\]+/g, '_')              // Replace path separators with underscores
+    .replace(/[<>:"|?*]/g, '_')           // Replace Windows invalid file characters
+    .replace(/^[.\s]+/, '')               // Remove leading dots or whitespace
+    .trim() || 'converted_media';
+}
