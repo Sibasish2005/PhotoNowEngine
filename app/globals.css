@@ -1,0 +1,228 @@
+:root {
+  --bg-paper: #F2F2F0;
+  --ink: #0A0A0A;
+  --ink-inverted: #F2F2F0;
+  --ink-gray: #444444;
+  --ink-subtle: #888888;
+  --paper-tint: #E8E8E5;
+}
+
+* {
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
+  text-transform: uppercase;
+  -webkit-font-smoothing: antialiased;
+}
+
+html, body {
+  background-color: var(--bg-paper);
+  color: var(--ink);
+  font-family: var(--font-mono), "Space Mono", monospace;
+  font-size: 13px;
+  line-height: 1.5;
+  letter-spacing: 0.5px;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* SUBTLE PAPER GRAIN OVERLAY */
+body::before {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  opacity: 0.03;
+  z-index: 9999;
+  background-image: radial-gradient(#000000 1px, transparent 0);
+  background-size: 8px 8px;
+}
+
+/* HEADINGS */
+h1, h2, h3, .marker-font {
+  font-family: var(--font-marker), "Permanent Marker", cursive, sans-serif;
+  letter-spacing: 1px;
+  font-weight: 400;
+}
+
+h1 {
+  font-size: clamp(2.8rem, 6vw, 5.2rem);
+  line-height: 0.95;
+}
+
+h2 {
+  font-size: clamp(1.6rem, 3.5vw, 2.4rem);
+  line-height: 1.1;
+}
+
+h3 {
+  font-size: 1.25rem;
+}
+
+/* WOBBLY HAND-DRAWN BORDERS */
+.hand-box {
+  border: 2px solid var(--ink);
+  border-radius: 255px 15px 225px 15px/15px 225px 15px 255px;
+  background: var(--bg-paper);
+  transition: transform 0.15s ease, border-color 0.15s ease;
+}
+
+.hand-box-sm {
+  border: 1.5px solid var(--ink);
+  border-radius: 120px 10px 140px 8px/8px 130px 10px 120px;
+}
+
+.hand-box-invert {
+  background: var(--ink);
+  color: var(--ink-inverted);
+  border: 2px solid var(--ink);
+  border-radius: 255px 15px 225px 15px/15px 225px 15px 255px;
+}
+
+/* BUTTONS */
+.hand-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: transparent;
+  color: var(--ink);
+  border: 2px solid var(--ink);
+  border-radius: 255px 15px 225px 15px/15px 225px 15px 255px;
+  padding: 8px 18px;
+  font-family: var(--font-mono), monospace;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.hand-btn:hover {
+  background: var(--ink);
+  color: var(--ink-inverted);
+  transform: translateY(-2px);
+}
+
+.hand-btn:active {
+  transform: translateY(1px) scale(0.98);
+}
+
+.hand-btn.primary {
+  background: var(--ink);
+  color: var(--ink-inverted);
+}
+
+.hand-btn.primary:hover {
+  background: #222222;
+  border-color: #222222;
+}
+
+.hand-btn.active {
+  background: var(--ink);
+  color: var(--ink-inverted);
+}
+
+.hand-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* INPUTS & RANGES */
+input[type="text"], textarea, select {
+  font-family: var(--font-mono), monospace;
+  font-size: 13px;
+  background: var(--bg-paper);
+  color: var(--ink);
+  border: 2px solid var(--ink);
+  border-radius: 255px 15px 225px 15px/15px 225px 15px 255px;
+  padding: 10px 14px;
+  outline: none;
+  width: 100%;
+}
+
+input[type="text"]:focus, textarea:focus, select:focus {
+  background: #FFFFFF;
+}
+
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  background: var(--ink);
+  height: 4px;
+  border-radius: 2px;
+  outline: none;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--ink);
+  border: 2px solid var(--bg-paper);
+  cursor: pointer;
+  box-shadow: 0 0 0 2px var(--ink);
+}
+
+/* RIGHT VERTICAL TAB STRIP */
+.vertical-tab-strip {
+  position: fixed;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%) rotate(-90deg);
+  transform-origin: right center;
+  background: var(--ink);
+  color: var(--ink-inverted);
+  padding: 6px 18px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 2.5px;
+  white-space: nowrap;
+  z-index: 1000;
+  border-bottom: 2px solid var(--bg-paper);
+}
+
+/* DOODLE ANNOTATION ARROW */
+.doodle-text {
+  font-family: var(--font-marker), cursive, sans-serif;
+  letter-spacing: 1px;
+}
+
+/* SCROLLBAR */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-paper);
+  border-left: 1px solid var(--ink);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--ink);
+}
+
+/* UTILITIES */
+.underline-sketch {
+  position: relative;
+  display: inline-block;
+}
+
+.underline-sketch::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -4px;
+  width: 100%;
+  height: 3px;
+  background: var(--ink);
+  border-radius: 255px 15px 225px 15px/15px 225px 15px 255px;
+}
