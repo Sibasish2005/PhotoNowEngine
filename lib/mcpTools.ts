@@ -274,7 +274,7 @@ export function parseAgentPrompt(prompt: string): {
 export const SAMPLE_MCP_CLIENT_CONFIG = {
   mcpServers: {
     photoConvert: {
-      url: "http://localhost:3000/api/mcp",
+      url: "https://photonow.vercel.app/api/mcp",
       transport: "http",
       description: "Hand-Drawn Client-Side Photo & Video Converter with Local Storage persistence"
     }

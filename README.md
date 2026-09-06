@@ -171,7 +171,7 @@ Add this entry to your `mcp_config.json`:
 {
   "mcpServers": {
     "photoConvert": {
-      "url": "http://localhost:3000/api/mcp",
+      "url": "https://photonow.vercel.app/api/mcp",
       "transport": "http",
       "description": "Hand-Drawn Client-Side Photo & Video Converter with Local Storage persistence"
     }
