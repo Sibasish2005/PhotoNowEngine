@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 180" fill="none">
+  <!-- Solid background with hand-drawn edge for Apple Home Screen & Touch devices -->
+  <rect width="180" height="180" rx="36" fill="#0A0A0A" />
+  <rect x="8" y="8" width="164" height="164" rx="30" fill="#F2F2F0" stroke="#0A0A0A" stroke-width="4" />
+  
+  <!-- Camera / Media Converter Body -->
+  <rect x="34" y="60" width="112" height="74" rx="10" stroke="#0A0A0A" stroke-width="8" fill="#F2F2F0" />
+  
+  <!-- Camera Top Prism / Viewfinder -->
+  <path d="M62 60 L72 40 L108 40 L118 60 Z" fill="#0A0A0A" stroke="#0A0A0A" stroke-width="4" stroke-linejoin="round" />
+  
+  <!-- Lens Outer Circle -->
+  <circle cx="90" cy="97" r="26" stroke="#0A0A0A" stroke-width="8" fill="#F2F2F0" />
+  
+  <!-- Inner Aperture Core -->
+  <circle cx="90" cy="97" r="11" fill="#0A0A0A" />
+  
+  <!-- Viewfinder / Sensor Dot -->
+  <circle cx="124" cy="76" r="5" fill="#0A0A0A" />
+
+  <!-- Media Play / Fast-Convert Triangle -->
+  <polygon points="48,76 59,85 48,94" fill="#0A0A0A" />
+</svg>

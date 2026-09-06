@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <!-- Paper backdrop with hand-drawn wobbly edge -->
+  <rect x="2" y="2" width="60" height="60" rx="14" fill="#F2F2F0" stroke="#0A0A0A" stroke-width="3.5" />
+  
+  <!-- Camera / Media Converter Body -->
+  <rect x="12" y="21" width="40" height="27" rx="3.5" stroke="#0A0A0A" stroke-width="3" fill="#F2F2F0" />
+  
+  <!-- Camera Top Prism / Viewfinder -->
+  <path d="M22 21 L26 14 L38 14 L42 21 Z" fill="#0A0A0A" stroke="#0A0A0A" stroke-width="1.5" stroke-linejoin="round" />
+  
+  <!-- Lens Outer Circle -->
+  <circle cx="32" cy="34.5" r="9" stroke="#0A0A0A" stroke-width="3" fill="#F2F2F0" />
+  
+  <!-- Inner Aperture Core -->
+  <circle cx="32" cy="34.5" r="4" fill="#0A0A0A" />
+  
+  <!-- Viewfinder / Sensor Dot -->
+  <circle cx="44" cy="27" r="1.8" fill="#0A0A0A" />
+
+  <!-- Media Play / Fast-Convert Triangle -->
+  <polygon points="17,27 21,30 17,33" fill="#0A0A0A" />
+</svg>
