@@ -80,7 +80,9 @@ photoConvert/
 │   └── VideoConverter.tsx       # Video player, timeline scrub, transcode & audio
 ├── lib/
 │   ├── imageConverter.ts        # Canvas 2D image pipelines & Sobel ink shader
+│   ├── loadBalancer.ts          # MCP cluster load balancer (round-robin, least-connections, weighted)
 │   ├── mcpTools.ts              # MCP tool definitions & natural language parser
+│   ├── rateLimiter.ts           # Sliding-window IP rate limiter & standard headers
 │   ├── storage.ts               # IndexedDB wrapper (photoConvert_DB) & metrics
 │   ├── types.ts                 # Shared TypeScript interfaces and types
 │   └── videoConverter.ts        # Video transcode, poster grab & 16-bit WAV encoder
@@ -255,6 +257,44 @@ photoConvert/
    - Produces a deterministic action summary and ordered step sequence (`steps[]`).
 3. **`SAMPLE_MCP_CLIENT_CONFIG`**:
    - Pre-formatted JSON snippet ready for inclusion into agent configuration files (Claude, Antigravity, Cursor).
+
+---
+
+### `lib/rateLimiter.ts`
+**Purpose**: Sliding-window IP rate limiter safeguarding the MCP server from DDoS, crawler hammering, and serverless quota exhaustion.
+
+#### Key Functions & Implementation Logic:
+- **`checkRateLimit(req: NextRequest, options?)`**:
+  - Extracts client IP across `x-forwarded-for`, `x-real-ip`, and `cf-connecting-ip`.
+  - Maintains a sliding-window timestamp array per IP in-memory (`Map<string, RateLimitRecord>`).
+  - Automatically filters expired timestamps ($now - ts < windowMs$).
+  - Evaluates request quota against policy limit (Default: 60 requests / minute).
+  - Emits standard rate-limiting headers:
+    - `X-RateLimit-Limit`: Maximum requests per window (60).
+    - `X-RateLimit-Remaining`: Remaining request allowance in active window.
+    - `X-RateLimit-Reset`: Epoch second when quota refreshes.
+    - `Retry-After`: Seconds to wait before retry (emitted on HTTP 429).
+- **`pruneStaleRecords(windowMs)`**:
+  - Self-cleaning garbage collector executing every 60 seconds to evict inactive IP buckets, preventing memory leaks in persistent processes.
+
+---
+
+### `lib/loadBalancer.ts`
+**Purpose**: Multi-node MCP dispatch orchestrator, health monitoring, and circuit breaker.
+
+#### Key Functions & Implementation Logic:
+- **`acquireNode(strategy)`**:
+  - Dynamically selects execution worker nodes according to industrial load balancing algorithms:
+    - **`least-connections`** (Default): Routes requests to the worker currently executing the fewest active concurrent in-flight tasks.
+    - **`round-robin`**: Fair sequential rotation across all online nodes.
+    - **`weighted`**: Capacity-rated distribution proportional to node weights.
+  - Automatically increments active connection counters.
+- **`releaseNode(nodeId, success, durationMs)`**:
+  - Releases in-flight concurrency lock.
+  - Calculates Exponential Moving Average (EMA) latency for node health metrics.
+  - **Circuit Breaker**: Automatically flags nodes as `degraded` after 3 consecutive failures, and trips the circuit to `offline` after 5 failures to prevent routing blackholes.
+- **`getClusterSnapshot()`**:
+  - Returns real-time health telemetry across the cluster for developer dashboards.
 
 ---
 
