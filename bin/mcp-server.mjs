@@ -6,6 +6,8 @@
  * Plug-and-play Model Context Protocol tool server for local media conversions.
  * Works seamlessly with Antigravity IDE, Claude Desktop, Cursor, and other MCP clients.
  * Zero shell command approvals required by the user during agent conversations.
+ *
+ * Hardened with enterprise usability standards and defensive security guards.
  */
 
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
@@ -23,21 +25,89 @@ const server = new McpServer({
   version: '1.2.0',
 });
 
-// Supported image extensions
+// Supported input image extensions
 const IMAGE_EXTENSIONS = new Set([
   '.jpg', '.jpeg', '.png', '.webp', '.avif', '.tiff', '.tif', '.bmp', '.gif'
 ]);
 
+// Allowed output extensions (strict whitelist to prevent arbitrary file overwrite)
+const ALLOWED_OUTPUT_EXTENSIONS = new Set([
+  '.webp', '.png', '.jpg', '.jpeg', '.avif'
+]);
+
+// Directories to skip during batch scans
+const IGNORED_DIRECTORIES = new Set([
+  '.git', 'node_modules', '.next', 'dist', 'build', '.vscode', '.idea',
+  'system volume information', '$recycle.bin', 'appdata', '.cache'
+]);
+
+// Maximum safety limits
+const MAX_INPUT_FILE_BYTES = 250 * 1024 * 1024; // 250 MB
+const MAX_INPUT_PIXELS = 100_000_000;          // 100 MegaPixels (~10,000 x 10,000 px)
+const MAX_BATCH_FILES = 1000;                   // Maximum images in a single batch scan
+const MAX_SCAN_DEPTH = 6;                       // Maximum folder recursion depth
+
 /**
- * Resolve path expanding home directory (~) and normalizing separators
+ * Clean and resolve file paths safely:
+ * - Strips leading/trailing quotes (single & double) commonly output by LLMs
+ * - Expands home directory (~) across platforms
+ * - Resolves relative paths to absolute
  */
 function resolvePath(filePath) {
-  if (!filePath) return '';
-  let resolved = filePath.trim();
-  if (resolved.startsWith('~')) {
-    resolved = path.join(os.homedir(), resolved.slice(1));
+  if (!filePath || typeof filePath !== 'string') return '';
+  let cleaned = filePath.trim();
+  // Strip surrounding quotes
+  cleaned = cleaned.replace(/^["']+|["']+$/g, '').trim();
+  if (cleaned.startsWith('~')) {
+    cleaned = path.join(os.homedir(), cleaned.slice(1));
   }
-  return path.resolve(resolved);
+  return path.resolve(cleaned);
+}
+
+/**
+ * Security validator for destination output paths:
+ * Prevents path traversal, arbitrary file writes (e.g. .exe, .bat, .json, .env),
+ * and protection of sensitive system/user directories.
+ */
+function validateOutputPathSecurity(destinationPath) {
+  const resolved = resolvePath(destinationPath);
+  const ext = path.extname(resolved).toLowerCase();
+
+  // 1. Strict extension check: MUST be a supported image format
+  if (!ALLOWED_OUTPUT_EXTENSIONS.has(ext)) {
+    throw new Error(
+      `Security violation: Output file must have an authorized image extension (.webp, .png, .jpg, .jpeg, .avif). Writing to '${ext || 'no-extension'}' is blocked.`
+    );
+  }
+
+  // 2. Sensitive directory protection
+  const lower = resolved.toLowerCase();
+  const sensitivePatterns = [
+    `${path.sep}.git${path.sep}`,
+    `${path.sep}.ssh${path.sep}`,
+    `${path.sep}.aws${path.sep}`,
+    `${path.sep}.gnupg${path.sep}`,
+    `${path.sep}node_modules${path.sep}`,
+    `${path.sep}windows${path.sep}system32`,
+    `/etc/`,
+    `/bin/`,
+    `/sbin/`,
+    `/root/`,
+  ];
+
+  for (const pattern of sensitivePatterns) {
+    if (lower.includes(pattern.toLowerCase())) {
+      throw new Error(`Security violation: Writing to protected directory is strictly prohibited (${pattern}).`);
+    }
+  }
+
+  // 3. Prevent overwriting hidden environment files (.env)
+  const baseName = path.basename(resolved).toLowerCase();
+  if (baseName.startsWith('.env')) {
+    throw new Error('Security violation: Overwriting environment configuration files is strictly prohibited.');
+  }
+
+  return resolved;
 }
 
 /**
@@ -49,6 +119,20 @@ function formatBytes(bytes) {
   const sizes = ['B', 'KB', 'MB', 'GB'];
   const i = Math.floor(Math.log(Math.abs(bytes)) / Math.log(k));
   return `${(bytes / Math.pow(k, i)).toFixed(1)} ${sizes[i]}`;
+}
+
+/**
+ * Normalize quality parameter:
+ * Supports both web standard decimal (0.1 - 1.0) and percentage integer (1 - 100).
+ */
+function normalizeQuality(rawQuality) {
+  let q = Number(rawQuality);
+  if (isNaN(q) || q <= 0) return 82;
+  if (q <= 1.0) {
+    // E.g., 0.85 -> 85
+    return Math.round(q * 100);
+  }
+  return Math.min(Math.round(q), 100);
 }
 
 /**
@@ -67,7 +151,7 @@ async function processSingleImage({
   overwrite = false,
 }) {
   const targetFormat = format.toLowerCase();
-  const qualityNum = Math.min(Math.max(Number(quality) || 82, 1), 100);
+  const qualityNum = normalizeQuality(quality);
 
   let buffer = inputBuffer;
   let originalSizeBytes = 0;
@@ -77,14 +161,35 @@ async function processSingleImage({
     if (!fsSync.existsSync(resolvedInput)) {
       throw new Error(`Input file not found at: ${resolvedInput}`);
     }
+
     const stat = await fs.stat(resolvedInput);
+    if (stat.isDirectory()) {
+      throw new Error(
+        `The path '${resolvedInput}' is a directory, not a single file. Please use the 'convert_batch' tool to convert directories.`
+      );
+    }
+
+    if (stat.size > MAX_INPUT_FILE_BYTES) {
+      throw new Error(
+        `File size (${formatBytes(stat.size)}) exceeds the maximum allowed limit of ${formatBytes(MAX_INPUT_FILE_BYTES)}.`
+      );
+    }
+
     originalSizeBytes = stat.size;
     buffer = await fs.readFile(resolvedInput);
   } else if (buffer) {
     originalSizeBytes = buffer.length;
+    if (originalSizeBytes > MAX_INPUT_FILE_BYTES) {
+      throw new Error(`Input buffer exceeds maximum allowed limit of ${formatBytes(MAX_INPUT_FILE_BYTES)}.`);
+    }
   }
 
-  let pipeline = sharp(buffer);
+  // Configure sharp pipeline with input pixel limits to prevent decompression bomb / DoS
+  let pipeline = sharp(buffer, {
+    limitInputPixels: MAX_INPUT_PIXELS,
+    failOn: 'error',
+  });
+
   const meta = await pipeline.metadata();
 
   // Rotation
@@ -118,10 +223,6 @@ async function processSingleImage({
     ext = '.jpg';
   } else if (targetFormat === 'avif') {
     pipeline = pipeline.avif({ quality: qualityNum, effort: 4 });
-  } else if (targetFormat === 'bmp') {
-    // sharp doesn't output raw BMP directly; fallback to png or webp
-    pipeline = pipeline.png();
-    ext = '.png';
   } else {
     pipeline = pipeline.webp({ quality: qualityNum });
     ext = '.webp';
@@ -129,19 +230,31 @@ async function processSingleImage({
 
   const outputBuffer = await pipeline.toBuffer();
   const outputSizeBytes = outputBuffer.length;
-  const outMeta = await sharp(outputBuffer).metadata();
+  const outMeta = await sharp(outputBuffer, { limitInputPixels: MAX_INPUT_PIXELS }).metadata();
 
-  // Determine output path if inputPath was provided
+  // Determine output path
   let finalOutputPath = outputPath ? resolvePath(outputPath) : null;
   if (!finalOutputPath && inputPath) {
     const parsed = path.parse(resolvePath(inputPath));
     finalOutputPath = path.join(parsed.dir, `${parsed.name}${ext}`);
   }
 
-  // Avoid overwriting original unless explicitly asked
-  if (finalOutputPath && !overwrite && inputPath && resolvePath(inputPath) === finalOutputPath) {
+  // Security validation on output path
+  if (finalOutputPath) {
+    validateOutputPathSecurity(finalOutputPath);
+  }
+
+  // Collision handling if not overwriting
+  if (finalOutputPath && !overwrite && fsSync.existsSync(finalOutputPath)) {
+    // If output is same as input or user didn't ask to overwrite existing output file
     const parsed = path.parse(finalOutputPath);
-    finalOutputPath = path.join(parsed.dir, `${parsed.name}_converted${parsed.ext}`);
+    let counter = 1;
+    let safePath = path.join(parsed.dir, `${parsed.name}_converted${parsed.ext}`);
+    while (fsSync.existsSync(safePath)) {
+      safePath = path.join(parsed.dir, `${parsed.name}_converted_${counter}${parsed.ext}`);
+      counter++;
+    }
+    finalOutputPath = safePath;
   }
 
   if (finalOutputPath) {
@@ -157,6 +270,7 @@ async function processSingleImage({
     inputPath: inputPath ? resolvePath(inputPath) : 'in-memory',
     outputPath: finalOutputPath,
     format: targetFormat,
+    qualityApplied: qualityNum,
     originalSizeBytes,
     originalSizeFormatted: formatBytes(originalSizeBytes),
     convertedSizeBytes: outputSizeBytes,
@@ -172,16 +286,29 @@ async function processSingleImage({
 }
 
 /**
- * Scan directory recursively or flat for image files
+ * Scan directory recursively or flat for image files with safety limits
  */
-async function scanImages(dir, recursive = false) {
+async function scanImages(dir, recursive = false, depth = 0) {
+  if (depth > MAX_SCAN_DEPTH) return [];
+
   const results = [];
-  const entries = await fs.readdir(dir, { withFileTypes: true });
+  let entries;
+  try {
+    entries = await fs.readdir(dir, { withFileTypes: true });
+  } catch (err) {
+    return []; // Skip unreadable directories
+  }
 
   for (const entry of entries) {
+    if (results.length >= MAX_BATCH_FILES) break;
+
+    const lowerName = entry.name.toLowerCase();
+    if (IGNORED_DIRECTORIES.has(lowerName)) continue;
+
     const fullPath = path.join(dir, entry.name);
+
     if (entry.isDirectory() && recursive) {
-      const sub = await scanImages(fullPath, recursive);
+      const sub = await scanImages(fullPath, recursive, depth + 1);
       results.push(...sub);
     } else if (entry.isFile()) {
       const ext = path.extname(entry.name).toLowerCase();
@@ -199,14 +326,14 @@ async function scanImages(dir, recursive = false) {
 server.tool(
   'convert_image',
   {
-    inputPath: z.string().describe('Path to the image file to convert (e.g. C:/photos/pic.png or ~/images/doc.jpg)'),
-    outputPath: z.string().optional().describe('Optional destination path for the converted file. Defaults to same directory as original with new extension.'),
-    format: z.enum(['webp', 'png', 'jpeg', 'avif']).default('webp').describe('Output format (default: webp)'),
-    quality: z.number().min(1).max(100).default(82).describe('Compression quality (1 to 100, default: 82)'),
-    maxWidth: z.number().optional().describe('Maximum width in pixels (aspect-ratio preserved)'),
-    maxHeight: z.number().optional().describe('Maximum height in pixels (aspect-ratio preserved)'),
+    inputPath: z.string().describe('Path to image file to convert (e.g. C:/photos/pic.png or ~/images/doc.jpg). Quotes will be automatically cleaned.'),
+    outputPath: z.string().optional().describe('Optional destination path for converted file (.webp, .png, .jpg, .avif). Defaults to same folder as original.'),
+    format: z.enum(['webp', 'png', 'jpeg', 'avif']).default('webp').describe('Output image format (default: webp)'),
+    quality: z.number().min(0.01).max(100).default(82).describe('Compression quality: can be percentage 1-100 or decimal 0.1-1.0 (default: 82)'),
+    maxWidth: z.number().optional().describe('Maximum width in pixels (aspect ratio locked)'),
+    maxHeight: z.number().optional().describe('Maximum height in pixels (aspect ratio locked)'),
     rotate: z.number().optional().describe('Rotate clockwise degrees: 90, 180, 270'),
-    grayscale: z.boolean().default(false).describe('Convert image to grayscale / monochrome'),
+    grayscale: z.boolean().default(false).describe('Convert image to grayscale'),
     overwrite: z.boolean().default(false).describe('Overwrite output file if it already exists'),
   },
   async (args) => {
@@ -219,7 +346,7 @@ server.tool(
             text: JSON.stringify(
               {
                 status: 'success',
-                message: `Successfully converted ${path.basename(result.inputPath)} to ${result.format.toUpperCase()} (${result.percentSaved} size reduction)`,
+                message: `Successfully converted ${path.basename(result.inputPath)} to ${result.format.toUpperCase()} at ${result.qualityApplied}% quality (${result.percentSaved} size reduction)`,
                 details: result,
               },
               null,
@@ -250,10 +377,10 @@ server.tool(
   {
     directoryPath: z.string().optional().describe('Directory path containing images to batch convert (e.g. C:/photos or ./screenshots)'),
     inputPaths: z.array(z.string()).optional().describe('Explicit array of file paths to convert'),
-    outputDir: z.string().optional().describe('Target folder to save all converted files. Defaults to same folder as each original.'),
+    outputDir: z.string().optional().describe('Target folder to save converted files. Defaults to same folder as each original.'),
     format: z.enum(['webp', 'png', 'jpeg', 'avif']).default('webp').describe('Target image format (default: webp)'),
-    quality: z.number().min(1).max(100).default(82).describe('Compression quality (1 to 100, default: 82)'),
-    recursive: z.boolean().default(false).describe('If scanning directoryPath, whether to scan nested subfolders'),
+    quality: z.number().min(0.01).max(100).default(82).describe('Compression quality: 1-100 or 0.1-1.0 (default: 82)'),
+    recursive: z.boolean().default(false).describe('If scanning directoryPath, whether to scan nested subfolders (skips node_modules/.git automatically)'),
     maxWidth: z.number().optional().describe('Optional maximum width in pixels for downscaling'),
     maxHeight: z.number().optional().describe('Optional maximum height in pixels for downscaling'),
     grayscale: z.boolean().default(false).describe('Convert images to grayscale'),
@@ -283,7 +410,7 @@ server.tool(
               text: JSON.stringify(
                 {
                   status: 'warning',
-                  message: 'No supported images found in the specified directory or list.',
+                  message: 'No supported images (.png, .jpg, .webp, .avif, .bmp, .tiff) found in the specified location.',
                   scannedFilesCount: 0,
                 },
                 null,
@@ -302,7 +429,8 @@ server.tool(
 
       // Ensure output directory exists if provided
       if (args.outputDir) {
-        await fs.mkdir(resolvePath(args.outputDir), { recursive: true });
+        const resolvedOutDir = resolvePath(args.outputDir);
+        await fs.mkdir(resolvedOutDir, { recursive: true });
       }
 
       for (const filePath of fileList) {
@@ -397,7 +525,11 @@ server.tool(
         throw new Error(`File not found: ${resolved}`);
       }
       const stat = await fs.stat(resolved);
-      const meta = await sharp(resolved).metadata();
+      if (stat.isDirectory()) {
+        throw new Error(`'${resolved}' is a directory, not an image file.`);
+      }
+
+      const meta = await sharp(resolved, { limitInputPixels: MAX_INPUT_PIXELS }).metadata();
 
       return {
         content: [
@@ -441,7 +573,7 @@ server.tool(
   'optimize_for_agent',
   {
     inputPath: z.string().describe('Path to high-resolution screenshot or image'),
-    outputPath: z.string().optional().describe('Optional destination path (defaults to [name]_agent_opt.webp)'),
+    outputPath: z.string().optional().describe('Optional destination path (.webp only)'),
     maxDimension: z.number().default(1280).describe('Max width or height in px for LLM vision models (default: 1280)'),
   },
   async ({ inputPath, outputPath, maxDimension }) => {

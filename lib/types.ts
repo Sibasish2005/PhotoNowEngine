@@ -1,5 +1,5 @@
 export type ImageFormat = 'webp' | 'png' | 'jpeg' | 'avif' | 'bmp';
-export type VideoFormat = 'webm' | 'poster' | 'audio-wav' | 'gif';
+export type VideoFormat = 'webm' | 'poster' | 'audio-wav';
 
 export interface ImageConvertOptions {
   format: ImageFormat;

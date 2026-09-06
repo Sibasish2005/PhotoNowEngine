@@ -37,7 +37,7 @@ export const StorageHistory: React.FC<StorageHistoryProps> = ({ onStorageUpdated
         });
       });
 
-      const stats = await getStorageStats();
+      const stats = await getStorageStats(list);
       setStorageStats(stats);
     } catch (err) {
       console.error('Failed to load conversions from IndexedDB:', err);

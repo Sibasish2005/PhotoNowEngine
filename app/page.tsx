@@ -6,7 +6,7 @@ import { HeaderNav } from '@/components/HeaderNav';
 import { LeftHeroIllustration } from '@/components/LeftHeroIllustration';
 import { PhotoConverter } from '@/components/PhotoConverter';
 import { RightVerticalTabStrip, FooterStamps } from '@/components/DoodleDecorations';
-import { getStorageStats } from '@/lib/storage';
+import { getConversionCount } from '@/lib/storage';
 import { StoredConversion } from '@/lib/types';
 import { initBrowserAgentApi } from '@/lib/browserAgentApi';
 
@@ -60,8 +60,8 @@ export default function Home() {
 
   const refreshStorageStats = async () => {
     try {
-      const stats = await getStorageStats();
-      setStorageCount(stats.count);
+      const count = await getConversionCount();
+      setStorageCount(count);
     } catch {
       // Ignored if unmounted
     }

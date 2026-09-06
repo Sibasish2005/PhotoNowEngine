@@ -108,9 +108,30 @@ export async function clearAllConversions(): Promise<void> {
   });
 }
 
-export async function getStorageStats(): Promise<{ count: number; totalBytes: number; quotaBytes?: number }> {
+export { formatBytes, sanitizeFileName } from './utils';
+
+/**
+ * Fast O(1) count query using native IDBObjectStore.count().
+ * Avoids loading multi-megabyte binary blobs into memory just to read item count.
+ */
+export async function getConversionCount(): Promise<number> {
   try {
-    const conversions = await getAllConversions();
+    const db = await openDB();
+    return new Promise((resolve) => {
+      const tx = db.transaction(STORE_NAME, 'readonly');
+      const store = tx.objectStore(STORE_NAME);
+      const req = store.count();
+      req.onsuccess = () => resolve(req.result);
+      req.onerror = () => resolve(0);
+    });
+  } catch {
+    return 0;
+  }
+}
+
+export async function getStorageStats(cachedConversions?: StoredConversion[]): Promise<{ count: number; totalBytes: number; quotaBytes?: number }> {
+  try {
+    const conversions = cachedConversions || (await getAllConversions());
     const count = conversions.length;
     const totalBytes = conversions.reduce((acc, curr) => acc + (curr.convertedSize || 0), 0);
 
@@ -124,28 +145,4 @@ export async function getStorageStats(): Promise<{ count: number; totalBytes: nu
   } catch {
     return { count: 0, totalBytes: 0 };
   }
-}
-
-export function formatBytes(bytes: number): string {
-  if (!bytes || bytes === 0) return '0 B';
-  const k = 1024;
-  const sizes = ['B', 'KB', 'MB', 'GB'];
-  const i = Math.floor(Math.log(Math.abs(bytes)) / Math.log(k));
-  const val = bytes / Math.pow(k, i);
-  return `${val.toFixed(i === 0 ? 0 : 2)} ${sizes[i] || 'B'}`;
-}
-
-/**
- * Sanitizes file names to eliminate directory traversal sequences (e.g. '../', '..\\')
- * and control characters that could trigger Zip Slip or file system exploit vectors.
- */
-export function sanitizeFileName(rawName: string): string {
-  if (!rawName) return 'file';
-  return rawName
-    .replace(/[\0\r\n\t]/g, '')           // Strip control characters & null bytes
-    .replace(/\.\.+[/\\]+/g, '')          // Strip path traversal sequences (../../)
-    .replace(/[/\\]+/g, '_')              // Replace path separators with underscores
-    .replace(/[<>:"|?*]/g, '_')           // Replace Windows invalid file characters
-    .replace(/^[.\s]+/, '')               // Remove leading dots or whitespace
-    .trim() || 'converted_media';
 }

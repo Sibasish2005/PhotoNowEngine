@@ -302,7 +302,10 @@ export async function POST(req: NextRequest) {
 
             const sharpModule = await import('sharp');
             const sharpInstance = sharpModule.default || sharpModule;
-            let pipeline = sharpInstance(inputBuffer);
+            let pipeline = sharpInstance(inputBuffer, {
+              limitInputPixels: 50_000_000,
+              failOn: 'error',
+            });
 
             // Metadata check
             const meta = await pipeline.metadata();
@@ -353,9 +356,11 @@ export async function POST(req: NextRequest) {
             const percentSaved = inputSizeBytes > 0 ? ((savedBytes / inputSizeBytes) * 100).toFixed(1) : '0';
 
             const outBase64 = `data:${outputMime};base64,${outputBuffer.toString('base64')}`;
-            const outFileName = toolArgs.fileName
-              ? String(toolArgs.fileName).replace(/\.[^/.]+$/, `.${targetFormat}`)
-              : `converted_photo.${targetFormat}`;
+            const pathModule = await import('path');
+            const sanitizedBase = toolArgs.fileName
+              ? pathModule.basename(String(toolArgs.fileName)).replace(/[^\w\.\-]/g, '_')
+              : 'converted_photo';
+            const outFileName = sanitizedBase.replace(/\.[^/.]+$/, `.${targetFormat}`);
 
             resultData = {
               success: true,

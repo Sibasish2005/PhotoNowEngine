@@ -7,7 +7,9 @@
     "build": "next build",
     "start": "next start",
     "mcp": "node ./bin/mcp-server.mjs",
-    "test:mcp": "node ./tests/test-mcp-server.mjs"
+    "test:mcp": "node ./tests/test-mcp-server.mjs",
+    "test:security": "node ./tests/test-usability-security.mjs",
+    "test": "node ./tests/test-mcp-server.mjs && node ./tests/test-usability-security.mjs"
   },
   "bin": {
     "photo-convert-mcp": "./bin/mcp-server.mjs"
