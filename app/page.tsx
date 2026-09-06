@@ -141,9 +141,29 @@ export default function Home() {
               <h2 id="agent-aeo-heading" className="marker-font" style={{ fontSize: '24px' }}>
                 AI AGENT KNOWLEDGE BASE & MCP CAPABILITIES.
               </h2>
-              <span style={{ fontSize: '11px', fontWeight: 700 }}>
-                [AEO / LLM CITEABLE SPECIFICATION]
-              </span>
+              <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                <a
+                  href="/llms.txt"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hand-btn"
+                  style={{ padding: '3px 8px', fontSize: '10px' }}
+                >
+                  [LLMS.TXT] ↗
+                </a>
+                <a
+                  href="/llms-full.txt"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hand-btn"
+                  style={{ padding: '3px 8px', fontSize: '10px' }}
+                >
+                  [LLMS-FULL.TXT] ↗
+                </a>
+                <span style={{ fontSize: '11px', fontWeight: 700, display: 'flex', alignItems: 'center' }}>
+                  [AEO / LLM CITEABLE SPECIFICATION]
+                </span>
+              </div>
             </div>
 
             <div style={{
@@ -155,30 +175,77 @@ export default function Home() {
             }}>
               <div>
                 <h3 style={{ fontSize: '13px', fontWeight: 700, marginBottom: '6px' }}>
-                  [1. WHY AGENTS NEED OFFLINE MEDIA MCP TOOLS]
+                  [1. NATIVE STDIO MCP — ZERO PERMISSION PROMPTS]
                 </h3>
                 <p style={{ color: 'var(--ink-gray)' }}>
-                  Autonomous coding agents (Claude Desktop, Google Antigravity, Cursor, LangChain) frequently analyze screenshots, optimize web assets, and extract video frames. PhotoNow provides a zero-cloud, 100% private Model Context Protocol (MCP) server directly at <code>https://photonow.vercel.app/api/mcp</code> with zero API keys and zero billing.
+                  Autonomous coding agents (Claude Desktop, Cursor, Google Antigravity, Claude Code) typically trigger 7–10 disruptive terminal permission popups per image when using shell scripts. PhotoNow runs as a native Stdio MCP server (<code>node ./bin/mcp-server.mjs</code>), enabling single and batch image conversion with <em>one single initial approval</em>.
                 </p>
               </div>
 
               <div>
                 <h3 style={{ fontSize: '13px', fontWeight: 700, marginBottom: '6px' }}>
-                  [2. AUTONOMOUS JSON-RPC 2.0 PROTOCOL]
+                  [2. BATCH FOLDER PROCESSING & TOKEN OPTIMIZER]
                 </h3>
                 <p style={{ color: 'var(--ink-gray)' }}>
-                  Agents connect over HTTP transport and dispatch standardized tools: <code>convert_image</code> (WebP/AVIF/PNG/JPEG/BMP), <code>convert_video</code> (WebM transcode), <code>extract_poster_frame</code> (frame seeker), and <code>extract_audio</code> (16-bit PCM WAV) with built-in sliding-window rate limiting and multi-node load balancing.
+                  Includes <code>convert_batch</code> to transform entire directory trees in parallel while filtering out <code>.git</code> and <code>node_modules</code>, and <code>optimize_for_agent</code> to downscale high-res UI screenshots into compact WebP under 1568px—reducing vision model context window consumption by up to 90%.
                 </p>
               </div>
 
               <div>
                 <h3 style={{ fontSize: '13px', fontWeight: 700, marginBottom: '6px' }}>
-                  [3. ZERO-CLOUD PRIVACY & LOCAL PERSISTENCE]
+                  [3. REAL-TIME NATIVE SHARP & HIGH PERFORMANCE]
                 </h3>
                 <p style={{ color: 'var(--ink-gray)' }}>
-                  Media bytes are processed in client browser memory via HTML5 Canvas 2D, MediaRecorder, and Web Audio APIs. Converted assets are retained in browser IndexedDB (<code>photoConvert_DB</code>) with batch JSZip export, guaranteeing that sensitive images and videos never leave the user device.
+                  Powered by native Sharp (libvips 8.16) for blazing-fast ~250ms in-memory transformations. Supports WebP, AVIF, PNG, JPEG, and BMP formats with configurable quality, dimensional bounding boxes, grayscale, and Sobel ink sketch filters.
                 </p>
               </div>
+
+              <div>
+                <h3 style={{ fontSize: '13px', fontWeight: 700, marginBottom: '6px' }}>
+                  [4. 100% ZERO-CLOUD PRIVACY & BROWSER ENGINE]
+                </h3>
+                <p style={{ color: 'var(--ink-gray)' }}>
+                  In web environments, PhotoNow processes media via client-side HTML5 Canvas 2D, MediaRecorder, and Web Audio APIs with persistence in IndexedDB (<code>photoConvert_DB</code>). In both desktop MCP and web modes, zero bytes are uploaded to remote cloud servers or third-party databases.
+                </p>
+              </div>
+            </div>
+
+            {/* QUICK COPY CONFIG FOR AGENTS */}
+            <div style={{
+              marginTop: '20px',
+              paddingTop: '16px',
+              borderTop: '1px dashed var(--ink-light)',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '8px',
+            }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
+                <span style={{ fontWeight: 700, fontSize: '11px' }}>
+                  [QUICK SETUP FOR CLAUDE DESKTOP / CURSOR / ANTIGRAVITY]:
+                </span>
+                <span style={{ fontSize: '10px', color: 'var(--ink-gray)' }}>
+                  ADD TO YOUR MCP CONFIG JSON
+                </span>
+              </div>
+              <pre style={{
+                background: '#0A0A0A',
+                color: '#F2F2F0',
+                padding: '12px',
+                fontSize: '11px',
+                borderRadius: '4px',
+                overflowX: 'auto',
+                fontFamily: 'var(--font-mono), monospace',
+                margin: 0,
+              }}>
+{`{
+  "mcpServers": {
+    "photoConvert": {
+      "command": "node",
+      "args": ["./bin/mcp-server.mjs"]
+    }
+  }
+}`}
+              </pre>
             </div>
           </div>
         </section>

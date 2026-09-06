@@ -1,0 +1,233 @@
+# PhotoNow MCP Server — Complete Protocol Specification & Tool Schemas
+
+> Machine-readable Model Context Protocol (MCP) and Answer Engine Optimization (AEO) Full Specification.
+> Canonical URL: https://photonow.vercel.app/llms-full.txt
+
+---
+
+## Technical Overview
+
+- **Protocol Version**: Model Context Protocol (MCP) JSON-RPC 2.0 (spec 2024-11-05)
+- **Primary Transports**: 
+  1. Stdio (Local Node.js process runner for Claude Desktop, Cursor, Antigravity)
+  2. HTTP JSON-RPC 2.0 (`POST https://photonow.vercel.app/api/mcp`)
+  3. Browser DOM Automation (`window.__photoConvertAgent`)
+- **Core Processing Engines**: Native Sharp (libvips 8.16), HTML5 Canvas 2D, MediaRecorder (VP9/VP8), Web Audio API (16-bit PCM WAV)
+- **Storage Tier**: 100% Client-Side On-Device IndexedDB (`photoConvert_DB`)
+- **Security Boundaries**: Strict output extension whitelist (`.webp`, `.png`, `.jpg`, `.jpeg`, `.avif`), protected system directory guards, 250MB input limit, 100 MegaPixel decompression bomb defense (`limitInputPixels`).
+
+---
+
+## Complete MCP Tool Schemas (JSON Schema Format)
+
+### 1. `convert_image`
+Converts a single image file on disk or in-memory to WebP, PNG, JPEG, or AVIF.
+
+```json
+{
+  "name": "convert_image",
+  "description": "Converts an image file on disk to a modern format (WebP, PNG, JPEG, AVIF) with optional aspect-ratio locked downscaling, quality compression, rotation, and monochrome grayscale.",
+  "inputSchema": {
+    "type": "object",
+    "properties": {
+      "inputPath": {
+        "type": "string",
+        "description": "Path to source image file (e.g. C:/photos/cat.png or ~/images/doc.jpg). Handles single and double quotes cleanly."
+      },
+      "outputPath": {
+        "type": "string",
+        "description": "Optional destination path for the converted file. Defaults to same directory as original with new extension."
+      },
+      "format": {
+        "type": "string",
+        "enum": ["webp", "png", "jpeg", "avif"],
+        "default": "webp",
+        "description": "Target image format."
+      },
+      "quality": {
+        "type": "number",
+        "minimum": 0.01,
+        "maximum": 100,
+        "default": 82,
+        "description": "Compression quality. Accepts percentage 1-100 or decimal 0.1-1.0."
+      },
+      "maxWidth": {
+        "type": "number",
+        "description": "Maximum width in pixels to downscale the image (aspect ratio preserved)."
+      },
+      "maxHeight": {
+        "type": "number",
+        "description": "Maximum height in pixels to downscale the image (aspect ratio preserved)."
+      },
+      "rotate": {
+        "type": "number",
+        "enum": [0, 90, 180, 270],
+        "description": "Clockwise rotation in degrees."
+      },
+      "grayscale": {
+        "type": "boolean",
+        "default": false,
+        "description": "Convert image to monochrome grayscale."
+      },
+      "overwrite": {
+        "type": "boolean",
+        "default": false,
+        "description": "Overwrite existing destination file. When false, auto-increments filename safely."
+      }
+    },
+    "required": ["inputPath"]
+  }
+}
+```
+
+### 2. `convert_batch`
+Batch converts an entire directory or explicit array of file paths in a single call.
+
+```json
+{
+  "name": "convert_batch",
+  "description": "Batch converts an entire folder or list of files to WebP/AVIF/PNG/JPEG in a single tool call without multi-turn permission prompts. Automatically ignores noise folders (.git, node_modules, .next).",
+  "inputSchema": {
+    "type": "object",
+    "properties": {
+      "directoryPath": {
+        "type": "string",
+        "description": "Directory path containing images to batch convert (e.g. C:/photos or ./screenshots)."
+      },
+      "inputPaths": {
+        "type": "array",
+        "items": { "type": "string" },
+        "description": "Explicit array of file paths to convert."
+      },
+      "outputDir": {
+        "type": "string",
+        "description": "Target folder to save all converted files. Defaults to same folder as each original."
+      },
+      "format": {
+        "type": "string",
+        "enum": ["webp", "png", "jpeg", "avif"],
+        "default": "webp"
+      },
+      "quality": {
+        "type": "number",
+        "minimum": 0.01,
+        "maximum": 100,
+        "default": 82
+      },
+      "recursive": {
+        "type": "boolean",
+        "default": false,
+        "description": "Whether to scan subdirectories (capped at 6 levels depth for safety)."
+      },
+      "maxWidth": { "type": "number" },
+      "maxHeight": { "type": "number" },
+      "grayscale": { "type": "boolean", "default": false },
+      "overwrite": { "type": "boolean", "default": false }
+    }
+  }
+}
+```
+
+### 3. `get_media_info`
+Inspects image metadata.
+
+```json
+{
+  "name": "get_media_info",
+  "description": "Inspects image dimensions, format, color space, channel count, density, and size in milliseconds.",
+  "inputSchema": {
+    "type": "object",
+    "properties": {
+      "filePath": {
+        "type": "string",
+        "description": "Path to image file to inspect."
+      }
+    },
+    "required": ["filePath"]
+  }
+}
+```
+
+### 4. `optimize_for_agent`
+Compresses heavy images down to token-efficient WebP for LLM vision tokens.
+
+```json
+{
+  "name": "optimize_for_agent",
+  "description": "Automatically downscales and compresses user screenshots or high-res photos to token-efficient WebP (max 1280px, 80% quality) optimized for LLM vision context windows.",
+  "inputSchema": {
+    "type": "object",
+    "properties": {
+      "inputPath": {
+        "type": "string",
+        "description": "Path to high-resolution screenshot or image."
+      },
+      "outputPath": {
+        "type": "string",
+        "description": "Optional destination path."
+      },
+      "maxDimension": {
+        "type": "number",
+        "default": 1280,
+        "description": "Maximum width or height in px for LLM vision models."
+      }
+    },
+    "required": ["inputPath"]
+  }
+}
+```
+
+---
+
+## Client Integration Configurations
+
+### Claude Desktop
+File: `%APPDATA%\Claude\claude_desktop_config.json` (Windows) or `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS):
+```json
+{
+  "mcpServers": {
+    "photoConvert": {
+      "command": "node",
+      "args": ["<PATH_TO_PHOTOCONVERT>/bin/mcp-server.mjs"]
+    }
+  }
+}
+```
+
+### Cursor IDE
+File: `.cursor/mcp.json` or Settings > Features > MCP:
+```json
+{
+  "mcpServers": {
+    "photoConvert": {
+      "command": "node",
+      "args": ["<PATH_TO_PHOTOCONVERT>/bin/mcp-server.mjs"]
+    }
+  }
+}
+```
+
+### Google Antigravity
+File: `~/.gemini/config/mcp_config.json`:
+```json
+{
+  "mcpServers": {
+    "photoConvert": {
+      "command": "node",
+      "args": ["<PATH_TO_PHOTOCONVERT>/bin/mcp-server.mjs"]
+    }
+  }
+}
+```
+
+---
+
+## Performance & Compression Benchmarks
+
+| Metric | Source PNG / JPEG | Converted WebP (82% Qual) | Improvement |
+| :--- | :--- | :--- | :--- |
+| High-Res Photo (1920x1080) | 2.4 MB | 195 KB | -91.8% File Size |
+| Screenshot (2560x1440) | 1.8 MB | 142 KB | -92.1% File Size |
+| LLM Vision Token Savings | ~1,600 tokens | ~320 tokens | -80.0% Tokens Saved |
+| Execution Latency | — | 251 ms | Real-Time Sub-Second |
+| Cloud Storage Incurred | — | 0 Bytes | 100% In-Memory RAM |

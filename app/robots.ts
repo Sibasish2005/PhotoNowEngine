@@ -7,7 +7,7 @@ export default function robots(): MetadataRoute.Robots {
     rules: [
       {
         userAgent: '*',
-        allow: ['/', '/llms.txt', '/legal', '/privacy', '/terms'],
+        allow: ['/', '/llms.txt', '/llms-full.txt', '/legal', '/privacy', '/terms'],
         disallow: ['/api/mcp/worker'],
       },
       {
@@ -28,7 +28,7 @@ export default function robots(): MetadataRoute.Robots {
           'Bytespider',
           'CCBot',
         ],
-        allow: ['/', '/llms.txt', '/api/mcp'],
+        allow: ['/', '/llms.txt', '/llms-full.txt', '/api/mcp'],
         disallow: [],
       },
     ],

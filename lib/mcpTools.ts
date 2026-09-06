@@ -279,6 +279,26 @@ export function parseAgentPrompt(prompt: string): {
   };
 }
 
+export const SAMPLE_STDIO_MCP_CONFIG = {
+  mcpServers: {
+    photoConvert: {
+      command: "node",
+      args: ["./bin/mcp-server.mjs"],
+      description: "Plug-and-play zero-cloud media converter (zero permission prompts, batch conversion, token optimizer, probe)"
+    }
+  }
+};
+
+export const SAMPLE_NPX_MCP_CONFIG = {
+  mcpServers: {
+    photoConvert: {
+      command: "npx",
+      args: ["-y", "photonow-engine"],
+      description: "Plug-and-play zero-cloud media converter"
+    }
+  }
+};
+
 export const SAMPLE_MCP_CLIENT_CONFIG = {
   mcpServers: {
     photoConvert: {
@@ -288,3 +308,4 @@ export const SAMPLE_MCP_CLIENT_CONFIG = {
     }
   }
 };
+

@@ -38,7 +38,13 @@ export default function sitemap(): MetadataRoute.Sitemap {
       url: `${baseUrl}/llms.txt`,
       lastModified: new Date(),
       changeFrequency: 'weekly',
-      priority: 0.8,
+      priority: 0.9,
+    },
+    {
+      url: `${baseUrl}/llms-full.txt`,
+      lastModified: new Date(),
+      changeFrequency: 'weekly',
+      priority: 0.9,
     },
   ];
 }

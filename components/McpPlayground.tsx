@@ -1,7 +1,12 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { SAMPLE_MCP_CLIENT_CONFIG, MCP_TOOLS } from '@/lib/mcpTools';
+import {
+  SAMPLE_MCP_CLIENT_CONFIG,
+  SAMPLE_STDIO_MCP_CONFIG,
+  SAMPLE_NPX_MCP_CONFIG,
+  MCP_TOOLS,
+} from '@/lib/mcpTools';
 
 export const McpPlayground: React.FC = () => {
   const [selectedTool, setSelectedTool] = useState<string>('convert_image');
@@ -11,6 +16,14 @@ export const McpPlayground: React.FC = () => {
   const [copied, setCopied] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(false);
   const [telemetry, setTelemetry] = useState<any>(null);
+  const [configMode, setConfigMode] = useState<'stdio' | 'http' | 'npx'>('stdio');
+
+  const activeConfig =
+    configMode === 'stdio'
+      ? SAMPLE_STDIO_MCP_CONFIG
+      : configMode === 'npx'
+      ? SAMPLE_NPX_MCP_CONFIG
+      : SAMPLE_MCP_CLIENT_CONFIG;
 
   const fetchTelemetry = async () => {
     try {
@@ -27,7 +40,7 @@ export const McpPlayground: React.FC = () => {
   }, []);
 
   const handleCopyConfig = () => {
-    navigator.clipboard.writeText(JSON.stringify(SAMPLE_MCP_CLIENT_CONFIG, null, 2));
+    navigator.clipboard.writeText(JSON.stringify(activeConfig, null, 2));
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
@@ -176,27 +189,50 @@ export const McpPlayground: React.FC = () => {
         </div>
       </div>
 
-      {/* OVERVIEW */}
+      {/* OVERVIEW & CLIENT INTEGRATION CONFIGS */}
       <div className="hand-box" style={{ padding: '20px', lineHeight: '1.6', fontSize: '12px' }}>
         <span style={{ fontWeight: 700, fontSize: '13px', display: 'block', marginBottom: '6px' }}>
-          CONNECT EXTERNAL AGENTS (ANTIGRAVITY, CLAUDE, CURSOR)
+          CONNECT EXTERNAL AGENTS (CLAUDE DESKTOP, CURSOR, ANTIGRAVITY)
         </span>
         <p style={{ color: 'var(--ink-gray)', marginBottom: '12px' }}>
-          THIS APPLICATION EXPOSES A SECURED MCP SERVER AT{' '}
-          <code style={{ background: 'var(--paper-tint)', padding: '2px 6px', border: '1px solid var(--ink)' }}>
-            /api/mcp
-          </code>
-          . PROTECTED WITH CLIENT IP RATE LIMITING AND LOAD BALANCING ACROSS WORKER DISPATCH PIPELINES.
+          PhotoNow supports both <strong>Native Stdio Plug-and-Play</strong> (zero permission hurdles, local filesystem batch processing) and <strong>Remote HTTP JSON-RPC 2.0</strong> (at <code>/api/mcp</code>). Select your preferred connection transport below:
         </p>
 
+        {/* TRANSPORT MODE SELECTOR */}
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '12px' }}>
+          <button
+            onClick={() => setConfigMode('stdio')}
+            className={`hand-btn ${configMode === 'stdio' ? 'primary' : ''}`}
+            style={{ padding: '6px 12px', fontSize: '10px' }}
+          >
+            ★ STDIO (PLUG & PLAY - NO PROMPTS)
+          </button>
+          <button
+            onClick={() => setConfigMode('npx')}
+            className={`hand-btn ${configMode === 'npx' ? 'primary' : ''}`}
+            style={{ padding: '6px 12px', fontSize: '10px' }}
+          >
+            NPX RUNTIME
+          </button>
+          <button
+            onClick={() => setConfigMode('http')}
+            className={`hand-btn ${configMode === 'http' ? 'primary' : ''}`}
+            style={{ padding: '6px 12px', fontSize: '10px' }}
+          >
+            HTTP REMOTE (/api/mcp)
+          </button>
+        </div>
+
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-          <span style={{ fontWeight: 700, fontSize: '11px' }}>[MCP_CONFIG.JSON SNIPPET]:</span>
+          <span style={{ fontWeight: 700, fontSize: '11px' }}>
+            [{configMode.toUpperCase()} MCP_CONFIG.JSON SNIPPET]:
+          </span>
           <button
             onClick={handleCopyConfig}
             className="hand-btn"
             style={{ padding: '4px 10px', fontSize: '10px' }}
           >
-            {copied ? '✓ COPIED!' : 'COPY CONFIG ➔'}
+            {copied ? '✓ COPIED TO CLIPBOARD!' : 'COPY CONFIG ➔'}
           </button>
         </div>
 
@@ -210,8 +246,13 @@ export const McpPlayground: React.FC = () => {
           WebkitOverflowScrolling: 'touch',
           fontFamily: 'var(--font-mono), monospace',
         }}>
-          {JSON.stringify(SAMPLE_MCP_CLIENT_CONFIG, null, 2)}
+          {JSON.stringify(activeConfig, null, 2)}
         </pre>
+        <div style={{ marginTop: '8px', fontSize: '10px', color: 'var(--ink-gray)' }}>
+          {configMode === 'stdio' && '✓ Zero prompts: Agent runs convert_image & convert_batch natively with Sharp libvips 8.16.'}
+          {configMode === 'npx' && '✓ Run without cloning: npx automatically fetches and spawns the stdio worker.'}
+          {configMode === 'http' && '✓ Remote web execution: Sends Base64 payloads over HTTP POST to /api/mcp.'}
+        </div>
       </div>
 
       {/* INTERACTIVE RPC TEST CONSOLE */}
