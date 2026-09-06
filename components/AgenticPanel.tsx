@@ -100,10 +100,7 @@ export const AgenticPanel: React.FC<AgenticPanelProps> = ({ onConversionSuccess 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
       {/* HEADER */}
-      <div style={{
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'baseline',
+      <div className="section-header" style={{
         borderBottom: '2px solid var(--ink)',
         paddingBottom: '8px',
       }}>
@@ -161,7 +158,7 @@ export const AgenticPanel: React.FC<AgenticPanelProps> = ({ onConversionSuccess 
 
       {/* PROMPT BOX & PRESETS */}
       <div className="hand-box" style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px' }}>
+        <div className="section-header" style={{ fontSize: '11px' }}>
           <span style={{ fontWeight: 700 }}>[NATURAL LANGUAGE CONVERSION PROMPT]</span>
           <span style={{ color: 'var(--ink-gray)' }}>DESCRIBE YOUR DESIRED TRANSFORMATION</span>
         </div>
@@ -224,7 +221,7 @@ export const AgenticPanel: React.FC<AgenticPanelProps> = ({ onConversionSuccess 
             <span>STATUS: {isRunning ? 'EXECUTING' : 'COMPLETED'}</span>
           </div>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '11px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '11px', wordBreak: 'break-word' }}>
             {steps.map((s, idx) => (
               <div key={s.id} style={{ display: 'flex', gap: '8px', alignItems: 'flex-start' }}>
                 <span style={{ color: 'var(--ink-subtle)' }}>[{idx + 1}]</span>
@@ -245,10 +242,7 @@ export const AgenticPanel: React.FC<AgenticPanelProps> = ({ onConversionSuccess 
       {/* RESULT DISPLAY */}
       {result && (
         <div className="hand-box" style={{ padding: '20px' }}>
-          <div style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
+          <div className="section-header" style={{
             marginBottom: '12px',
             borderBottom: '1.5px solid var(--ink)',
             paddingBottom: '8px',
@@ -267,7 +261,7 @@ export const AgenticPanel: React.FC<AgenticPanelProps> = ({ onConversionSuccess 
             </span>
           </div>
 
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '16px', alignItems: 'center' }}>
+          <div className="result-card">
             {result.previewUrl && result.mediaType === 'image' && (
               <img
                 src={result.previewUrl}

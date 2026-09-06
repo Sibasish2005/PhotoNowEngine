@@ -116,10 +116,7 @@ export const VideoConverter: React.FC<VideoConverterProps> = ({ onConversionSucc
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
       {/* HEADER */}
-      <div style={{
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'baseline',
+      <div className="section-header" style={{
         borderBottom: '2px solid var(--ink)',
         paddingBottom: '8px',
       }}>
@@ -190,7 +187,7 @@ export const VideoConverter: React.FC<VideoConverterProps> = ({ onConversionSucc
               background: '#000000',
               border: '2px solid var(--ink)',
               overflow: 'hidden',
-              maxHeight: '320px',
+              maxHeight: 'clamp(200px, 40vw, 320px)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -231,7 +228,7 @@ export const VideoConverter: React.FC<VideoConverterProps> = ({ onConversionSucc
             <span style={{ fontWeight: 700, fontSize: '12px' }}>[CHOOSE CONVERSION ACTION]:</span>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '8px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '8px' }}>
             <button
               onClick={() => setSelectedAction('poster')}
               className={`hand-btn ${selectedAction === 'poster' ? 'primary' : ''}`}
@@ -264,7 +261,7 @@ export const VideoConverter: React.FC<VideoConverterProps> = ({ onConversionSucc
               flexDirection: 'column',
               gap: '12px',
             }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div className="section-header">
                 <span style={{ fontSize: '11px', fontWeight: 700 }}>
                   CAPTURE FRAME AT SECOND: <span className="marker-font">{currentTime.toFixed(2)}S</span>
                 </span>
@@ -323,7 +320,7 @@ export const VideoConverter: React.FC<VideoConverterProps> = ({ onConversionSucc
               flexDirection: 'column',
               gap: '12px',
             }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div className="section-header">
                 <span style={{ fontSize: '11px', fontWeight: 700 }}>RESOLUTION DOWNSCALE</span>
                 <div style={{ display: 'flex', gap: '6px' }}>
                   {[
@@ -343,7 +340,7 @@ export const VideoConverter: React.FC<VideoConverterProps> = ({ onConversionSucc
                 </div>
               </div>
 
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div className="section-header">
                 <span style={{ fontSize: '11px', fontWeight: 700 }}>VIDEO BITRATE</span>
                 <div style={{ display: 'flex', gap: '6px' }}>
                   {[
@@ -447,7 +444,7 @@ export const VideoConverter: React.FC<VideoConverterProps> = ({ onConversionSucc
             </span>
           </div>
 
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '16px', alignItems: 'center' }}>
+          <div className="result-card">
             {latestResult.mediaType === 'image' && latestResult.previewUrl && (
               <img
                 src={latestResult.previewUrl}

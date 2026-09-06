@@ -88,10 +88,7 @@ export const PhotoConverter: React.FC<PhotoConverterProps> = ({ onConversionSucc
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
       {/* SECTION HEADER */}
-      <div style={{
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'baseline',
+      <div className="section-header" style={{
         borderBottom: '2px solid var(--ink)',
         paddingBottom: '8px',
       }}>
@@ -252,13 +249,9 @@ export const PhotoConverter: React.FC<PhotoConverterProps> = ({ onConversionSucc
         </div>
 
         {/* ARTISTIC & COLOR FILTERS */}
-        <div style={{
+        <div className="responsive-action-row" style={{
           borderTop: '1.5px dashed var(--ink)',
           paddingTop: '14px',
-          display: 'flex',
-          flexWrap: 'wrap',
-          gap: '12px',
-          alignItems: 'center',
         }}>
           <span style={{ fontWeight: 700, fontSize: '11px' }}>[4. MONOCHROME STYLES]:</span>
 
@@ -358,14 +351,10 @@ export const PhotoConverter: React.FC<PhotoConverterProps> = ({ onConversionSucc
             {latestResults.map((item) => (
               <div
                 key={item.id}
+                className="result-card"
                 style={{
                   border: '1.5px solid var(--ink)',
                   padding: '12px',
-                  display: 'flex',
-                  flexWrap: 'wrap',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  gap: '12px',
                 }}
               >
                 {/* PREVIEW THUMBNAIL */}

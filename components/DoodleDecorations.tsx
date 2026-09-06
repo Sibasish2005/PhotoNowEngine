@@ -15,7 +15,7 @@ export const FooterStamps: React.FC = () => {
   return (
     <footer style={{
       borderTop: '2px solid var(--ink)',
-      padding: '28px 24px',
+      padding: 'clamp(16px, 3vw, 28px) clamp(14px, 2vw, 24px)',
       marginTop: '40px',
       display: 'flex',
       flexDirection: 'column',

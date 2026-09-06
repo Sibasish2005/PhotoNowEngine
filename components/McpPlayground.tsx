@@ -103,10 +103,7 @@ export const McpPlayground: React.FC = () => {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
       {/* HEADER */}
-      <div style={{
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'baseline',
+      <div className="section-header" style={{
         borderBottom: '2px solid var(--ink)',
         paddingBottom: '8px',
       }}>
@@ -121,7 +118,7 @@ export const McpPlayground: React.FC = () => {
       {/* CLUSTER & RATE LIMIT TELEMETRY DASHBOARD */}
       <div style={{
         display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
         gap: '14px',
       }}>
         {/* RATE LIMITER STATUS */}
@@ -204,6 +201,7 @@ export const McpPlayground: React.FC = () => {
           borderRadius: '4px',
           fontSize: '11px',
           overflowX: 'auto',
+          WebkitOverflowScrolling: 'touch',
           fontFamily: 'var(--font-mono), monospace',
         }}>
           {JSON.stringify(SAMPLE_MCP_CLIENT_CONFIG, null, 2)}
@@ -212,7 +210,7 @@ export const McpPlayground: React.FC = () => {
 
       {/* INTERACTIVE RPC TEST CONSOLE */}
       <div className="hand-box" style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div className="section-header">
           <span style={{ fontWeight: 700, fontSize: '12px' }}>[INTERACTIVE MCP SANDBOX]</span>
           <span style={{ fontSize: '10px', color: 'var(--ink-gray)' }}>TEST LIVE JSON-RPC REQUESTS</span>
         </div>
@@ -300,6 +298,7 @@ export const McpPlayground: React.FC = () => {
                 padding: '12px',
                 fontSize: '11px',
                 overflowX: 'auto',
+                WebkitOverflowScrolling: 'touch',
                 maxHeight: '260px',
                 fontFamily: 'var(--font-mono), monospace',
               }}>

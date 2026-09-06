@@ -16,10 +16,12 @@ export default function TermsPage() {
       {/* TOP HEADER */}
       <header style={{
         borderBottom: '2px solid var(--ink)',
-        padding: '16px 24px',
+        padding: 'clamp(10px, 2vw, 16px) clamp(14px, 2vw, 24px)',
         display: 'flex',
+        flexWrap: 'wrap',
         justifyContent: 'space-between',
         alignItems: 'center',
+        gap: '10px',
         background: 'var(--bg-paper)',
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
@@ -46,10 +48,10 @@ export default function TermsPage() {
         maxWidth: '920px',
         width: '100%',
         margin: '0 auto',
-        padding: '40px 24px',
+        padding: 'clamp(20px, 4vw, 40px) clamp(14px, 2vw, 24px)',
         flex: 1,
       }}>
-        <div className="hand-box" style={{ padding: '36px 28px', lineHeight: '1.7', fontSize: '13px' }}>
+        <div className="hand-box" style={{ padding: 'clamp(20px, 3vw, 36px) clamp(16px, 2vw, 28px)', lineHeight: '1.7', fontSize: '13px' }}>
           <div style={{ borderBottom: '2px solid var(--ink)', paddingBottom: '16px', marginBottom: '24px' }}>
             <span style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '2px', display: 'block', marginBottom: '6px' }}>
               TERMS OF SERVICE & ACCEPTABLE USE • LAST UPDATED: SEPTEMBER 2026

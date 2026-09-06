@@ -226,3 +226,188 @@ input[type="range"]::-webkit-slider-thumb {
   background: var(--ink);
   border-radius: 255px 15px 225px 15px/15px 225px 15px 255px;
 }
+
+/* ============================================================
+   RESPONSIVE LAYOUT UTILITIES
+   ============================================================ */
+
+/* MAIN TWO-COLUMN WORKBENCH GRID (desktop 2-col, tablet/mobile 1-col) */
+.main-workbench-grid {
+  display: grid;
+  grid-template-columns: 4fr 6fr;
+  gap: 40px;
+  align-items: start;
+}
+
+/* HEADER NAV: HORIZONTAL SCROLLABLE TAB STRIP */
+.header-nav-strip {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+/* RESPONSIVE ACTION ROW (flex row → stacked column on mobile) */
+.responsive-action-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+
+/* RESPONSIVE STATS GRID */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 16px;
+}
+
+/* SECTION HEADER (title + subtitle side-by-side) */
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+/* RESULT CARD ROW (thumbnail + details + download) */
+.result-card {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+/* HERO ILLUSTRATION CONTAINER */
+.hero-illustration-box {
+  padding: 24px;
+  position: relative;
+  background: var(--bg-paper);
+  overflow: hidden;
+}
+
+/* SUBTITLE/TAGLINE IN HEADER */
+.header-subtitle {
+  color: var(--ink-subtle);
+  font-size: 11px;
+}
+
+/* ============================================================
+   RESPONSIVE BREAKPOINTS
+   ============================================================ */
+
+/* TABLET & BELOW (≤ 1024px): Single-column layout */
+@media (max-width: 1024px) {
+  .vertical-tab-strip {
+    display: none !important;
+  }
+
+  .main-workbench-grid {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+}
+
+/* TABLET PORTRAIT & PHONES (≤ 768px) */
+@media (max-width: 768px) {
+  .header-subtitle {
+    display: none;
+  }
+
+  .hero-illustration-box {
+    padding: 16px;
+    max-width: 360px;
+    margin: 0 auto;
+  }
+
+  .hero-illustration-box svg {
+    max-height: 260px;
+    width: 100%;
+  }
+
+  .section-header {
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  h1 {
+    font-size: clamp(2rem, 8vw, 3.6rem) !important;
+  }
+
+  h2 {
+    font-size: clamp(1.2rem, 4vw, 1.8rem);
+  }
+}
+
+/* PHONE SCREENS (≤ 640px): touch-scroll nav + compact padding */
+@media (max-width: 640px) {
+  .header-nav-strip {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    padding-bottom: 4px;
+  }
+
+  .header-nav-strip::-webkit-scrollbar {
+    display: none;
+  }
+
+  .header-nav-strip .hand-btn {
+    flex-shrink: 0;
+    white-space: nowrap;
+  }
+
+  .stats-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+}
+
+/* SMALL PHONES (≤ 480px): full-width CTAs + compact cards */
+@media (max-width: 480px) {
+  .responsive-action-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .responsive-action-row .hand-btn,
+  .responsive-action-row a.hand-btn {
+    width: 100%;
+    justify-content: center;
+    min-height: 44px;
+    padding: 10px 14px;
+    font-size: 12px;
+  }
+
+  .result-card {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .result-card a.hand-btn,
+  .result-card .hand-btn {
+    width: 100%;
+    justify-content: center;
+    min-height: 44px;
+    text-align: center;
+  }
+
+  .hand-btn {
+    min-height: 38px;
+  }
+
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .hero-illustration-box {
+    max-width: 280px;
+  }
+
+  .hero-illustration-box svg {
+    max-height: 200px;
+  }
+}

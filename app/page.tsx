@@ -46,26 +46,21 @@ export default function Home() {
       />
 
       {/* MAIN TWO-COLUMN SPLIT CONTAINER (40% LEFT / 60% RIGHT AS PER DESIGN.MD) */}
-      <main style={{
+      <main className="main-content-area" style={{
         flex: 1,
         maxWidth: '1440px',
         width: '100%',
         margin: '0 auto',
-        padding: '32px 24px',
+        padding: 'clamp(16px, 3vw, 32px) clamp(12px, 2vw, 24px)',
       }}>
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
-          gap: '40px',
-          alignItems: 'start',
-        }}>
-          {/* LEFT 40% HERO COLUMN: HAND-DRAWN VECTOR CHARACTER & HUGE NAME */}
-          <aside style={{ flex: '0 0 38%' }}>
+        <div className="main-workbench-grid">
+          {/* LEFT HERO COLUMN: HAND-DRAWN VECTOR CHARACTER & HUGE NAME */}
+          <aside>
             <LeftHeroIllustration />
           </aside>
 
-          {/* RIGHT 60% INTERACTIVE ENGINE COLUMN */}
-          <section style={{ flex: '1 1 58%', minWidth: 0 }}>
+          {/* RIGHT INTERACTIVE ENGINE COLUMN */}
+          <section style={{ minWidth: 0 }}>
             {activeTab === 'photo' && (
               <PhotoConverter onConversionSuccess={handleConversionSuccess} />
             )}
@@ -91,10 +86,7 @@ export default function Home() {
         {/* AEO & SEO KNOWLEDGE BASE: AGENT CAPABILITIES & SPECIFICATION */}
         <section aria-labelledby="agent-aeo-heading" style={{ marginTop: '48px' }}>
           <div className="hand-box" style={{ padding: '28px 24px', background: 'var(--paper-tint)' }}>
-            <div style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'baseline',
+            <div className="section-header" style={{
               borderBottom: '2px solid var(--ink)',
               paddingBottom: '10px',
               marginBottom: '20px',

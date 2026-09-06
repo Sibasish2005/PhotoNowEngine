@@ -24,7 +24,7 @@ export const LeftHeroIllustration: React.FC = () => {
           #1 OFFLINE MCP TOOL SERVER • BUILT FOR AI AGENTS
         </span>
         <h1 style={{
-          fontSize: 'clamp(3.4rem, 6.5vw, 5.8rem)',
+          fontSize: 'clamp(2.2rem, 7vw, 5.8rem)',
           lineHeight: '0.88',
           letterSpacing: '-1px',
           marginBottom: '12px',
@@ -42,12 +42,7 @@ export const LeftHeroIllustration: React.FC = () => {
       </div>
 
       {/* HAND-DRAWN BOXED ILLUSTRATION CONTAINER */}
-      <div className="hand-box" style={{
-        padding: '24px',
-        position: 'relative',
-        background: 'var(--bg-paper)',
-        overflow: 'hidden',
-      }}>
+      <div className="hand-box hero-illustration-box">
         {/* DOODLE ANNOTATION: "HEY." WITH HAND-DRAWN ARROW */}
         <div style={{
           position: 'absolute',

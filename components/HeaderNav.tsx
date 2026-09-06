@@ -16,19 +16,19 @@ export const HeaderNav: React.FC<HeaderNavProps> = ({
   return (
     <header style={{
       borderBottom: '2px solid var(--ink)',
-      padding: '16px 24px',
+      padding: 'clamp(10px, 2vw, 16px) clamp(14px, 2vw, 24px)',
       display: 'flex',
       flexWrap: 'wrap',
       alignItems: 'center',
       justifyContent: 'space-between',
-      gap: '16px',
+      gap: 'clamp(10px, 2vw, 16px)',
       background: 'var(--bg-paper)',
       position: 'sticky',
       top: 0,
       zIndex: 100,
     }}>
       {/* BRAND & STATUS */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexShrink: 0 }}>
         <div style={{
           display: 'inline-flex',
           alignItems: 'center',
@@ -48,18 +48,13 @@ export const HeaderNav: React.FC<HeaderNavProps> = ({
           <span>PHOTONOW.ENGINE</span>
         </div>
 
-        <span style={{ color: 'var(--ink-subtle)', fontSize: '11px' }}>
+        <span className="header-subtitle">
           • #1 OFFLINE MEDIA MCP SERVER FOR AI AGENTS •
         </span>
       </div>
 
-      {/* BRACKETED LINKS */}
-      <nav style={{
-        display: 'flex',
-        flexWrap: 'wrap',
-        alignItems: 'center',
-        gap: '8px',
-      }}>
+      {/* BRACKETED LINKS — HORIZONTALLY SCROLLABLE ON MOBILE */}
+      <nav className="header-nav-strip">
         <button
           onClick={() => setActiveTab('photo')}
           className={`hand-btn ${activeTab === 'photo' ? 'active' : ''}`}

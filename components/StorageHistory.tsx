@@ -114,10 +114,7 @@ export const StorageHistory: React.FC<StorageHistoryProps> = ({ onStorageUpdated
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
       {/* HEADER */}
-      <div style={{
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'baseline',
+      <div className="section-header" style={{
         borderBottom: '2px solid var(--ink)',
         paddingBottom: '8px',
       }}>
@@ -130,11 +127,8 @@ export const StorageHistory: React.FC<StorageHistoryProps> = ({ onStorageUpdated
       </div>
 
       {/* STATS OVERVIEW BAR */}
-      <div className="hand-box" style={{
+      <div className="hand-box stats-grid" style={{
         padding: '16px 20px',
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))',
-        gap: '16px',
       }}>
         <div>
           <span style={{ fontSize: '10px', color: 'var(--ink-gray)' }}>STORED ASSETS</span>
@@ -157,7 +151,7 @@ export const StorageHistory: React.FC<StorageHistoryProps> = ({ onStorageUpdated
           </div>
         </div>
 
-        <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: '6px' }}>
+        <div className="responsive-action-row" style={{ justifyContent: 'center' }}>
           <button
             onClick={handleDownloadZip}
             disabled={items.length === 0 || isZipping}
@@ -211,14 +205,9 @@ export const StorageHistory: React.FC<StorageHistoryProps> = ({ onStorageUpdated
           {filteredItems.map((item) => (
             <div
               key={item.id}
-              className="hand-box"
+              className="hand-box result-card"
               style={{
                 padding: '14px 18px',
-                display: 'flex',
-                flexWrap: 'wrap',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                gap: '14px',
               }}
             >
               {/* MEDIA PREVIEW */}
@@ -285,7 +274,7 @@ export const StorageHistory: React.FC<StorageHistoryProps> = ({ onStorageUpdated
               </div>
 
               {/* ACTIONS */}
-              <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+              <div className="responsive-action-row" style={{ justifyContent: 'flex-end' }}>
                 <a
                   href={item.previewUrl}
                   download={item.fileName}
