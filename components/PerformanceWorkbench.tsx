@@ -343,12 +343,45 @@ export const PerformanceWorkbench: React.FC = () => {
         </button>
       </div>
 
-      {/* CLOUD PREVIEW NOTICE (ONLY WHEN ON VERCEL) */}
-      {isHosted && (
-        <div style={{ fontSize: '11px', color: '#92400e', background: '#fef3c7', padding: '5px 10px', border: '1px solid #f59e0b', borderRadius: '2px', marginBottom: '10px' }}>
-          ⚠️ <strong>Cloud Preview:</strong> Cloud servers cannot read your personal PC drive. Use <b>[Demo]</b> or test live sites via <b>[Test URL]</b>.
+      {/* FORK & RUN LOCALLY DISCLAIMER */}
+      <div style={{
+        background: '#fef3c7',
+        border: '1.5px solid #d97706',
+        padding: '7px 12px',
+        marginBottom: '10px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        flexWrap: 'wrap',
+        gap: '8px',
+        fontSize: '11px',
+        lineHeight: 1.4,
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <span>💡</span>
+          <span>
+            <strong>Disclaimer:</strong> To audit your own projects and run optimization missions on your local files, <strong>fork the repo and run it locally</strong> (<code>npm run dev</code> at <code>http://localhost:3000</code>).
+          </span>
         </div>
-      )}
+        <a
+          href="https://github.com/Sibasish2005/PhotoNowEngine"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="hand-btn"
+          style={{
+            padding: '2px 8px',
+            fontSize: '10px',
+            background: '#fff',
+            textDecoration: 'none',
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '4px',
+            fontWeight: 700,
+          }}
+        >
+          <span>⭐ Fork on GitHub ➔</span>
+        </a>
+      </div>
 
       {/* STATUS & ERROR ALERTS */}
       {statusMessage && (
