@@ -323,14 +323,14 @@ export const PerformanceWorkbench: React.FC = () => {
           [4. TEST URL] <span style={{ fontSize: '9px', background: '#dbeafe', color: '#1e40af', padding: '1px 4px', borderRadius: '2px' }}>🌐 CLOUD & LOCAL</span>
         </button>
         <button
-          onClick={() => setSubTab('plan')}
+          onClick={() => { setSubTab('plan'); if (!planResult) runGeneratePlan(); }}
           className={`hand-btn ${subTab === 'plan' ? 'active' : ''}`}
           style={{ padding: '6px 12px', fontSize: '11px' }}
         >
           [5. PLAN {planResult ? `(${planResult.actionsCount})` : ''}]
         </button>
         <button
-          onClick={() => setSubTab('verify')}
+          onClick={() => { setSubTab('verify'); if (!verificationResult) runVerifyPlan(); }}
           className={`hand-btn ${subTab === 'verify' ? 'active' : ''}`}
           style={{ padding: '6px 12px', fontSize: '11px' }}
         >
@@ -690,6 +690,37 @@ export const PerformanceWorkbench: React.FC = () => {
       {/* 5. PLAN VIEW */}
       {subTab === 'plan' && (
         <div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', flexWrap: 'wrap', gap: '8px' }}>
+            <span style={{ fontSize: '13px', fontWeight: 700 }}>Optimization Plan Formulator</span>
+            <button
+              onClick={runGeneratePlan}
+              disabled={loading}
+              className="hand-btn"
+              style={{ padding: '6px 14px', fontSize: '11px', fontWeight: 700 }}
+            >
+              {loading ? '[FORMULATING PLAN...]' : '[⚡ FORMULATE / REFRESH PLAN]'}
+            </button>
+          </div>
+
+          {!planResult && !loading && (
+            <div style={{ border: '1.5px dashed var(--ink)', padding: '28px', textAlign: 'center', background: '#fafafa', borderRadius: '2px' }}>
+              <div style={{ fontSize: '14px', fontWeight: 800, marginBottom: '6px' }}>
+                No Optimization Plan Formulated Yet
+              </div>
+              <p style={{ fontSize: '12px', color: '#666', margin: '0 0 16px 0' }}>
+                Formulate a non-destructive optimization plan analyzing images in <code>{projectPath}</code>.
+              </p>
+              <button
+                onClick={runGeneratePlan}
+                disabled={loading}
+                className="hand-btn active"
+                style={{ padding: '8px 22px', fontSize: '12px', fontWeight: 800, background: 'var(--ink)', color: '#fff' }}
+              >
+                [⚡ GENERATE OPTIMIZATION PLAN NOW ➔]
+              </button>
+            </div>
+          )}
+
           {planResult && (
             <div>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
@@ -750,6 +781,37 @@ export const PerformanceWorkbench: React.FC = () => {
       {/* 6. BEFORE/AFTER VERIFY VIEW */}
       {subTab === 'verify' && (
         <div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', flexWrap: 'wrap', gap: '8px' }}>
+            <span style={{ fontSize: '13px', fontWeight: 700 }}>Verification & Local Reporting</span>
+            <button
+              onClick={runVerifyPlan}
+              disabled={loading}
+              className="hand-btn"
+              style={{ padding: '6px 14px', fontSize: '11px', fontWeight: 700 }}
+            >
+              {loading ? '[VERIFYING...]' : '[⚡ RE-VERIFY & GENERATE REPORT]'}
+            </button>
+          </div>
+
+          {!verificationResult && !loading && (
+            <div style={{ border: '1.5px dashed var(--ink)', padding: '28px', textAlign: 'center', background: '#fafafa', borderRadius: '2px' }}>
+              <div style={{ fontSize: '14px', fontWeight: 800, marginBottom: '6px' }}>
+                No Verification Executed Yet
+              </div>
+              <p style={{ fontSize: '12px', color: '#666', margin: '0 0 16px 0' }}>
+                Measure exact byte reductions across optimized assets in <code>{projectPath}</code> and produce local HTML/Markdown audit reports.
+              </p>
+              <button
+                onClick={runVerifyPlan}
+                disabled={loading}
+                className="hand-btn active"
+                style={{ padding: '8px 22px', fontSize: '12px', fontWeight: 800, background: 'var(--ink)', color: '#fff' }}
+              >
+                [⚡ RUN VERIFICATION AUDIT NOW ➔]
+              </button>
+            </div>
+          )}
+
           {verificationResult && (
             <div>
               <div style={{ border: '2px solid var(--ink)', padding: '16px', marginBottom: '16px', background: '#ecfdf5' }}>
@@ -772,6 +834,12 @@ export const PerformanceWorkbench: React.FC = () => {
                   ))}
                 </ul>
               </div>
+
+              {verificationResult.reportSavedPath && (
+                <div style={{ fontSize: '11px', background: '#f8fafc', padding: '10px 12px', border: '1px solid #cbd5e1', marginBottom: '10px' }}>
+                  📄 <b>Local HTML Report Generated:</b> <code style={{ color: '#0369a1', wordBreak: 'break-all' }}>{verificationResult.reportSavedPath}</code>
+                </div>
+              )}
             </div>
           )}
         </div>
