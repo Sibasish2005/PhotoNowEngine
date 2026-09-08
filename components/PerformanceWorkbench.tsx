@@ -370,6 +370,9 @@ export const PerformanceWorkbench: React.FC = () => {
           >
             [Root: .]
           </button>
+          <div style={{ width: '100%', fontSize: '11px', color: '#64748b', marginTop: '4px' }}>
+            💡 <b>Local vs Cloud:</b> When running locally (<code>npm run dev</code>), enter any folder path on your machine. On the hosted Vercel site, use <code>[Demo Fixture]</code> or test any website via <b>[4. TEST URL]</b>.
+          </div>
         </div>
       )}
 
