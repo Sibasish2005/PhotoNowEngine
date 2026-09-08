@@ -386,6 +386,139 @@ export const MCP_TOOLS: McpToolDefinition[] = [
     },
   },
   {
+    name: 'inspect_project',
+    description: 'Scans project structure, identifies web framework (Next.js, Vite, Nuxt, Astro, Hugo), routes, components, and media directories.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        projectPath: { type: 'string', description: 'Project root directory path' },
+        detailLevel: { type: 'string', enum: ['compact', 'standard', 'detailed', 'raw'], default: 'compact' },
+        tokenBudget: { type: 'number' },
+      },
+      required: ['projectPath'],
+    },
+  },
+  {
+    name: 'get_asset_usage',
+    description: 'Cross-references where an asset is used in source code: routes, components, rendered dimensions, and LCP candidate status.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        projectPath: { type: 'string', description: 'Project root directory path' },
+        assetPath: { type: 'string', description: 'Path or file name of the asset to inspect' },
+        detailLevel: { type: 'string', enum: ['compact', 'standard', 'detailed', 'raw'], default: 'compact' },
+        tokenBudget: { type: 'number' },
+      },
+      required: ['projectPath', 'assetPath'],
+    },
+  },
+  {
+    name: 'find_unused_assets',
+    description: 'Detects potentially unreferenced/dead assets with confidence ratings (SAFE, LIKELY, UNCERTAIN) without deleting them.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        projectPath: { type: 'string', description: 'Project root directory path' },
+        detailLevel: { type: 'string', enum: ['compact', 'standard', 'detailed', 'raw'], default: 'compact' },
+        tokenBudget: { type: 'number' },
+      },
+      required: ['projectPath'],
+    },
+  },
+  {
+    name: 'check_performance_budget',
+    description: 'Evaluates project assets or live URL against performance budgets (maxPageBytes, maxImageBytes, LCP budget), returning PASS, WARN, or FAIL.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        projectPath: { type: 'string', description: 'Project root directory path' },
+        targetUrl: { type: 'string', description: 'Optional live URL to evaluate' },
+        budget: { type: 'object', description: 'Optional inline performance budget overrides' },
+        detailLevel: { type: 'string', enum: ['compact', 'standard', 'detailed', 'raw'], default: 'compact' },
+        tokenBudget: { type: 'number' },
+      },
+      required: ['projectPath'],
+    },
+  },
+  {
+    name: 'verify_runtime_performance',
+    description: 'Measures observed browser runtime metrics (LCP, FCP, CLS, resource timing) on local or live URLs, separating OBSERVED from SIMULATED.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        targetUrl: { type: 'string', description: 'Target website URL (e.g. http://localhost:3000)' },
+        timeoutMs: { type: 'number', default: 8000 },
+        detailLevel: { type: 'string', enum: ['compact', 'standard', 'detailed', 'raw'], default: 'compact' },
+        tokenBudget: { type: 'number' },
+      },
+      required: ['targetUrl'],
+    },
+  },
+  {
+    name: 'generate_source_patch',
+    description: 'Generates unified diffs to update source code references (extension updates, responsive srcset/sizes) when assets are optimized.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        projectPath: { type: 'string', description: 'Project root directory path' },
+        planId: { type: 'string', description: 'Plan ID from generate_optimization_plan' },
+        dryRun: { type: 'boolean', default: true },
+        detailLevel: { type: 'string', enum: ['compact', 'standard', 'detailed', 'raw'], default: 'compact' },
+        tokenBudget: { type: 'number' },
+      },
+      required: ['projectPath', 'planId'],
+    },
+  },
+  {
+    name: 'apply_source_patch',
+    description: 'Safely applies generated source code patches with automated backups and rollback manifest recording.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        projectPath: { type: 'string', description: 'Project root directory path' },
+        patch: { type: 'object', description: 'Patch object from generate_source_patch' },
+        confirmApply: { type: 'boolean', description: 'Must be explicitly set to true to apply code modifications' },
+        dryRun: { type: 'boolean', default: false },
+        detailLevel: { type: 'string', enum: ['compact', 'standard', 'detailed', 'raw'], default: 'compact' },
+        tokenBudget: { type: 'number' },
+      },
+      required: ['projectPath', 'patch', 'confirmApply'],
+    },
+  },
+  {
+    name: 'rollback_operation',
+    description: 'Restores original source files and media assets from an automated backup using its operationId manifest.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        projectPath: { type: 'string', description: 'Project root directory path' },
+        operationId: { type: 'string', description: 'Operation ID to rollback (e.g. op_abc123)' },
+        detailLevel: { type: 'string', enum: ['compact', 'standard', 'detailed', 'raw'], default: 'compact' },
+        tokenBudget: { type: 'number' },
+      },
+      required: ['projectPath', 'operationId'],
+    },
+  },
+  {
+    name: 'optimize_project',
+    description: 'Autonomous high-level agent mission: executes the entire 10-step lifecycle (discover -> understand -> analyze -> measure -> diagnose -> plan -> patch -> optimize -> verify -> report).',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        projectPath: { type: 'string', description: 'Project root directory path' },
+        mode: { type: 'string', enum: ['safe', 'review', 'aggressive'], default: 'safe' },
+        dryRun: { type: 'boolean', default: false },
+        format: { type: 'string', enum: ['webp', 'avif'], default: 'webp' },
+        maxDimension: { type: 'number', default: 1920 },
+        quality: { type: 'number', default: 82 },
+        applySourcePatches: { type: 'boolean', default: false },
+        detailLevel: { type: 'string', enum: ['compact', 'standard', 'detailed', 'raw'], default: 'compact' },
+        tokenBudget: { type: 'number' },
+      },
+      required: ['projectPath'],
+    },
+  },
+  {
     name: 'list_storage_conversions',
     description: 'Lists all stored media files and conversions saved in the browser IndexedDB.',
     inputSchema: {

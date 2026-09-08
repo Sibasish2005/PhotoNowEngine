@@ -32,6 +32,13 @@ import { groupDuplicates } from '../lib/engine/perceptualHash.mjs';
 import { formatMcpResponse } from '../lib/engine/tokenEconomy.mjs';
 import { engineCache } from '../lib/engine/cache.mjs';
 import { saveLocalReport } from '../lib/engine/reporting.mjs';
+import { scanProjectStructure } from '../lib/engine/projectScanner.mjs';
+import { scanProjectSourceReferences } from '../lib/engine/sourceAnalyzer.mjs';
+import { buildAssetGraph } from '../lib/engine/assetGraph.mjs';
+import { generateSourcePatch, applySourcePatch, rollbackOperation } from '../lib/engine/patchGenerator.mjs';
+import { verifyRuntimePerformance } from '../lib/engine/browserVerifier.mjs';
+import { evaluatePerformanceBudget, loadProjectBudget } from '../lib/engine/budget.mjs';
+import { optimizeProject } from '../lib/engine/mission.mjs';
 
 // Initialize bundled static binary paths for zero external setup
 const ffmpegPath = ffmpegInstaller.path || ffmpegInstaller.default?.path;
@@ -1802,6 +1809,482 @@ server.tool(
         recommendations: ['All optimizations verified locally. Ready for deployment.'],
         nextAction: verification.nextAction,
         details: verification,
+        detailLevel,
+        tokenBudget,
+      });
+      return { content: [{ type: 'text', text: JSON.stringify(formatted, null, 2) }] };
+    } catch (err) {
+      return {
+        isError: true,
+        content: [{ type: 'text', text: JSON.stringify(formatMcpResponse({ ok: false, error: err }), null, 2) }],
+      };
+    }
+  }
+);
+
+// ==========================================
+// TOOL 21: inspect_project (Project Understanding)
+// ==========================================
+server.tool(
+  'inspect_project',
+  {
+    projectPath: z.string().describe('Project root directory path'),
+    detailLevel: z.enum(['compact', 'standard', 'detailed', 'raw']).default('compact').optional(),
+    tokenBudget: z.number().optional(),
+  },
+  async ({ projectPath, detailLevel, tokenBudget }) => {
+    try {
+      const target = resolvePath(projectPath);
+      const structure = await scanProjectStructure(target);
+      const formatted = formatMcpResponse({
+        ok: true,
+        summary: {
+          projectRoot: structure.projectRoot,
+          framework: structure.framework,
+          frameworkVariant: structure.frameworkVariant,
+          routesDir: structure.routesDir,
+          componentsDir: structure.componentsDir,
+          publicDir: structure.publicDir,
+          configFile: structure.configFile,
+          sourceFilesCount: structure.sourceFilesCount,
+          assetFilesCount: structure.assetFilesCount,
+          frameworkConfidence: structure.frameworkConfidence,
+        },
+        recommendations: [`Framework detected as '${structure.framework}'. Run 'analyze_web_assets' to audit media performance.`],
+        nextAction: 'analyze_web_assets',
+        details: structure,
+        detailLevel,
+        tokenBudget,
+      });
+      return { content: [{ type: 'text', text: JSON.stringify(formatted, null, 2) }] };
+    } catch (err) {
+      return {
+        isError: true,
+        content: [{ type: 'text', text: JSON.stringify(formatMcpResponse({ ok: false, error: err }), null, 2) }],
+      };
+    }
+  }
+);
+
+// ==========================================
+// TOOL 22: get_asset_usage (Asset Dependency Graph)
+// ==========================================
+server.tool(
+  'get_asset_usage',
+  {
+    projectPath: z.string().describe('Project root directory path'),
+    assetPath: z.string().describe('Path or file name of the asset to inspect'),
+    detailLevel: z.enum(['compact', 'standard', 'detailed', 'raw']).default('compact').optional(),
+    tokenBudget: z.number().optional(),
+  },
+  async ({ projectPath, assetPath, detailLevel, tokenBudget }) => {
+    try {
+      const targetRoot = resolvePath(projectPath);
+      const structure = await scanProjectStructure(targetRoot);
+      const sourceRefs = await scanProjectSourceReferences(targetRoot, structure.publicDir);
+      const analysis = await analyzeWebAssets(targetRoot);
+      const graph = buildAssetGraph(targetRoot, analysis.assets, sourceRefs);
+      const usage = graph.getAssetUsage(assetPath);
+
+      if (!usage) {
+        throw new Error(`Asset '${assetPath}' not found in project assets or graph.`);
+      }
+
+      const formatted = formatMcpResponse({
+        ok: true,
+        summary: {
+          assetPath: usage.assetPath,
+          relativePath: usage.relativePath,
+          referenceCount: usage.referenceCount,
+          routesCount: usage.routes.length,
+          componentsCount: usage.components.length,
+          routes: usage.routes,
+          components: usage.components,
+          isLcpCandidate: usage.isLcpCandidate,
+          isShared: usage.isShared,
+          isUnused: usage.isUnused,
+          riskRating: usage.riskRating,
+        },
+        issues: usage.isUnused ? ['Asset has 0 references in source code.'] : [],
+        recommendations: usage.isUnused
+          ? ['Verify dynamic usage before pruning.']
+          : (usage.isShared ? ['Shared across multiple routes. Optimize format/size with caution.'] : ['Safe to optimize or resize.']),
+        nextAction: usage.isUnused ? 'find_unused_assets' : 'generate_optimization_plan',
+        details: usage,
+        detailLevel,
+        tokenBudget,
+      });
+      return { content: [{ type: 'text', text: JSON.stringify(formatted, null, 2) }] };
+    } catch (err) {
+      return {
+        isError: true,
+        content: [{ type: 'text', text: JSON.stringify(formatMcpResponse({ ok: false, error: err }), null, 2) }],
+      };
+    }
+  }
+);
+
+// ==========================================
+// TOOL 23: find_unused_assets (Dead Asset Intelligence)
+// ==========================================
+server.tool(
+  'find_unused_assets',
+  {
+    projectPath: z.string().describe('Project root directory path'),
+    detailLevel: z.enum(['compact', 'standard', 'detailed', 'raw']).default('compact').optional(),
+    tokenBudget: z.number().optional(),
+  },
+  async ({ projectPath, detailLevel, tokenBudget }) => {
+    try {
+      const targetRoot = resolvePath(projectPath);
+      const structure = await scanProjectStructure(targetRoot);
+      const sourceRefs = await scanProjectSourceReferences(targetRoot, structure.publicDir);
+      const analysis = await analyzeWebAssets(targetRoot);
+      const graph = buildAssetGraph(targetRoot, analysis.assets, sourceRefs);
+      const unusedAssets = graph.findUnusedAssets();
+
+      const totalWasteBytes = unusedAssets.reduce((acc, a) => acc + a.sizeBytes, 0);
+
+      const formatted = formatMcpResponse({
+        ok: true,
+        summary: {
+          totalUnusedFound: unusedAssets.length,
+          totalWasteBytes,
+          totalWasteFormatted: formatBytes(totalWasteBytes),
+          safeToPruneCount: unusedAssets.filter((a) => a.confidence === 'SAFE').length,
+          likelyUnusedCount: unusedAssets.filter((a) => a.confidence === 'LIKELY').length,
+          uncertainCount: unusedAssets.filter((a) => a.confidence === 'UNCERTAIN').length,
+          topUnused: unusedAssets.slice(0, 5).map((a) => `${a.relativePath} (${a.sizeFormatted}) [${a.confidence}]`),
+        },
+        issues: unusedAssets.slice(0, 5).map((a) => `Unreferenced asset: ${a.relativePath} (${a.sizeFormatted})`),
+        recommendations: ['Do NOT delete automatically. Review assets marked SAFE and require explicit confirmation.'],
+        nextAction: 'review_unused_assets',
+        details: unusedAssets,
+        detailLevel,
+        tokenBudget,
+      });
+      return { content: [{ type: 'text', text: JSON.stringify(formatted, null, 2) }] };
+    } catch (err) {
+      return {
+        isError: true,
+        content: [{ type: 'text', text: JSON.stringify(formatMcpResponse({ ok: false, error: err }), null, 2) }],
+      };
+    }
+  }
+);
+
+// ==========================================
+// TOOL 24: check_performance_budget (Budget Engine)
+// ==========================================
+server.tool(
+  'check_performance_budget',
+  {
+    projectPath: z.string().describe('Project root directory path'),
+    targetUrl: z.string().optional().describe('Optional live URL to evaluate'),
+    budget: z.record(z.any()).optional().describe('Optional inline budget configuration'),
+    detailLevel: z.enum(['compact', 'standard', 'detailed', 'raw']).default('compact').optional(),
+    tokenBudget: z.number().optional(),
+  },
+  async ({ projectPath, targetUrl, budget, detailLevel, tokenBudget }) => {
+    try {
+      const targetRoot = resolvePath(projectPath);
+      const analysis = await analyzeWebAssets(targetRoot);
+      const configuredBudget = budget || (await loadProjectBudget(targetRoot));
+
+      let lcpMs = 0;
+      let fcpMs = 0;
+      if (targetUrl) {
+        const runtime = await verifyRuntimePerformance(targetUrl);
+        lcpMs = runtime.lcpMs || 0;
+        fcpMs = runtime.fcpMs || 0;
+      }
+
+      const evaluation = evaluatePerformanceBudget({
+        target: targetUrl || targetRoot,
+        assets: analysis.assets,
+        totalSizeBytes: analysis.totalSizeBytes,
+        lcpMs,
+        fcpMs,
+        budgetConfig: configuredBudget,
+      });
+
+      const formatted = formatMcpResponse({
+        ok: evaluation.status !== 'FAIL',
+        summary: {
+          status: evaluation.status,
+          target: evaluation.target,
+          passedCount: evaluation.passedCount,
+          failedCount: evaluation.failedCount,
+          warningCount: evaluation.warningCount,
+          failedRules: evaluation.checks.filter((c) => !c.passed).map((c) => `${c.rule}: actual ${c.actualFormatted} exceeded limit ${c.limitFormatted} by ${c.exceededByFormatted}`),
+        },
+        issues: evaluation.checks.filter((c) => !c.passed).map((c) => `${c.rule} exceeded budget`),
+        recommendations: evaluation.status === 'FAIL' ? ['Generate an optimization plan to reduce media weight within budget limits.'] : ['Performance budgets satisfied.'],
+        nextAction: evaluation.nextAction,
+        details: evaluation,
+        detailLevel,
+        tokenBudget,
+      });
+      return { content: [{ type: 'text', text: JSON.stringify(formatted, null, 2) }] };
+    } catch (err) {
+      return {
+        isError: true,
+        content: [{ type: 'text', text: JSON.stringify(formatMcpResponse({ ok: false, error: err }), null, 2) }],
+      };
+    }
+  }
+);
+
+// ==========================================
+// TOOL 25: verify_runtime_performance (Browser Verifier)
+// ==========================================
+server.tool(
+  'verify_runtime_performance',
+  {
+    targetUrl: z.string().describe('Target URL to measure (e.g. http://localhost:3000)'),
+    timeoutMs: z.number().default(8000).optional().describe('Navigation timeout in milliseconds'),
+    detailLevel: z.enum(['compact', 'standard', 'detailed', 'raw']).default('compact').optional(),
+    tokenBudget: z.number().optional(),
+  },
+  async ({ targetUrl, timeoutMs, detailLevel, tokenBudget }) => {
+    try {
+      const result = await verifyRuntimePerformance(targetUrl, { timeoutMs });
+      const formatted = formatMcpResponse({
+        ok: true,
+        summary: {
+          measurementType: result.measurementType,
+          url: result.url,
+          lcpMs: result.lcpMs,
+          fcpMs: result.fcpMs,
+          cls: result.cls,
+          totalLoadMs: result.totalLoadMs,
+          mediaTransferFormatted: result.mediaTransferFormatted,
+          mediaRequestCount: result.mediaRequestCount,
+          lcpElement: result.lcpElement,
+        },
+        recommendations: [result.measurementType === 'OBSERVED' ? 'Real browser metrics collected successfully.' : 'Live URL did not respond; simulated fallback metrics provided.'],
+        nextAction: 'compare_web_performance',
+        details: result,
+        detailLevel,
+        tokenBudget,
+      });
+      return { content: [{ type: 'text', text: JSON.stringify(formatted, null, 2) }] };
+    } catch (err) {
+      return {
+        isError: true,
+        content: [{ type: 'text', text: JSON.stringify(formatMcpResponse({ ok: false, error: err }), null, 2) }],
+      };
+    }
+  }
+);
+
+// ==========================================
+// TOOL 26: generate_source_patch (Source Code Patching)
+// ==========================================
+server.tool(
+  'generate_source_patch',
+  {
+    projectPath: z.string().describe('Project root directory path'),
+    planId: z.string().describe('Plan ID from generate_optimization_plan'),
+    dryRun: z.boolean().default(true).describe('Preview diff without modifying files (default true)'),
+    detailLevel: z.enum(['compact', 'standard', 'detailed', 'raw']).default('compact').optional(),
+    tokenBudget: z.number().optional(),
+  },
+  async ({ projectPath, planId, dryRun, detailLevel, tokenBudget }) => {
+    try {
+      const targetRoot = resolvePath(projectPath);
+      let plan = planId ? engineCache.getPlan(planId) : null;
+      if (!plan) {
+        plan = await generateOptimizationPlan(targetRoot);
+      }
+
+      const structure = await scanProjectStructure(targetRoot);
+      const sourceRefs = await scanProjectSourceReferences(targetRoot, structure.publicDir);
+      const analysis = await analyzeWebAssets(targetRoot);
+      const graph = buildAssetGraph(targetRoot, analysis.assets, sourceRefs);
+
+      const patch = await generateSourcePatch(plan, graph, { dryRun });
+      engineCache.set(`patch:${patch.patchId}`, patch);
+
+      const formatted = formatMcpResponse({
+        ok: true,
+        summary: {
+          patchId: patch.patchId,
+          planId,
+          actionsCount: patch.actions.length,
+          affectedFilesCount: patch.affectedFiles.length,
+          affectedFiles: patch.affectedFiles.map((f) => path.relative(targetRoot, f)),
+          isDryRun: patch.isDryRun,
+          diffPreview: patch.unifiedDiff ? patch.unifiedDiff.slice(0, 500) + (patch.unifiedDiff.length > 500 ? '\n... (truncated diff preview)' : '') : 'No source file changes needed.',
+        },
+        recommendations: ['Review unified diff. Execute apply_source_patch with confirmApply=true to modify code.'],
+        nextAction: `apply_source_patch(patchId="${patch.patchId}", confirmApply=true)`,
+        details: patch,
+        detailLevel,
+        tokenBudget,
+      });
+      return { content: [{ type: 'text', text: JSON.stringify(formatted, null, 2) }] };
+    } catch (err) {
+      return {
+        isError: true,
+        content: [{ type: 'text', text: JSON.stringify(formatMcpResponse({ ok: false, error: err }), null, 2) }],
+      };
+    }
+  }
+);
+
+// ==========================================
+// TOOL 27: apply_source_patch (Safe Patch Applicator)
+// ==========================================
+server.tool(
+  'apply_source_patch',
+  {
+    projectPath: z.string().describe('Project root directory path'),
+    patchId: z.string().optional().describe('Patch ID generated from generate_source_patch'),
+    patch: z.record(z.any()).optional().describe('Direct patch object'),
+    confirmApply: z.boolean().describe('Must be explicitly true to confirm source code modification'),
+    dryRun: z.boolean().default(false).optional(),
+    detailLevel: z.enum(['compact', 'standard', 'detailed', 'raw']).default('compact').optional(),
+    tokenBudget: z.number().optional(),
+  },
+  async ({ projectPath, patchId, patch, confirmApply, dryRun, detailLevel, tokenBudget }) => {
+    try {
+      if (!confirmApply) {
+        throw new Error("Safety check: 'confirmApply' must be true to modify source code files.");
+      }
+
+      const targetRoot = resolvePath(projectPath);
+      let targetPatch = patch;
+      if (!targetPatch && patchId) {
+        targetPatch = engineCache.get(`patch:${patchId}`);
+      }
+      if (!targetPatch) {
+        throw new Error(`Patch record not found for ID '${patchId}'. Please generate_source_patch first.`);
+      }
+
+      const manifest = await applySourcePatch(targetPatch, { projectRoot: targetRoot, dryRun });
+
+      const formatted = formatMcpResponse({
+        ok: true,
+        summary: {
+          operationId: manifest.operationId,
+          filesPatched: manifest.sourcePatches.length,
+          backupDir: manifest.backupDir,
+          canRollback: manifest.canRollback,
+          appliedDetails: manifest.sourcePatches.map((p) => `${path.relative(targetRoot, p.file)} (${p.actionsApplied} actions applied)`),
+        },
+        recommendations: [`Rollback available via rollback_operation(operationId="${manifest.operationId}")`],
+        nextAction: 'verify_optimization',
+        details: manifest,
+        detailLevel,
+        tokenBudget,
+      });
+      return { content: [{ type: 'text', text: JSON.stringify(formatted, null, 2) }] };
+    } catch (err) {
+      return {
+        isError: true,
+        content: [{ type: 'text', text: JSON.stringify(formatMcpResponse({ ok: false, error: err }), null, 2) }],
+      };
+    }
+  }
+);
+
+// ==========================================
+// TOOL 28: rollback_operation (Rollback Engine)
+// ==========================================
+server.tool(
+  'rollback_operation',
+  {
+    projectPath: z.string().describe('Project root directory path'),
+    operationId: z.string().describe('Operation ID to rollback (e.g. op_abc123)'),
+    detailLevel: z.enum(['compact', 'standard', 'detailed', 'raw']).default('compact').optional(),
+    tokenBudget: z.number().optional(),
+  },
+  async ({ projectPath, operationId, detailLevel, tokenBudget }) => {
+    try {
+      const targetRoot = resolvePath(projectPath);
+      const rollbackResult = await rollbackOperation(operationId, targetRoot);
+
+      const formatted = formatMcpResponse({
+        ok: rollbackResult.success,
+        summary: {
+          operationId,
+          restoredSourcesCount: rollbackResult.restoredSourcesCount,
+          restoredAssetsCount: rollbackResult.restoredAssetsCount,
+          message: rollbackResult.message,
+        },
+        recommendations: ['Rollback finished. State restored from backup.'],
+        nextAction: 'inspect_project',
+        details: rollbackResult,
+        detailLevel,
+        tokenBudget,
+      });
+      return { content: [{ type: 'text', text: JSON.stringify(formatted, null, 2) }] };
+    } catch (err) {
+      return {
+        isError: true,
+        content: [{ type: 'text', text: JSON.stringify(formatMcpResponse({ ok: false, error: err }), null, 2) }],
+      };
+    }
+  }
+);
+
+// ==========================================
+// TOOL 29: optimize_project (Autonomous Mission)
+// ==========================================
+server.tool(
+  'optimize_project',
+  {
+    projectPath: z.string().describe('Project root directory path'),
+    mode: z.enum(['safe', 'review', 'aggressive']).default('safe').optional().describe('safe (non-destructive), review (dryRun), aggressive (overwrite source)'),
+    dryRun: z.boolean().default(false).optional().describe('When true, generates plans and diffs without executing changes'),
+    format: z.enum(['webp', 'avif']).default('webp').optional(),
+    maxDimension: z.number().default(1920).optional(),
+    quality: z.number().default(82).optional(),
+    applySourcePatches: z.boolean().default(false).optional().describe('Automatically apply generated source diffs'),
+    detailLevel: z.enum(['compact', 'standard', 'detailed', 'raw']).default('compact').optional(),
+    tokenBudget: z.number().optional(),
+  },
+  async ({ projectPath, mode, dryRun, format, maxDimension, quality, applySourcePatches, detailLevel, tokenBudget }) => {
+    try {
+      const targetRoot = resolvePath(projectPath);
+      const result = await optimizeProject({
+        projectPath: targetRoot,
+        mode,
+        dryRun,
+        format,
+        maxDimension,
+        quality,
+        applySourcePatches,
+        detailLevel,
+        tokenBudget,
+      });
+
+      const formatted = formatMcpResponse({
+        ok: result.status !== 'failed',
+        summary: {
+          status: result.status,
+          missionId: result.missionId,
+          scoreBefore: result.scoreBefore,
+          scoreAfter: result.scoreAfter,
+          scoreDelta: result.scoreDelta,
+          assetsAnalyzed: result.assetsAnalyzed,
+          assetsOptimized: result.assetsOptimized,
+          bytesBeforeFormatted: result.bytesBeforeFormatted,
+          bytesAfterFormatted: result.bytesAfterFormatted,
+          bytesSavedFormatted: result.bytesSavedFormatted,
+          assetReductionPercent: result.assetReductionPercent,
+          lcpBefore: result.lcpBefore,
+          lcpAfter: result.lcpAfter,
+          lcpImprovementPercent: result.lcpImprovementPercent,
+          regression: result.regression,
+          sourcePatchesCount: result.sourcePatchesCount,
+          appliedPatchesCount: result.appliedPatchesCount,
+          rollbackAvailable: result.rollbackAvailable,
+        },
+        recommendations: [result.dryRun ? 'Dry run finished. Execute with dryRun=false to apply optimizations.' : 'Mission complete. All assets verified.'],
+        nextAction: result.nextAction,
+        details: result,
         detailLevel,
         tokenBudget,
       });

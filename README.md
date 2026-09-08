@@ -218,14 +218,42 @@ PhotoNow provides a standalone zero-setup Stdio MCP server powered by native Sha
 }
 ```
 
-#### Available Native MCP Tools (7):
-1. `convert_image`: Single image conversion to WebP, PNG, JPEG, AVIF with quality, rotation, and resizing.
-2. `convert_batch`: Converts an entire folder or file list in a single call without multi-turn prompts.
-3. `extract_audio`: Extracts audio tracks from video files (.mp4, .mov, .mkv, .webm) to MP3, WAV, AAC, FLAC, OGG.
-4. `convert_video`: Transcodes, compresses, and downscales video containers with CRF quality control.
-5. `convert_audio`: Converts standalone audio between MP3, WAV, AAC, M4A, FLAC, and OGG.
-6. `get_media_info`: Unified inspector for images, video, and audio files (dimensions, codecs, bitrates, duration).
-7. `optimize_for_agent`: Compresses high-resolution screenshots into token-efficient WebP for LLM vision models.
+#### Available Native MCP Tools (29 Tools across 3 Layers):
+
+**1. Multimedia Processing Foundation (8 Tools)**:
+- `convert_image`: Single image conversion to WebP, PNG, JPEG, AVIF with quality, rotation, and resizing.
+- `convert_batch`: Converts an entire folder or file list in a single call without multi-turn prompts.
+- `extract_audio`: Extracts audio tracks from video files (.mp4, .mov, .mkv, .webm) to MP3, WAV, AAC, FLAC, OGG.
+- `convert_video`: Transcodes, compresses, and downscales video containers with CRF quality control.
+- `convert_audio`: Converts standalone audio between MP3, WAV, AAC, M4A, FLAC, and OGG.
+- `extract_poster_frame`: Captures a poster snapshot frame from video at an exact timestamp.
+- `get_media_info`: Unified inspector for images, video, and audio files (dimensions, codecs, bitrates, duration).
+- `optimize_for_agent`: Compresses high-resolution screenshots into token-efficient WebP for LLM vision models.
+
+**2. Website Performance Intelligence (12 Tools)**:
+- `analyze_media`: In-depth diagnostic scan of a single media file with issue classification and potential savings.
+- `analyze_web_assets`: Scans a web project directory, classifies all media bottlenecks, and computes 5-axis score.
+- `find_oversized_assets`: Locates images whose dimensions or file sizes exceed web thresholds.
+- `find_inefficient_formats`: Discovers images using uncompressed or legacy formats (photographic PNGs, uncompressed JPEGs).
+- `find_duplicate_assets`: Identifies exact and perceptual duplicate assets (>93% similarity via 64-bit dHash).
+- `find_responsive_opportunities`: Discovers large images lacking responsive breakpoint variants.
+- `test_web_performance`: Audits a web project directory or local URL, estimates 4G transfer, and finds LCP candidates.
+- `get_web_performance_summary`: Retrieves cached audit or test results using `testId`.
+- `compare_web_performance`: Compares before-and-after performance metrics across two test IDs or directories.
+- `generate_optimization_plan`: Builds an action plan (`planId`) with impact ratings and estimated byte savings.
+- `optimize_web_assets`: Executes an optimization plan with safe non-destructive defaults and decode validation.
+- `verify_optimization`: Measures post-optimization metrics, verifies savings, and generates offline reports.
+
+**3. Agentic Performance Engineering (9 Master Tools)**:
+- `inspect_project`: Scans project structure, framework, routes, media roots, and source references.
+- `get_asset_usage`: Returns full reference chain (`Route -> Component -> SourceFile`) and LCP status for an asset.
+- `find_unused_assets`: Detects dead/unreferenced assets categorized by safety tier (`SAFE`, `LIKELY`, `UNCERTAIN`).
+- `check_performance_budget`: Evaluates project against performance budgets (page bytes, image bytes, hero bytes, LCP).
+- `verify_runtime_performance`: Verifies runtime metrics (`OBSERVED` via browser or `SIMULATED` fallback).
+- `generate_source_patch`: Generates unified diffs to update source code (`<img>` -> `<Image>`, `.png` -> `.webp`).
+- `apply_source_patch`: Safely applies source patch with automated backups and rollback manifest generation.
+- `rollback_operation`: Atomically rolls back modified source files and assets using operation manifest.
+- `optimize_project`: Autonomous end-to-end mission executing the complete 10-step optimization lifecycle.
 
 #### Interactive MCP Playground
 1. Click **`[MCP SERVER]`** in the navigation header.

@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 
 export const PerformanceWorkbench: React.FC = () => {
-  const [subTab, setSubTab] = useState<'analyze' | 'test' | 'plan' | 'verify'>('analyze');
+  const [subTab, setSubTab] = useState<'analyze' | 'graph' | 'budget' | 'mission' | 'test' | 'plan' | 'verify'>('analyze');
   const [loading, setLoading] = useState<boolean>(false);
   const [statusMessage, setStatusMessage] = useState<string>('');
   const [errorMessage, setErrorMessage] = useState<string>('');
@@ -19,6 +19,11 @@ export const PerformanceWorkbench: React.FC = () => {
   const [planResult, setPlanResult] = useState<any>(null);
   const [executionResult, setExecutionResult] = useState<any>(null);
   const [verificationResult, setVerificationResult] = useState<any>(null);
+  const [graphSummary, setGraphSummary] = useState<any>(null);
+  const [unusedAssets, setUnusedAssets] = useState<any[]>([]);
+  const [sharedAssets, setSharedAssets] = useState<any[]>([]);
+  const [budgetResult, setBudgetResult] = useState<any>(null);
+  const [missionResult, setMissionResult] = useState<any>(null);
 
   const runAnalysis = async () => {
     setLoading(true);
@@ -34,6 +39,64 @@ export const PerformanceWorkbench: React.FC = () => {
       if (!data.success) throw new Error(data.error || 'Failed to analyze project');
       setAnalysisResult(data.result);
       setStatusMessage(`Analysis complete! Identified ${data.result.issues?.length || 0} optimization opportunities.`);
+    } catch (err: any) {
+      setErrorMessage(err.message);
+      setStatusMessage('');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const runLoadGraph = async () => {
+    setLoading(true);
+    setErrorMessage('');
+    setStatusMessage('Scanning source code references and building Asset Dependency Graph...');
+    try {
+      const [resGraph, resUnused, resShared] = await Promise.all([
+        fetch('/api/performance', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'graph', targetPath: projectPath }),
+        }).then((r) => r.json()),
+        fetch('/api/performance', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'unused', targetPath: projectPath }),
+        }).then((r) => r.json()),
+        fetch('/api/performance', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'shared', targetPath: projectPath }),
+        }).then((r) => r.json()),
+      ]);
+
+      if (resGraph.success) setGraphSummary(resGraph.graph?.summary);
+      if (resUnused.success) setUnusedAssets(resUnused.unused || []);
+      if (resShared.success) setSharedAssets(resShared.shared || []);
+
+      setStatusMessage(`Asset graph compiled: ${resUnused.unused?.length || 0} potentially unused, ${resShared.shared?.length || 0} shared assets.`);
+    } catch (err: any) {
+      setErrorMessage(err.message);
+      setStatusMessage('');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const runCheckBudget = async () => {
+    setLoading(true);
+    setErrorMessage('');
+    setStatusMessage('Evaluating project against performance budgets...');
+    try {
+      const res = await fetch('/api/performance', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'budget', targetPath: projectPath, targetUrl: websiteUrl }),
+      });
+      const data = await res.json();
+      if (!data.success) throw new Error(data.error || 'Failed to check budget');
+      setBudgetResult(data.evaluation);
+      setStatusMessage(`Performance budget evaluated: ${data.evaluation.status} (${data.evaluation.passedCount} passed, ${data.evaluation.failedCount} failed).`);
     } catch (err: any) {
       setErrorMessage(err.message);
       setStatusMessage('');
@@ -105,9 +168,8 @@ export const PerformanceWorkbench: React.FC = () => {
       const data = await res.json();
       if (!data.success) throw new Error(data.error || 'Failed to execute plan');
       setExecutionResult(data.execution);
-      setStatusMessage(`Optimized ${data.execution.succeeded} assets safely! Saved ${data.execution.actualSavedFormatted} (${data.execution.actualReductionPercent}).`);
-      // Auto run verification
-      await runVerification(data.execution.planId);
+      setStatusMessage(`Optimizations executed! Saved ${data.execution.actualSavedFormatted} (${data.execution.actualReductionPercent} reduction).`);
+      await runVerifyPlan();
     } catch (err: any) {
       setErrorMessage(err.message);
       setStatusMessage('');
@@ -116,17 +178,17 @@ export const PerformanceWorkbench: React.FC = () => {
     }
   };
 
-  const runVerification = async (planId?: string) => {
+  const runVerifyPlan = async () => {
     setLoading(true);
     setErrorMessage('');
-    setStatusMessage('Verifying optimizations, validating outputs, and generating local report...');
+    setStatusMessage('Re-auditing media assets to verify exact byte savings and generate report...');
     try {
       const res = await fetch('/api/performance', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           action: 'verify',
-          planId: planId || planResult?.planId,
+          planId: planResult?.planId,
           targetPath: projectPath,
           generateReport: true,
           reportFormat: 'html',
@@ -145,24 +207,51 @@ export const PerformanceWorkbench: React.FC = () => {
     }
   };
 
+  const runAutonomousMission = async (dryRun: boolean = false) => {
+    setLoading(true);
+    setErrorMessage('');
+    setStatusMessage(`Running autonomous optimization mission (dryRun=${dryRun})...`);
+    try {
+      const res = await fetch('/api/performance', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'mission',
+          targetPath: projectPath,
+          dryRun,
+          mode: overwriteSource ? 'aggressive' : 'safe',
+        }),
+      });
+      const data = await res.json();
+      if (!data.success) throw new Error(data.error || 'Failed to execute autonomous mission');
+      setMissionResult(data.result);
+      setStatusMessage(`Autonomous mission complete! Status: ${data.result.status}, reduction: ${data.result.assetReductionPercent}.`);
+    } catch (err: any) {
+      setErrorMessage(err.message);
+      setStatusMessage('');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const currentScore = analysisResult?.score?.overall ?? testResult?.score?.overall;
   const scoreBreakdown = analysisResult?.score?.breakdown ?? testResult?.score?.breakdown;
 
   return (
-    <div className="hand-box" style={{ padding: 'clamp(14px, 2.5vw, 24px)', maxWidth: '900px', margin: '0 auto' }}>
+    <div className="hand-box" style={{ padding: 'clamp(14px, 2.5vw, 24px)', maxWidth: '940px', margin: '0 auto' }}>
       {/* HEADER TITLE */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '10px', marginBottom: '16px' }}>
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <span style={{ background: 'var(--ink)', color: 'var(--ink-inverted)', padding: '2px 8px', fontSize: '11px', fontWeight: 700 }}>
-              [ENGINE:PERF]
+              [ENGINE:AGENTIC-PERF]
             </span>
             <h2 style={{ fontSize: '18px', margin: 0, letterSpacing: '-0.5px' }}>
-              WEBSITE PERFORMANCE INTELLIGENCE & OPTIMIZATION
+              WEBSITE PERFORMANCE INTELLIGENCE WORKBENCH
             </h2>
           </div>
           <p style={{ margin: '4px 0 0 0', fontSize: '12px', color: 'var(--text-dim, #666)' }}>
-            Offline media intelligence layer for AI agents & human developers. Zero cloud, token efficient.
+            Project understanding, asset graph, dead asset triage, source patching, and autonomous missions.
           </p>
         </div>
 
@@ -180,34 +269,55 @@ export const PerformanceWorkbench: React.FC = () => {
       </div>
 
       {/* SUB TABS NAVIGATION */}
-      <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', borderBottom: '2px solid var(--ink)', paddingBottom: '10px', marginBottom: '16px' }}>
+      <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', borderBottom: '2px solid var(--ink)', paddingBottom: '10px', marginBottom: '16px' }}>
         <button
           onClick={() => setSubTab('analyze')}
           className={`hand-btn ${subTab === 'analyze' ? 'active' : ''}`}
-          style={{ padding: '6px 14px', fontSize: '11px' }}
+          style={{ padding: '5px 10px', fontSize: '11px' }}
         >
-          [1. ANALYZE PROJECT]
+          [1. MEDIA AUDIT]
+        </button>
+        <button
+          onClick={() => { setSubTab('graph'); runLoadGraph(); }}
+          className={`hand-btn ${subTab === 'graph' ? 'active' : ''}`}
+          style={{ padding: '5px 10px', fontSize: '11px' }}
+        >
+          [2. ASSET GRAPH & UNUSED]
+        </button>
+        <button
+          onClick={() => { setSubTab('budget'); runCheckBudget(); }}
+          className={`hand-btn ${subTab === 'budget' ? 'active' : ''}`}
+          style={{ padding: '5px 10px', fontSize: '11px' }}
+        >
+          [3. BUDGETS]
         </button>
         <button
           onClick={() => setSubTab('test')}
           className={`hand-btn ${subTab === 'test' ? 'active' : ''}`}
-          style={{ padding: '6px 14px', fontSize: '11px' }}
+          style={{ padding: '5px 10px', fontSize: '11px' }}
         >
-          [2. TEST WEBSITE]
+          [4. TEST URL]
         </button>
         <button
           onClick={() => setSubTab('plan')}
           className={`hand-btn ${subTab === 'plan' ? 'active' : ''}`}
-          style={{ padding: '6px 14px', fontSize: '11px' }}
+          style={{ padding: '5px 10px', fontSize: '11px' }}
         >
-          [3. OPTIMIZATION PLAN {planResult ? `(${planResult.actionsCount})` : ''}]
+          [5. PLAN {planResult ? `(${planResult.actionsCount})` : ''}]
         </button>
         <button
           onClick={() => setSubTab('verify')}
           className={`hand-btn ${subTab === 'verify' ? 'active' : ''}`}
-          style={{ padding: '6px 14px', fontSize: '11px' }}
+          style={{ padding: '5px 10px', fontSize: '11px' }}
         >
-          [4. BEFORE / AFTER]
+          [6. BEFORE/AFTER]
+        </button>
+        <button
+          onClick={() => setSubTab('mission')}
+          className={`hand-btn ${subTab === 'mission' ? 'active' : ''}`}
+          style={{ padding: '5px 10px', fontSize: '11px', background: subTab === 'mission' ? 'var(--ink)' : '#fef3c7' }}
+        >
+          [⚡ AUTONOMOUS MISSION]
         </button>
       </div>
 
@@ -297,72 +407,163 @@ export const PerformanceWorkbench: React.FC = () => {
                 </div>
               )}
 
-              {/* ISSUES LIST */}
-              <div style={{ marginBottom: '16px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                  <h3 style={{ fontSize: '13px', margin: 0, textTransform: 'uppercase' }}>
-                    Identified Bottlenecks ({analysisResult.issues?.length || 0})
-                  </h3>
-                  <button
-                    onClick={runGeneratePlan}
-                    className="hand-btn active"
-                    style={{ padding: '4px 12px', fontSize: '11px' }}
-                  >
-                    [GENERATE OPTIMIZATION PLAN &rarr;]
-                  </button>
-                </div>
-
-                <div style={{ maxHeight: '280px', overflowY: 'auto', border: '1px solid var(--ink)', padding: '8px' }}>
-                  {analysisResult.issues?.slice(0, 15).map((iss: any, idx: number) => (
-                    <div
-                      key={idx}
-                      style={{
-                        padding: '6px 8px',
-                        borderBottom: '1px dashed #ccc',
-                        fontSize: '11px',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        gap: '2px',
-                      }}
-                    >
-                      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                        <span style={{ fontWeight: 700 }}>
-                          [{iss.id}] {iss.assetPath || ''}
-                        </span>
-                        <span style={{
-                          fontSize: '10px',
-                          padding: '1px 5px',
-                          background: iss.severity === 'critical' ? '#fee2e2' : '#fef3c7',
-                          color: iss.severity === 'critical' ? '#991b1b' : '#92400e',
-                          fontWeight: 700,
-                        }}>
-                          {iss.severity?.toUpperCase()}
-                        </span>
-                      </div>
-                      <div style={{ color: '#555' }}>{iss.message}</div>
-                      <div style={{ color: '#047857', fontWeight: 600 }}>&rarr; {iss.recommendation}</div>
-                    </div>
-                  ))}
-                </div>
+              {/* ACTION TRIGGER */}
+              <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', marginTop: '16px' }}>
+                <button
+                  onClick={runGeneratePlan}
+                  disabled={loading}
+                  className="hand-btn active"
+                  style={{ padding: '8px 18px', fontSize: '12px', fontWeight: 700 }}
+                >
+                  {loading ? '[PREPARING PLAN...]' : '[GENERATE OPTIMIZATION PLAN]'}
+                </button>
               </div>
             </div>
           )}
         </div>
       )}
 
-      {/* 2. TEST WEBSITE VIEW */}
+      {/* 2. ASSET GRAPH & UNUSED ASSETS VIEW */}
+      {subTab === 'graph' && (
+        <div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
+            <span style={{ fontSize: '13px', fontWeight: 700 }}>Asset Dependency Graph & Unused Asset Triage</span>
+            <button onClick={runLoadGraph} disabled={loading} className="hand-btn" style={{ padding: '4px 12px', fontSize: '11px' }}>
+              [RE-SCAN GRAPH]
+            </button>
+          </div>
+
+          {graphSummary && (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(110px, 1fr))', gap: '8px', marginBottom: '16px' }}>
+              <div style={{ border: '1px solid var(--ink)', padding: '8px', textAlign: 'center' }}>
+                <div style={{ fontSize: '10px', color: '#666' }}>Routes</div>
+                <div style={{ fontSize: '16px', fontWeight: 700 }}>{graphSummary.routesCount}</div>
+              </div>
+              <div style={{ border: '1px solid var(--ink)', padding: '8px', textAlign: 'center' }}>
+                <div style={{ fontSize: '10px', color: '#666' }}>Components</div>
+                <div style={{ fontSize: '16px', fontWeight: 700 }}>{graphSummary.componentsCount}</div>
+              </div>
+              <div style={{ border: '1px solid var(--ink)', padding: '8px', textAlign: 'center' }}>
+                <div style={{ fontSize: '10px', color: '#666' }}>Referenced Assets</div>
+                <div style={{ fontSize: '16px', fontWeight: 700, color: '#047857' }}>{graphSummary.referencedAssetsCount}</div>
+              </div>
+              <div style={{ border: '1px solid var(--ink)', padding: '8px', textAlign: 'center' }}>
+                <div style={{ fontSize: '10px', color: '#666' }}>Unreferenced Assets</div>
+                <div style={{ fontSize: '16px', fontWeight: 700, color: '#b91c1c' }}>{graphSummary.unreferencedAssetsCount}</div>
+              </div>
+            </div>
+          )}
+
+          {/* UNUSED ASSETS */}
+          <div style={{ border: '1.5px solid var(--ink)', padding: '12px', marginBottom: '16px' }}>
+            <div style={{ fontSize: '12px', fontWeight: 700, marginBottom: '8px' }}>
+              Potentially Unused Assets ({unusedAssets.length})
+            </div>
+            <div style={{ maxHeight: '200px', overflowY: 'auto', fontSize: '11px' }}>
+              {unusedAssets.length === 0 ? (
+                <div style={{ color: '#666' }}>No unreferenced assets found.</div>
+              ) : (
+                unusedAssets.map((u, idx) => (
+                  <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 0', borderBottom: '1px dashed #ddd' }}>
+                    <span>
+                      <b>{u.relativePath}</b> ({u.sizeFormatted})
+                    </span>
+                    <span style={{
+                      padding: '1px 6px',
+                      fontSize: '10px',
+                      fontWeight: 700,
+                      background: u.confidence === 'SAFE' ? '#bbf7d0' : (u.confidence === 'LIKELY' ? '#fef08a' : '#fed7aa'),
+                    }}>
+                      [{u.confidence}]
+                    </span>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+
+          {/* SHARED ASSETS */}
+          <div style={{ border: '1.5px solid var(--ink)', padding: '12px' }}>
+            <div style={{ fontSize: '12px', fontWeight: 700, marginBottom: '8px' }}>
+              Shared Assets Across Routes ({sharedAssets.length})
+            </div>
+            <div style={{ maxHeight: '180px', overflowY: 'auto', fontSize: '11px' }}>
+              {sharedAssets.map((s, idx) => (
+                <div key={idx} style={{ padding: '6px 0', borderBottom: '1px dashed #ddd' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <span><b>{s.relativePath}</b> ({s.sizeFormatted})</span>
+                    <span style={{ fontWeight: 700, color: s.riskLevel === 'HIGH' ? '#dc2626' : '#d97706' }}>
+                      Risk: {s.riskLevel}
+                    </span>
+                  </div>
+                  <div style={{ fontSize: '10px', color: '#666' }}>
+                    Used by routes: {s.routes?.join(', ') || 'shared'} ({s.referenceCount} total refs)
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 3. PERFORMANCE BUDGETS VIEW */}
+      {subTab === 'budget' && (
+        <div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
+            <span style={{ fontSize: '13px', fontWeight: 700 }}>Performance Budget Guard</span>
+            <button onClick={runCheckBudget} disabled={loading} className="hand-btn" style={{ padding: '4px 12px', fontSize: '11px' }}>
+              [EVALUATE BUDGET]
+            </button>
+          </div>
+
+          {budgetResult && (
+            <div>
+              <div style={{
+                border: '2px solid var(--ink)',
+                padding: '14px',
+                marginBottom: '16px',
+                background: budgetResult.status === 'PASS' ? '#ecfdf5' : (budgetResult.status === 'WARN' ? '#fffbeb' : '#fef2f2'),
+              }}>
+                <div style={{ fontSize: '12px', textTransform: 'uppercase', fontWeight: 700 }}>Overall Budget Status</div>
+                <div style={{ fontSize: '26px', fontWeight: 900, color: budgetResult.status === 'PASS' ? '#047857' : (budgetResult.status === 'WARN' ? '#b45309' : '#b91c1c') }}>
+                  {budgetResult.status}
+                </div>
+                <div style={{ fontSize: '12px' }}>
+                  {budgetResult.passedCount} rules passed &bull; {budgetResult.failedCount} failed &bull; {budgetResult.warningCount} warnings
+                </div>
+              </div>
+
+              <div style={{ border: '1px solid var(--ink)', padding: '10px' }}>
+                {budgetResult.checks?.map((c: any, idx: number) => (
+                  <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 0', borderBottom: '1px dashed #ddd', fontSize: '11px' }}>
+                    <span>{c.rule}</span>
+                    <span>
+                      Actual: <b>{c.actualFormatted}</b> / Limit: {c.limitFormatted}
+                      <span style={{ marginLeft: '8px', fontWeight: 700, color: c.passed ? '#047857' : '#dc2626' }}>
+                        [{c.passed ? 'PASS' : 'FAIL'}]
+                      </span>
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* 4. TEST LIVE URL VIEW */}
       {subTab === 'test' && (
         <div>
           <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center', marginBottom: '16px' }}>
-            <label style={{ fontSize: '12px', fontWeight: 700 }}>Target URL:</label>
+            <label style={{ fontSize: '12px', fontWeight: 700 }}>Live Website URL:</label>
             <input
               type="text"
               value={websiteUrl}
               onChange={(e) => setWebsiteUrl(e.target.value)}
-              placeholder="http://localhost:3000"
+              placeholder="e.g. http://localhost:3000"
               style={{
                 flex: 1,
-                minWidth: '220px',
+                minWidth: '200px',
                 padding: '6px 10px',
                 border: '1.5px solid var(--ink)',
                 fontFamily: 'monospace',
@@ -381,77 +582,37 @@ export const PerformanceWorkbench: React.FC = () => {
           </div>
 
           {testResult && (
-            <div>
-              <div style={{ border: '1.5px solid var(--ink)', padding: '14px', marginBottom: '14px', background: '#fafafa' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-                  <div>
-                    <div style={{ fontSize: '11px', textTransform: 'uppercase', color: '#666' }}>Website Performance Audit</div>
-                    <div style={{ fontSize: '14px', fontWeight: 700 }}>{testResult.target}</div>
-                  </div>
-                  <div style={{ fontSize: '28px', fontWeight: 900 }}>
-                    {testResult.score?.overall}<span style={{ fontSize: '12px' }}>/100</span>
-                  </div>
-                </div>
-
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '8px', fontSize: '11px' }}>
-                  <div>Total Media: <b>{testResult.metrics?.totalSizeFormatted}</b></div>
-                  <div>Estimated 4G Delay: <b>{testResult.metrics?.estimatedTransferTime4GMs}ms</b></div>
-                  <div>Images Tested: <b>{testResult.metrics?.imageCount}</b></div>
-                  <div>SVGs Tested: <b>{testResult.metrics?.svgCount}</b></div>
-                </div>
+            <div style={{ border: '1.5px solid var(--ink)', padding: '14px' }}>
+              <div style={{ fontSize: '14px', fontWeight: 700, marginBottom: '8px' }}>
+                Website Audit: {testResult.score?.overall}/100
               </div>
-
+              <div style={{ fontSize: '12px', marginBottom: '8px' }}>
+                Estimated 4G Transfer: <b>{testResult.metrics?.estimatedTransferTime4GMs}ms</b>
+              </div>
               {testResult.metrics?.lcpCandidate && (
-                <div style={{ border: '1.5px solid var(--ink)', padding: '12px', marginBottom: '14px', background: '#ecfdf5' }}>
-                  <div style={{ fontSize: '11px', fontWeight: 700, color: '#065f46', textTransform: 'uppercase' }}>
-                    [POTENTIAL LCP CANDIDATE DETECTED]
-                  </div>
-                  <div style={{ fontSize: '12px', fontWeight: 700, marginTop: '4px' }}>
-                    {testResult.metrics.lcpCandidate.pathOrUrl}
-                  </div>
-                  <div style={{ fontSize: '11px', color: '#047857', marginTop: '2px' }}>
-                    Size: {testResult.metrics.lcpCandidate.sizeFormatted} &bull; {testResult.metrics.lcpCandidate.reason}
-                  </div>
+                <div style={{ background: '#fef3c7', padding: '8px', fontSize: '11px', border: '1px solid #d97706' }}>
+                  <b>LCP Candidate:</b> {testResult.metrics.lcpCandidate.pathOrUrl} ({testResult.metrics.lcpCandidate.sizeFormatted})
                 </div>
               )}
-
-              <div style={{ border: '1px solid var(--ink)', padding: '10px' }}>
-                <div style={{ fontSize: '12px', fontWeight: 700, marginBottom: '6px' }}>Top Recommendations</div>
-                <ul style={{ margin: 0, paddingLeft: '18px', fontSize: '11px' }}>
-                  {testResult.recommendations?.map((r: string, idx: number) => (
-                    <li key={idx} style={{ marginBottom: '4px' }}>{r}</li>
-                  ))}
-                </ul>
-              </div>
             </div>
           )}
         </div>
       )}
 
-      {/* 3. OPTIMIZATION PLAN VIEW */}
+      {/* 5. PLAN VIEW */}
       {subTab === 'plan' && (
         <div>
-          {!planResult ? (
-            <div style={{ textAlign: 'center', padding: '32px 16px' }}>
-              <p style={{ fontSize: '13px', color: '#666', marginBottom: '12px' }}>
-                No active optimization plan. Run an audit first to generate an actionable plan.
-              </p>
-              <button onClick={runGeneratePlan} className="hand-btn active" style={{ padding: '8px 18px', fontSize: '12px' }}>
-                [GENERATE PLAN NOW]
-              </button>
-            </div>
-          ) : (
+          {planResult && (
             <div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px', marginBottom: '12px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
                 <div>
-                  <div style={{ fontSize: '11px', textTransform: 'uppercase', color: '#666' }}>Active Plan</div>
-                  <div style={{ fontSize: '14px', fontWeight: 700 }}>ID: {planResult.planId}</div>
+                  <span style={{ fontSize: '13px', fontWeight: 700 }}>Optimization Plan: {planResult.planId}</span>
+                  <div style={{ fontSize: '11px', color: '#666' }}>{planResult.actionsCount} actions formulated</div>
                 </div>
                 <div style={{ textAlign: 'right' }}>
                   <div style={{ fontSize: '11px', color: '#047857', fontWeight: 700 }}>
                     Estimated Reduction: {planResult.estimatedReductionPercent} ({planResult.estimatedSavedFormatted})
                   </div>
-                  <div style={{ fontSize: '10px', color: '#666' }}>{planResult.estimatedBeforeFormatted} &rarr; {planResult.estimatedAfterFormatted}</div>
                 </div>
               </div>
 
@@ -465,7 +626,6 @@ export const PerformanceWorkbench: React.FC = () => {
                       </span>
                       <span style={{ color: '#047857', fontWeight: 700 }}>+{act.estimatedSavingsFormatted}</span>
                     </div>
-                    <div style={{ color: '#666', fontSize: '10px' }}>{act.reason}</div>
                   </div>
                 ))}
               </div>
@@ -482,9 +642,6 @@ export const PerformanceWorkbench: React.FC = () => {
                     <b>Authorize source file overwrite</b> (Creates automated backup in <code>.photonow/backups/</code> first)
                   </span>
                 </label>
-                <div style={{ fontSize: '10px', color: '#666', marginTop: '4px', paddingLeft: '20px' }}>
-                  If unchecked, optimized assets are safely created in <code>{planResult.targetDir}</code> without modifying originals.
-                </div>
               </div>
 
               <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
@@ -494,7 +651,7 @@ export const PerformanceWorkbench: React.FC = () => {
                   className="hand-btn active"
                   style={{ padding: '8px 20px', fontSize: '12px', fontWeight: 700 }}
                 >
-                  {loading ? '[EXECUTING OPTIMIZATIONS...]' : '[APPLY OPTIMIZATIONS NOW]'}
+                  {loading ? '[EXECUTING...]' : '[APPLY OPTIMIZATIONS NOW]'}
                 </button>
               </div>
             </div>
@@ -502,44 +659,104 @@ export const PerformanceWorkbench: React.FC = () => {
         </div>
       )}
 
-      {/* 4. BEFORE / AFTER VERIFICATION VIEW */}
+      {/* 6. BEFORE/AFTER VERIFY VIEW */}
       {subTab === 'verify' && (
         <div>
-          {!verificationResult && !executionResult ? (
-            <div style={{ textAlign: 'center', padding: '32px 16px' }}>
-              <p style={{ fontSize: '13px', color: '#666', marginBottom: '12px' }}>
-                Execute an optimization plan to see verified before & after comparisons and measured bandwidth savings.
-              </p>
-              <button onClick={() => setSubTab('plan')} className="hand-btn" style={{ padding: '6px 16px', fontSize: '12px' }}>
-                [GO TO PLAN]
-              </button>
-            </div>
-          ) : (
+          {verificationResult && (
             <div>
               <div style={{ border: '2px solid var(--ink)', padding: '16px', marginBottom: '16px', background: '#ecfdf5' }}>
                 <div style={{ fontSize: '12px', textTransform: 'uppercase', fontWeight: 700, color: '#065f46' }}>
                   Verified Performance Gain
                 </div>
                 <div style={{ fontSize: '28px', fontWeight: 900, color: '#047857', margin: '4px 0' }}>
-                  -{verificationResult?.reductionPercent || executionResult?.actualReductionPercent} Bandwidth
+                  -{verificationResult.reductionPercent} Bandwidth
                 </div>
                 <div style={{ fontSize: '13px', color: '#065f46' }}>
-                  Saved <b>{verificationResult?.savedFormatted || executionResult?.actualSavedFormatted}</b> across optimized media.
+                  Saved <b>{verificationResult.savedFormatted}</b> across optimized media.
                 </div>
               </div>
 
               <div style={{ border: '1px solid var(--ink)', padding: '12px', marginBottom: '16px' }}>
                 <div style={{ fontSize: '12px', fontWeight: 700, marginBottom: '8px' }}>Measured Improvements</div>
                 <ul style={{ margin: 0, paddingLeft: '18px', fontSize: '12px' }}>
-                  {verificationResult?.measuredImprovements?.map((imp: string, idx: number) => (
+                  {verificationResult.measuredImprovements?.map((imp: string, idx: number) => (
                     <li key={idx} style={{ marginBottom: '4px' }}>{imp}</li>
                   ))}
                 </ul>
               </div>
+            </div>
+          )}
+        </div>
+      )}
 
-              {verificationResult?.reportSavedPath && (
-                <div style={{ border: '1px dashed var(--ink)', padding: '10px', fontSize: '11px', background: '#f4f4f5' }}>
-                  &bull; Local report generated: <code>{verificationResult.reportSavedPath}</code>
+      {/* 7. AUTONOMOUS AGENT MISSION VIEW */}
+      {subTab === 'mission' && (
+        <div>
+          <div style={{ border: '2px solid var(--ink)', padding: '16px', marginBottom: '16px', background: '#fef3c7' }}>
+            <div style={{ fontSize: '14px', fontWeight: 700, marginBottom: '6px' }}>
+              ⚡ Autonomous Agent Mission Orchestrator
+            </div>
+            <p style={{ margin: '0 0 12px 0', fontSize: '12px', color: '#78350f' }}>
+              Executes the complete 10-step performance loop in a single action:
+              <b> DISCOVER &rarr; UNDERSTAND &rarr; ANALYZE &rarr; MEASURE &rarr; DIAGNOSE &rarr; PLAN &rarr; PATCH &rarr; OPTIMIZE &rarr; VERIFY &rarr; REPORT</b>.
+            </p>
+
+            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+              <button
+                onClick={() => runAutonomousMission(true)}
+                disabled={loading}
+                className="hand-btn"
+                style={{ padding: '8px 16px', fontSize: '12px', fontWeight: 700 }}
+              >
+                {loading ? '[WORKING...]' : '[1. RUN DRY-RUN PREVIEW]'}
+              </button>
+              <button
+                onClick={() => runAutonomousMission(false)}
+                disabled={loading}
+                className="hand-btn active"
+                style={{ padding: '8px 20px', fontSize: '12px', fontWeight: 700, background: 'var(--ink)', color: '#fff' }}
+              >
+                {loading ? '[EXECUTING MISSION...]' : '[2. EXECUTE FULL AUTONOMOUS MISSION]'}
+              </button>
+            </div>
+          </div>
+
+          {missionResult && (
+            <div style={{ border: '1.5px solid var(--ink)', padding: '14px', background: '#fff' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                <span style={{ fontSize: '13px', fontWeight: 700 }}>Mission Result: {missionResult.missionId}</span>
+                <span style={{
+                  padding: '2px 8px',
+                  fontWeight: 700,
+                  fontSize: '11px',
+                  background: missionResult.status === 'verified' ? '#bbf7d0' : '#fef08a',
+                }}>
+                  STATUS: {missionResult.status?.toUpperCase()}
+                </span>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '8px', marginBottom: '14px' }}>
+                <div style={{ border: '1px solid #ccc', padding: '8px', textAlign: 'center' }}>
+                  <div style={{ fontSize: '10px', color: '#666' }}>Score Improvement</div>
+                  <div style={{ fontSize: '16px', fontWeight: 700 }}>{missionResult.scoreBefore} &rarr; {missionResult.scoreAfter}</div>
+                </div>
+                <div style={{ border: '1px solid #ccc', padding: '8px', textAlign: 'center' }}>
+                  <div style={{ fontSize: '10px', color: '#666' }}>Bandwidth Reduction</div>
+                  <div style={{ fontSize: '16px', fontWeight: 700, color: '#047857' }}>-{missionResult.assetReductionPercent}</div>
+                </div>
+                <div style={{ border: '1px solid #ccc', padding: '8px', textAlign: 'center' }}>
+                  <div style={{ fontSize: '10px', color: '#666' }}>Net Saved</div>
+                  <div style={{ fontSize: '16px', fontWeight: 700 }}>{missionResult.bytesSavedFormatted}</div>
+                </div>
+                <div style={{ border: '1px solid #ccc', padding: '8px', textAlign: 'center' }}>
+                  <div style={{ fontSize: '10px', color: '#666' }}>Source Patches</div>
+                  <div style={{ fontSize: '16px', fontWeight: 700 }}>{missionResult.sourcePatchesCount}</div>
+                </div>
+              </div>
+
+              {missionResult.rollbackAvailable && (
+                <div style={{ fontSize: '11px', color: '#065f46', background: '#ecfdf5', padding: '8px', border: '1px solid #a7f3d0' }}>
+                  &check; Rollback manifest recorded. Operation ID: <code>{missionResult.manifestId}</code>
                 </div>
               )}
             </div>

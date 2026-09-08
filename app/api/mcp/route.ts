@@ -15,6 +15,16 @@ import {
   formatBytes,
   engineCache,
   saveLocalReport,
+  scanProjectStructure,
+  scanProjectSourceReferences,
+  buildAssetGraph,
+  generateSourcePatch,
+  applySourcePatch,
+  rollbackOperation,
+  verifyRuntimePerformance,
+  evaluatePerformanceBudget,
+  loadProjectBudget,
+  optimizeProject,
 } from '@/lib/engine';
 import path from 'path';
 
@@ -582,7 +592,7 @@ export async function POST(req: NextRequest) {
           tokenBudget: toolArgs.tokenBudget,
         });
       } else if (toolName === 'test_web_performance') {
-        const target = toolArgs.url || (toolArgs.localPath ? path.resolve(String(toolArgs.localPath)) : path.resolve('.'));
+        const target = toolArgs.url || (toolArgs.localPath ? path.resolve(/*turbopackIgnore: true*/ String(toolArgs.localPath)) : path.resolve(/*turbopackIgnore: true*/ '.'));
         const testResult = await testWebPerformance(target);
         resultData = formatMcpResponse({
           ok: true,
@@ -685,7 +695,7 @@ export async function POST(req: NextRequest) {
           tokenBudget: toolArgs.tokenBudget,
         });
       } else if (toolName === 'optimize_web_assets') {
-        const target = toolArgs.planId || (toolArgs.directoryPath ? path.resolve(String(toolArgs.directoryPath)) : path.resolve('.'));
+        const target = toolArgs.planId || (toolArgs.directoryPath ? path.resolve(/*turbopackIgnore: true*/ String(toolArgs.directoryPath)) : path.resolve(/*turbopackIgnore: true*/ '.'));
         const execution = await executeOptimizationPlan(target, { overwriteSource: !!toolArgs.overwriteSource });
         resultData = formatMcpResponse({
           ok: true,
@@ -708,7 +718,7 @@ export async function POST(req: NextRequest) {
           tokenBudget: toolArgs.tokenBudget,
         });
       } else if (toolName === 'verify_optimization') {
-        const target = toolArgs.planId || (toolArgs.directoryPath ? path.resolve(String(toolArgs.directoryPath)) : path.resolve('.'));
+        const target = toolArgs.planId || (toolArgs.directoryPath ? path.resolve(/*turbopackIgnore: true*/ String(toolArgs.directoryPath)) : path.resolve(/*turbopackIgnore: true*/ '.'));
         const verification = await verifyOptimization(target);
         let reportSavedPath = null;
         if (toolArgs.generateReport !== false) {
@@ -730,6 +740,269 @@ export async function POST(req: NextRequest) {
           recommendations: ['All optimizations verified locally.'],
           nextAction: verification.nextAction,
           details: verification,
+          detailLevel: toolArgs.detailLevel,
+          tokenBudget: toolArgs.tokenBudget,
+        });
+      } else if (toolName === 'inspect_project') {
+        const target = path.resolve(String(toolArgs.projectPath || '.'));
+        const structure = await scanProjectStructure(target);
+        resultData = formatMcpResponse({
+          ok: true,
+          summary: {
+            projectRoot: structure.projectRoot,
+            framework: structure.framework,
+            frameworkVariant: structure.frameworkVariant,
+            routesDir: structure.routesDir,
+            componentsDir: structure.componentsDir,
+            publicDir: structure.publicDir,
+            configFile: structure.configFile,
+            sourceFilesCount: structure.sourceFilesCount,
+            assetFilesCount: structure.assetFilesCount,
+            frameworkConfidence: structure.frameworkConfidence,
+          },
+          recommendations: [`Framework detected as '${structure.framework}'. Run 'analyze_web_assets' to audit media performance.`],
+          nextAction: 'analyze_web_assets',
+          details: structure,
+          detailLevel: toolArgs.detailLevel,
+          tokenBudget: toolArgs.tokenBudget,
+        });
+      } else if (toolName === 'get_asset_usage') {
+        const targetRoot = path.resolve(String(toolArgs.projectPath || '.'));
+        const structure = await scanProjectStructure(targetRoot);
+        const sourceRefs = await scanProjectSourceReferences(targetRoot, structure.publicDir);
+        const analysis = await analyzeWebAssets(targetRoot);
+        const graph = buildAssetGraph(targetRoot, analysis.assets, sourceRefs);
+        const usage = graph.getAssetUsage(String(toolArgs.assetPath));
+
+        if (!usage) {
+          throw new Error(`Asset '${toolArgs.assetPath}' not found in project.`);
+        }
+
+        resultData = formatMcpResponse({
+          ok: true,
+          summary: {
+            assetPath: usage.assetPath,
+            relativePath: usage.relativePath,
+            referenceCount: usage.referenceCount,
+            routesCount: usage.routes.length,
+            componentsCount: usage.components.length,
+            routes: usage.routes,
+            components: usage.components,
+            isLcpCandidate: usage.isLcpCandidate,
+            isShared: usage.isShared,
+            isUnused: usage.isUnused,
+            riskRating: usage.riskRating,
+          },
+          issues: usage.isUnused ? ['Asset has 0 references in source code.'] : [],
+          recommendations: usage.isUnused ? ['Verify dynamic usage before pruning.'] : ['Safe to optimize or resize.'],
+          nextAction: usage.isUnused ? 'find_unused_assets' : 'generate_optimization_plan',
+          details: usage,
+          detailLevel: toolArgs.detailLevel,
+          tokenBudget: toolArgs.tokenBudget,
+        });
+      } else if (toolName === 'find_unused_assets') {
+        const targetRoot = path.resolve(String(toolArgs.projectPath || '.'));
+        const structure = await scanProjectStructure(targetRoot);
+        const sourceRefs = await scanProjectSourceReferences(targetRoot, structure.publicDir);
+        const analysis = await analyzeWebAssets(targetRoot);
+        const graph = buildAssetGraph(targetRoot, analysis.assets, sourceRefs);
+        const unusedAssets = graph.findUnusedAssets();
+        const totalWasteBytes = unusedAssets.reduce((acc: number, a: any) => acc + a.sizeBytes, 0);
+
+        resultData = formatMcpResponse({
+          ok: true,
+          summary: {
+            totalUnusedFound: unusedAssets.length,
+            totalWasteBytes,
+            totalWasteFormatted: formatBytes(totalWasteBytes),
+            safeToPruneCount: unusedAssets.filter((a: any) => a.confidence === 'SAFE').length,
+            likelyUnusedCount: unusedAssets.filter((a: any) => a.confidence === 'LIKELY').length,
+            uncertainCount: unusedAssets.filter((a: any) => a.confidence === 'UNCERTAIN').length,
+            topUnused: unusedAssets.slice(0, 5).map((a: any) => `${a.relativePath} (${a.sizeFormatted}) [${a.confidence}]`),
+          },
+          issues: unusedAssets.slice(0, 5).map((a: any) => `Unreferenced asset: ${a.relativePath} (${a.sizeFormatted})`),
+          recommendations: ['Do NOT delete automatically. Review assets marked SAFE and require explicit confirmation.'],
+          nextAction: 'review_unused_assets',
+          details: unusedAssets,
+          detailLevel: toolArgs.detailLevel,
+          tokenBudget: toolArgs.tokenBudget,
+        });
+      } else if (toolName === 'check_performance_budget') {
+        const targetRoot = path.resolve(String(toolArgs.projectPath || '.'));
+        const analysis = await analyzeWebAssets(targetRoot);
+        const configuredBudget = toolArgs.budget || (await loadProjectBudget(targetRoot));
+
+        let lcpMs = 0;
+        let fcpMs = 0;
+        if (toolArgs.targetUrl) {
+          const runtime = await verifyRuntimePerformance(String(toolArgs.targetUrl));
+          lcpMs = runtime.lcpMs || 0;
+          fcpMs = runtime.fcpMs || 0;
+        }
+
+        const evaluation = evaluatePerformanceBudget({
+          target: String(toolArgs.targetUrl || targetRoot),
+          assets: analysis.assets,
+          totalSizeBytes: analysis.totalSizeBytes,
+          lcpMs,
+          fcpMs,
+          budgetConfig: configuredBudget,
+        });
+
+        resultData = formatMcpResponse({
+          ok: evaluation.status !== 'FAIL',
+          summary: {
+            status: evaluation.status,
+            target: evaluation.target,
+            passedCount: evaluation.passedCount,
+            failedCount: evaluation.failedCount,
+            warningCount: evaluation.warningCount,
+            failedRules: evaluation.checks.filter((c: any) => !c.passed).map((c: any) => `${c.rule}: actual ${c.actualFormatted} exceeded limit ${c.limitFormatted} by ${c.exceededByFormatted}`),
+          },
+          issues: evaluation.checks.filter((c: any) => !c.passed).map((c: any) => `${c.rule} exceeded budget`),
+          recommendations: evaluation.status === 'FAIL' ? ['Generate an optimization plan to reduce media weight within budget limits.'] : ['Performance budgets satisfied.'],
+          nextAction: evaluation.nextAction,
+          details: evaluation,
+          detailLevel: toolArgs.detailLevel,
+          tokenBudget: toolArgs.tokenBudget,
+        });
+      } else if (toolName === 'verify_runtime_performance') {
+        const result = await verifyRuntimePerformance(String(toolArgs.targetUrl), { timeoutMs: Number(toolArgs.timeoutMs || 8000) });
+        resultData = formatMcpResponse({
+          ok: true,
+          summary: {
+            measurementType: result.measurementType,
+            url: result.url,
+            lcpMs: result.lcpMs,
+            fcpMs: result.fcpMs,
+            cls: result.cls,
+            totalLoadMs: result.totalLoadMs,
+            mediaTransferFormatted: result.mediaTransferFormatted,
+            mediaRequestCount: result.mediaRequestCount,
+            lcpElement: result.lcpElement,
+          },
+          recommendations: [result.measurementType === 'OBSERVED' ? 'Real browser metrics collected successfully.' : 'Live URL did not respond; simulated fallback metrics provided.'],
+          nextAction: 'compare_web_performance',
+          details: result,
+          detailLevel: toolArgs.detailLevel,
+          tokenBudget: toolArgs.tokenBudget,
+        });
+      } else if (toolName === 'generate_source_patch') {
+        const targetRoot = path.resolve(String(toolArgs.projectPath || '.'));
+        const plan = engineCache.getPlan(String(toolArgs.planId));
+        if (!plan) {
+          throw new Error(`Optimization plan '${toolArgs.planId}' not found.`);
+        }
+
+        const structure = await scanProjectStructure(targetRoot);
+        const sourceRefs = await scanProjectSourceReferences(targetRoot, structure.publicDir);
+        const analysis = await analyzeWebAssets(targetRoot);
+        const graph = buildAssetGraph(targetRoot, analysis.assets, sourceRefs);
+        const patch = await generateSourcePatch(plan, graph, { dryRun: toolArgs.dryRun !== false });
+        engineCache.set(`patch:${patch.patchId}`, patch);
+
+        resultData = formatMcpResponse({
+          ok: true,
+          summary: {
+            patchId: patch.patchId,
+            planId: toolArgs.planId,
+            actionsCount: patch.actions.length,
+            affectedFilesCount: patch.affectedFiles.length,
+            affectedFiles: patch.affectedFiles.map((f: string) => path.relative(targetRoot, f)),
+            isDryRun: patch.isDryRun,
+            diffPreview: patch.unifiedDiff ? patch.unifiedDiff.slice(0, 500) + (patch.unifiedDiff.length > 500 ? '\n... (truncated diff preview)' : '') : 'No source file changes needed.',
+          },
+          recommendations: ['Review unified diff. Execute apply_source_patch with confirmApply=true to modify code.'],
+          nextAction: `apply_source_patch(patchId="${patch.patchId}", confirmApply=true)`,
+          details: patch,
+          detailLevel: toolArgs.detailLevel,
+          tokenBudget: toolArgs.tokenBudget,
+        });
+      } else if (toolName === 'apply_source_patch') {
+        if (!toolArgs.confirmApply) {
+          throw new Error("Safety check: 'confirmApply' must be true to modify source code files.");
+        }
+        const targetRoot = path.resolve(String(toolArgs.projectPath || '.'));
+        let targetPatch = toolArgs.patch;
+        if (!targetPatch && toolArgs.patchId) {
+          targetPatch = engineCache.get(`patch:${toolArgs.patchId}`);
+        }
+        if (!targetPatch) {
+          throw new Error(`Patch record not found for ID '${toolArgs.patchId}'.`);
+        }
+
+        const manifest = await applySourcePatch(targetPatch, { projectRoot: targetRoot, dryRun: !!toolArgs.dryRun });
+        resultData = formatMcpResponse({
+          ok: true,
+          summary: {
+            operationId: manifest.operationId,
+            filesPatched: manifest.sourcePatches.length,
+            backupDir: manifest.backupDir,
+            canRollback: manifest.canRollback,
+            appliedDetails: manifest.sourcePatches.map((p: any) => `${path.relative(targetRoot, p.file)} (${p.actionsApplied} actions applied)`),
+          },
+          recommendations: [`Rollback available via rollback_operation(operationId="${manifest.operationId}")`],
+          nextAction: 'verify_optimization',
+          details: manifest,
+          detailLevel: toolArgs.detailLevel,
+          tokenBudget: toolArgs.tokenBudget,
+        });
+      } else if (toolName === 'rollback_operation') {
+        const targetRoot = path.resolve(String(toolArgs.projectPath || '.'));
+        const rollbackResult = await rollbackOperation(String(toolArgs.operationId), targetRoot);
+        resultData = formatMcpResponse({
+          ok: rollbackResult.success,
+          summary: {
+            operationId: toolArgs.operationId,
+            restoredSourcesCount: rollbackResult.restoredSourcesCount,
+            restoredAssetsCount: rollbackResult.restoredAssetsCount,
+            message: rollbackResult.message,
+          },
+          recommendations: ['Rollback finished. State restored from backup.'],
+          nextAction: 'inspect_project',
+          details: rollbackResult,
+          detailLevel: toolArgs.detailLevel,
+          tokenBudget: toolArgs.tokenBudget,
+        });
+      } else if (toolName === 'optimize_project') {
+        const targetRoot = path.resolve(String(toolArgs.projectPath || '.'));
+        const result = await optimizeProject({
+          projectPath: targetRoot,
+          mode: toolArgs.mode as any,
+          dryRun: !!toolArgs.dryRun,
+          format: toolArgs.format as any,
+          maxDimension: Number(toolArgs.maxDimension || 1920),
+          quality: Number(toolArgs.quality || 82),
+          applySourcePatches: !!toolArgs.applySourcePatches,
+          detailLevel: toolArgs.detailLevel as any,
+          tokenBudget: toolArgs.tokenBudget ? Number(toolArgs.tokenBudget) : undefined,
+        });
+
+        resultData = formatMcpResponse({
+          ok: result.status !== 'failed',
+          summary: {
+            status: result.status,
+            missionId: result.missionId,
+            scoreBefore: result.scoreBefore,
+            scoreAfter: result.scoreAfter,
+            scoreDelta: result.scoreDelta,
+            assetsAnalyzed: result.assetsAnalyzed,
+            assetsOptimized: result.assetsOptimized,
+            bytesBeforeFormatted: result.bytesBeforeFormatted,
+            bytesAfterFormatted: result.bytesAfterFormatted,
+            bytesSavedFormatted: result.bytesSavedFormatted,
+            assetReductionPercent: result.assetReductionPercent,
+            lcpBefore: result.lcpBefore,
+            lcpAfter: result.lcpAfter,
+            lcpImprovementPercent: result.lcpImprovementPercent,
+            regression: result.regression,
+            sourcePatchesCount: result.sourcePatchesCount,
+            appliedPatchesCount: result.appliedPatchesCount,
+            rollbackAvailable: result.rollbackAvailable,
+          },
+          recommendations: [result.dryRun ? 'Dry run complete.' : 'Mission complete. All assets verified.'],
+          nextAction: result.nextAction,
+          details: result,
           detailLevel: toolArgs.detailLevel,
           tokenBudget: toolArgs.tokenBudget,
         });

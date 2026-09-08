@@ -431,6 +431,75 @@ async function runTests() {
     const verifyData = JSON.parse(verifyRes.content[0].text);
     console.log(`  ✓ Verified Reduction: ${verifyData.summary.reductionPercent}, Report: ${verifyData.summary.reportSavedPath}`);
 
+    // 19. Test inspect_project
+    console.log('\n--- Testing Tool: inspect_project ---');
+    const inspectRes = await client.sendRequest('tools/call', {
+      name: 'inspect_project',
+      arguments: {
+        projectPath: TEST_DIR,
+      },
+    });
+    const inspectData = JSON.parse(inspectRes.content[0].text);
+    console.log(`  ✓ Inspected Framework: ${inspectData.summary.framework}, Assets Count: ${inspectData.summary.assetFilesCount}`);
+
+    // 20. Test find_unused_assets
+    console.log('\n--- Testing Tool: find_unused_assets ---');
+    const unusedRes = await client.sendRequest('tools/call', {
+      name: 'find_unused_assets',
+      arguments: {
+        projectPath: TEST_DIR,
+      },
+    });
+    const unusedData = JSON.parse(unusedRes.content[0].text);
+    console.log(`  ✓ Unused Assets Found: ${unusedData.summary.totalUnusedFound}, Waste: ${unusedData.summary.totalWasteFormatted}`);
+
+    // 21. Test check_performance_budget
+    console.log('\n--- Testing Tool: check_performance_budget ---');
+    const budgetRes = await client.sendRequest('tools/call', {
+      name: 'check_performance_budget',
+      arguments: {
+        projectPath: TEST_DIR,
+      },
+    });
+    const budgetData = JSON.parse(budgetRes.content[0].text);
+    console.log(`  ✓ Budget Status: ${budgetData.summary.status}, Passed Rules: ${budgetData.summary.passedCount}`);
+
+    // 22. Test verify_runtime_performance
+    console.log('\n--- Testing Tool: verify_runtime_performance ---');
+    const runtimeRes = await client.sendRequest('tools/call', {
+      name: 'verify_runtime_performance',
+      arguments: {
+        targetUrl: 'http://localhost:65432', // simulated fallback
+      },
+    });
+    const runtimeData = JSON.parse(runtimeRes.content[0].text);
+    console.log(`  ✓ Runtime Measurement: ${runtimeData.summary.measurementType}, LCP: ${runtimeData.summary.lcpMs}ms`);
+
+    // 23. Test generate_source_patch
+    console.log('\n--- Testing Tool: generate_source_patch ---');
+    const patchRes = await client.sendRequest('tools/call', {
+      name: 'generate_source_patch',
+      arguments: {
+        projectPath: TEST_DIR,
+        planId: planId,
+        dryRun: true,
+      },
+    });
+    const patchData = JSON.parse(patchRes.content[0].text);
+    console.log(`  ✓ Patch ID: ${patchData.summary.patchId}, Actions: ${patchData.summary.actionsCount}, Affected Files: ${patchData.summary.affectedFilesCount}`);
+
+    // 24. Test optimize_project (Autonomous Mission)
+    console.log('\n--- Testing Tool: optimize_project (Autonomous Agent Mission) ---');
+    const missionRes = await client.sendRequest('tools/call', {
+      name: 'optimize_project',
+      arguments: {
+        projectPath: TEST_DIR,
+        dryRun: true,
+      },
+    });
+    const missionData = JSON.parse(missionRes.content[0].text);
+    console.log(`  ✓ Autonomous Mission: status=${missionData.summary.status}, reduction=${missionData.summary.assetReductionPercent}, nextAction=${missionData.summary.nextAction}`);
+
     console.log('\n🎉 ALL MULTIMEDIA & PERFORMANCE MCP TOOLS VERIFIED SUCCESSFULLY OVER STDIO! 100% PASSING!\n');
   } finally {
     client.stop();

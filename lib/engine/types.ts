@@ -208,3 +208,350 @@ export interface TokenBudgetOptions {
   detailLevel?: DetailLevel;
   tokenBudget?: number;
 }
+
+// -------------------------------------------------------------
+// Phase 1: Project Understanding & Source Analysis Types
+// -------------------------------------------------------------
+
+export type FrameworkType =
+  | 'nextjs'
+  | 'vite'
+  | 'nuxt'
+  | 'astro'
+  | 'gatsby'
+  | 'hugo'
+  | 'modern_web'
+  | 'unknown';
+
+export interface ProjectStructure {
+  projectRoot: string;
+  framework: FrameworkType;
+  frameworkVariant?: 'app_router' | 'pages_router' | 'static' | 'standard';
+  routesDir?: string;
+  componentsDir?: string;
+  publicDir?: string;
+  configFile?: string;
+  packageJsonPath?: string;
+  sourceFilesCount: number;
+  assetFilesCount: number;
+  frameworkConfidence: number; // 0.0 - 1.0
+}
+
+export interface SourceReference {
+  filePath: string;
+  relativePath: string;
+  lineNumber: number;
+  column?: number;
+  tagOrImportType: 'img_tag' | 'picture_tag' | 'source_tag' | 'css_url' | 'js_import' | 'next_image' | 'video_tag' | 'svg_ref' | 'meta_tag';
+  rawSnippet: string;
+  assetRef: string;
+  resolvedAssetPath?: string;
+  renderedWidth?: number;
+  renderedHeight?: number;
+  isLcpCandidate?: boolean;
+  hasPriority?: boolean;
+  hasPreload?: boolean;
+  loadingAttr?: string;
+  componentName?: string;
+  routePath?: string;
+}
+
+// -------------------------------------------------------------
+// Phase 1: Asset Dependency Graph Types
+// -------------------------------------------------------------
+
+export type GraphNodeType =
+  | 'project'
+  | 'route'
+  | 'component'
+  | 'source_file'
+  | 'asset'
+  | 'variant'
+  | 'runtime_resource';
+
+export interface AssetGraphNode {
+  id: string;
+  type: GraphNodeType;
+  label: string;
+  data: Record<string, any>;
+}
+
+export type GraphEdgeRelationship =
+  | 'contains'
+  | 'imports'
+  | 'references'
+  | 'renders'
+  | 'has_variant'
+  | 'observed_by';
+
+export interface AssetGraphEdge {
+  from: string;
+  to: string;
+  relationship: GraphEdgeRelationship;
+  metadata?: Record<string, any>;
+}
+
+export interface AssetGraphSummary {
+  nodesCount: number;
+  edgesCount: number;
+  routesCount: number;
+  componentsCount: number;
+  sourceFilesCount: number;
+  assetsCount: number;
+  referencedAssetsCount: number;
+  unreferencedAssetsCount: number;
+}
+
+export interface AssetUsageInfo {
+  assetPath: string;
+  relativePath: string;
+  referenceCount: number;
+  references: SourceReference[];
+  routes: string[];
+  components: string[];
+  renderedDimensions: Array<{ width?: number; height?: number }>;
+  isLcpCandidate: boolean;
+  isShared: boolean;
+  isUnused: boolean;
+  riskRating: 'SAFE' | 'REVIEW_REQUIRED' | 'DESTRUCTIVE';
+}
+
+// -------------------------------------------------------------
+// Phase 2: Asset Intelligence Types (Unused, Shared, Responsive)
+// -------------------------------------------------------------
+
+export type DeadAssetConfidence = 'SAFE' | 'LIKELY' | 'UNCERTAIN';
+
+export interface UnusedAssetInfo {
+  assetPath: string;
+  relativePath: string;
+  sizeBytes: number;
+  sizeFormatted: string;
+  format: string;
+  confidence: DeadAssetConfidence;
+  confidenceScore: number; // 0.0 - 1.0
+  reason: string;
+  recommendedAction: string;
+}
+
+export interface SharedAssetInfo {
+  assetPath: string;
+  relativePath: string;
+  sizeBytes: number;
+  sizeFormatted: string;
+  referenceCount: number;
+  routesCount: number;
+  componentsCount: number;
+  routes: string[];
+  components: string[];
+  riskLevel: 'HIGH' | 'MEDIUM' | 'LOW';
+  recommendation: string;
+}
+
+export interface ResponsiveVariantProposal {
+  width: number;
+  format: string;
+  outputSuffix: string;
+  quality?: number;
+}
+
+export interface ResponsiveOpportunity {
+  assetPath: string;
+  relativePath: string;
+  intrinsicWidth: number;
+  intrinsicHeight: number;
+  renderedWidth?: number;
+  renderedHeight?: number;
+  sizeBytes: number;
+  sizeFormatted: string;
+  proposedVariants: ResponsiveVariantProposal[];
+  estimatedSavingsBytes: number;
+  estimatedSavingsFormatted: string;
+}
+
+// -------------------------------------------------------------
+// Phase 3: Source Code Patching & Manifest Types
+// -------------------------------------------------------------
+
+export type PatchRisk = 'SAFE' | 'REVIEW_REQUIRED' | 'DESTRUCTIVE';
+
+export interface PatchAction {
+  actionId: string;
+  type: 'replace_source' | 'add_srcset' | 'convert_next_image';
+  filePath: string;
+  relativePath: string;
+  lineStart: number;
+  lineEnd: number;
+  originalCode: string;
+  replacementCode: string;
+  description: string;
+  risk: PatchRisk;
+}
+
+export interface SourcePatch {
+  patchId: string;
+  createdAt: number;
+  description: string;
+  actions: PatchAction[];
+  unifiedDiff: string;
+  affectedFiles: string[];
+  isDryRun: boolean;
+}
+
+export interface PatchManifest {
+  operationId: string;
+  timestamp: number;
+  projectPath: string;
+  backupDir: string;
+  sourcePatches: Array<{
+    file: string;
+    backupFile: string;
+    actionsApplied: number;
+  }>;
+  assetTransformations: Array<{
+    source: string;
+    output: string;
+    backupFile?: string;
+    beforeBytes: number;
+    afterBytes: number;
+    savedBytes: number;
+  }>;
+  canRollback: boolean;
+}
+
+// -------------------------------------------------------------
+// Phase 4: Real Browser & Runtime Verification Types
+// -------------------------------------------------------------
+
+export interface BrowserPerformanceResult {
+  measurementType: 'SIMULATED' | 'OBSERVED';
+  url: string;
+  timestamp: number;
+  lcpMs?: number;
+  fcpMs?: number;
+  cls?: number;
+  totalLoadMs?: number;
+  mediaTransferBytes: number;
+  mediaTransferFormatted: string;
+  mediaRequestCount: number;
+  resources: Array<{
+    name: string;
+    transferBytes: number;
+    durationMs: number;
+    initiatorType: string;
+  }>;
+  lcpElement?: {
+    tag: string;
+    src?: string;
+    renderTimeMs?: number;
+    sizeBytes?: number;
+  };
+}
+
+// -------------------------------------------------------------
+// Phase 5: Developer Workflow & Git Integration Types
+// -------------------------------------------------------------
+
+export interface PerformanceBudgetConfig {
+  media?: {
+    maxPageBytes?: number;
+    maxImageBytes?: number;
+    maxHeroBytes?: number;
+    maxSvgBytes?: number;
+  };
+  performance?: {
+    lcp?: number; // ms
+    fcp?: number; // ms
+  };
+}
+
+export interface BudgetCheckItem {
+  rule: string;
+  category: 'media' | 'performance';
+  limit: number;
+  limitFormatted: string;
+  actual: number;
+  actualFormatted: string;
+  passed: boolean;
+  severity: 'error' | 'warning';
+  exceededBy: number;
+  exceededByFormatted: string;
+}
+
+export interface BudgetEvaluation {
+  status: 'PASS' | 'WARN' | 'FAIL';
+  target: string;
+  evaluatedAt: number;
+  checks: BudgetCheckItem[];
+  failedCount: number;
+  warningCount: number;
+  passedCount: number;
+  nextAction: string;
+}
+
+export interface GitRegressionReport {
+  hasGit: boolean;
+  branch?: string;
+  headCommit?: string;
+  changedMediaCount: number;
+  changedMediaFiles: Array<{
+    path: string;
+    status: 'added' | 'modified' | 'deleted';
+    sizeBytes: number;
+    sizeFormatted: string;
+  }>;
+  payloadBeforeBytes: number;
+  payloadBeforeFormatted: string;
+  payloadAfterBytes: number;
+  payloadAfterFormatted: string;
+  payloadDeltaBytes: number;
+  payloadDeltaFormatted: string;
+  payloadDeltaPercent: string;
+  status: 'improvement' | 'regression' | 'unchanged' | 'unknown';
+  primaryRegressors: string[];
+}
+
+// -------------------------------------------------------------
+// Phase 6: Autonomous High-Level Mission Types
+// -------------------------------------------------------------
+
+export interface MissionOptions {
+  projectPath: string;
+  targetUrl?: string;
+  mode?: 'safe' | 'review' | 'aggressive';
+  dryRun?: boolean;
+  format?: 'webp' | 'avif' | 'keep';
+  maxDimension?: number;
+  quality?: number;
+  tokenBudget?: number;
+  detailLevel?: DetailLevel;
+  applySourcePatches?: boolean;
+}
+
+export interface MissionResult {
+  status: 'verified' | 'attention_required' | 'dry_run_complete' | 'failed';
+  missionId: string;
+  completedAt: number;
+  scoreBefore: number;
+  scoreAfter: number;
+  scoreDelta: number;
+  assetsAnalyzed: number;
+  assetsOptimized: number;
+  bytesBefore: number;
+  bytesBeforeFormatted: string;
+  bytesAfter: number;
+  bytesAfterFormatted: string;
+  bytesSaved: number;
+  bytesSavedFormatted: string;
+  assetReductionPercent: string;
+  lcpBefore?: number;
+  lcpAfter?: number;
+  lcpImprovementPercent?: string;
+  regression: boolean;
+  sourcePatchesCount: number;
+  appliedPatchesCount: number;
+  manifestId?: string;
+  rollbackAvailable: boolean;
+  nextAction: string | null;
+}
+

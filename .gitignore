@@ -44,5 +44,5 @@ next-env.d.ts
 /tests/sandbox*
 
 # photonow local cache & reports
-/.photonow/
+.photonow/
 

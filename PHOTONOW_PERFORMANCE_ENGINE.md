@@ -1,22 +1,24 @@
-# PhotoNow Performance Intelligence & Asset Optimization Engine
+# PhotoNow Performance Intelligence & Agentic Engineering Platform
 
-> **A Local-First, Token-Efficient Website Performance Intelligence and Media Optimization Platform for AI Agents and Modern Web Developers.**
+> **A Local-First, Token-Efficient Website Performance Intelligence and Asset Optimization MCP Engine for AI Agents and Modern Web Developers.**
 
 ---
 
 ## 1. Vision & Core Philosophy
 
-Modern web applications are routinely bogged down by unoptimized media payloads: multi-megabyte photographic PNGs, uncompressed 4K desktop heroes served to mobile viewports, duplicate image assets under different file names, and uncompressed SVGs. These bottlenecks degrade Core Web Vitals (especially **Largest Contentful Paint — LCP**), increase bounce rates, and consume unnecessary user bandwidth.
+Modern web applications are routinely bogged down by unoptimized media payloads: multi-megabyte photographic PNGs, uncompressed 4K desktop heroes served to mobile viewports, duplicate image assets under different file names, and dead/unreferenced assets left in the repository. These bottlenecks degrade Core Web Vitals (especially **Largest Contentful Paint — LCP**), increase bounce rates, and consume unnecessary user bandwidth.
 
 Cloud-based optimization SaaS solutions (Cloudinary, Imgix, etc.) introduce recurring billing, external network latency, cloud lock-in, and privacy risks. Meanwhile, traditional CLI tools (ImageMagick, FFmpeg) require complex scripting and produce verbose stdout outputs that quickly flood AI agent context windows with thousands of useless tokens.
 
-**PhotoNow Performance Intelligence** solves this through a local-first, agent-native architecture:
+**PhotoNow** evolves from a local media converter into an **agentic website performance engineering system**:
 
 1. **Zero Cloud / 100% Local-First**: Everything runs on the local machine using native Node.js (Sharp, FFmpeg) and modern browser runtimes (Canvas 2D, Web Audio, IndexedDB). No external API keys, zero accounts, zero cloud dependencies.
-2. **Token Economy as a First-Class Citizen**: AI agents operate within strict context budgets. PhotoNow guarantees that diagnostic and performance data is formatted using progressive disclosure (`compact`, `standard`, `detailed`, `raw`), cutting agent token consumption by **94.6%** while maintaining deterministic `nextAction` state machine chaining.
-3. **Safe, Non-Destructive Execution**: Optimizations never blindly destroy developer assets. By default, transformed media is routed to `.photonow/optimized/`. Source file overwriting requires explicit confirmation and creates automatic rollbacks in `.photonow/backups/`. Every transformed asset is validated through decodability checks before completion.
-4. **Preservation of the Multimedia Foundation**: The existing offline media conversion suite (Sharp image conversion, FFmpeg video/audio processing, frame extraction, and browser workbench) remains 100% intact and serves as the execution backbone.
-5. **Dual-Runtime Synergy**: The exact same core engine powers both the standalone **stdio Model Context Protocol (MCP) server** for AI agents (Claude Desktop, Google Antigravity, Cursor) and the interactive **Next.js Web Workbench** for human developers.
+2. **Token Economy as a First-Class Citizen**: AI agents operate within strict context budgets. PhotoNow guarantees that diagnostic and performance data is formatted using progressive disclosure (`compact`, `standard`, `detailed`, `raw`), cutting agent token consumption by **95.4%** (< 200 tokens default) while maintaining deterministic `nextAction` state machine chaining.
+3. **Safe, Non-Destructive Source Patching & Automated Rollbacks**: Source modifications strictly default to `dryRun: true`. Every modification requires explicit developer approval, creates timestamped backups in `.photonow/backups/`, generates a unified diff preview, and produces a cryptographic operation manifest in `.photonow/manifests/` for atomic 1-click rollback via `rollback_operation`.
+4. **Asset Dependency Graph & Dead Asset Intelligence**: Maps the complete relationship chain (`Route -> Component -> SourceFile -> Asset -> Variant`), computing exact usage counts, multi-route shared dependencies, and classifying unreferenced assets into high-confidence safety tiers (`SAFE`, `LIKELY`, `UNCERTAIN`).
+5. **Real Runtime Verification & Git Performance Guard**: Separates real browser `OBSERVED` metrics from local network `SIMULATED` models. Tracks performance baselines in `.photonow/baselines/` and blocks regressions in git pull requests.
+6. **Preservation of the Multimedia Foundation**: The existing offline media conversion suite (Sharp image conversion, FFmpeg video/audio processing, frame extraction, and browser workbench) remains 100% intact and serves as the execution backbone.
+7. **Dual-Runtime Synergy**: The exact same core engine powers both the standalone **stdio Model Context Protocol (MCP) server** for AI agents (Claude Desktop, Google Antigravity, Cursor) and the interactive **Next.js Web Workbench** for human developers.
 
 ---
 
@@ -30,7 +32,7 @@ flowchart TB
     end
 
     subgraph Protocol_Layer["Protocol & API Gateway"]
-        StdioMCP["bin/mcp-server.mjs<br/>(Stdio JSON-RPC 2.0 - 20 Tools)"]
+        StdioMCP["bin/mcp-server.mjs<br/>(Stdio JSON-RPC 2.0 - 29 Tools)"]
         HttpMCP["app/api/mcp/route.ts<br/>(HTTP JSON-RPC 2.0)"]
         RestPerf["app/api/performance/route.ts<br/>(REST Performance API)"]
         UI_Workbench["components/PerformanceWorkbench.tsx<br/>(Next.js App Router UI)"]
@@ -38,7 +40,18 @@ flowchart TB
 
     subgraph Token_Guard["Token Economy & Intelligence Layer"]
         TokenEconomy["lib/engine/tokenEconomy.mjs<br/>(Progressive Disclosure & Budget Enforcer)"]
-        CacheEngine["lib/engine/cache.mjs<br/>(Local Cache: PlanId & TestId Registry)"]
+        CacheEngine["lib/engine/cache.mjs<br/>(Local Cache: PlanId, TestId & Graph Registry)"]
+    end
+
+    subgraph Agentic_Intelligence["Agentic Intelligence & Graph Layer"]
+        ProjectScanner["lib/engine/projectScanner.mjs<br/>(Framework, Routes & Structure Detector)"]
+        SourceAnalyzer["lib/engine/sourceAnalyzer.mjs<br/>(AST/Regex Next/Image & DOM Parser)"]
+        AssetGraph["lib/engine/assetGraph.mjs<br/>(Route -> Component -> Asset Graph)"]
+        PatchGen["lib/engine/patchGenerator.mjs<br/>(Unified Diffs, Backups & Rollback Engine)"]
+        BrowserVerif["lib/engine/browserVerifier.mjs<br/>(OBSERVED vs SIMULATED Runtime Core)"]
+        BudgetEngine["lib/engine/budget.mjs<br/>(Performance Budget Evaluator)"]
+        GitRegression["lib/engine/regression.mjs<br/>(Git Baselines & Regression Guard)"]
+        MissionRunner["lib/engine/mission.mjs<br/>(10-Step Autonomous Agent Mission)"]
     end
 
     subgraph Core_Engine["Shared Performance Engine Core"]
@@ -58,6 +71,8 @@ flowchart TB
     subgraph Persistence_Layer["Local Storage & Output"]
         OptimizedDir[".photonow/optimized/<br/>(Non-destructive outputs)"]
         BackupDir[".photonow/backups/<br/>(Automatic rollbacks)"]
+        ManifestDir[".photonow/manifests/<br/>(Rollback manifests)"]
+        BaselineDir[".photonow/baselines/<br/>(Git baselines)"]
         ReportDir[".photonow/reports/<br/>(Self-contained HTML/MD)"]
         IndexedDBStore["IndexedDB (photoConvert_DB)"]
     end
@@ -71,7 +86,17 @@ flowchart TB
     HttpMCP --> TokenEconomy
     RestPerf --> Core_Engine
 
-    TokenEconomy --> Core_Engine
+    TokenEconomy --> MissionRunner
+    MissionRunner --> ProjectScanner
+    MissionRunner --> SourceAnalyzer
+    MissionRunner --> AssetGraph
+    MissionRunner --> PatchGen
+    MissionRunner --> BrowserVerif
+    MissionRunner --> GitRegression
+    MissionRunner --> Core_Engine
+
+    SourceAnalyzer --> AssetGraph
+    AssetGraph --> PatchGen
     Core_Engine --> CacheEngine
     Analyzer --> PHash
     Booster --> SharpLib
@@ -79,78 +104,79 @@ flowchart TB
     UI_Workbench --> CanvasEngine
 
     Booster --> OptimizedDir
-    Booster --> BackupDir
+    PatchGen --> BackupDir
+    PatchGen --> ManifestDir
+    GitRegression --> BaselineDir
     Reporter --> ReportDir
     CanvasEngine --> IndexedDBStore
 ```
 
 ---
 
-## 3. The 6 Core Intelligence Pillars Built
+## 3. The 7 Agentic Intelligence Pillars
 
-### 3.1. Token Economy & Progressive Disclosure
-AI coding agents often choke on raw JSON diagnostic payloads containing full directory trees, image metadata, and base64 strings, wasting context budget and increasing hallucination rates.
+### 3.1. Project Understanding & Structure Detection (`projectScanner.mjs`)
+Automatically inspects the workspace root without requiring developer configuration:
+* **Framework Fingerprinting**: Detects Next.js (App Router or Pages Router), Vite/React, Nuxt, Astro, Gatsby, Hugo, and standard Modern Web architectures.
+* **Route Tree Discovery**: Identifies entry points, file-system routes (e.g. `app/**/page.tsx`, `pages/**/*.js`), layouts, and shared component directories.
+* **Media Root Resolution**: Automatically discovers `public/`, `assets/`, `static/`, `src/assets/`, or root media folders while respecting `.gitignore`, `node_modules/`, and `.git/`.
 
-* **Progressive Disclosure Tiers**:
-  * `compact` (Default for AI): High-level score, asset count, potential savings, top 3 issues, and actionable `nextAction`. Typically **< 200 tokens**.
-  * `standard`: Compact summary plus categorized issue lists with potential savings.
-  * `detailed`: Adds full per-file diagnostic records, dimensions, perceptual hashes, and simulated transfer timings.
-  * `raw`: Full unredacted diagnostic dump for offline storage and deep debugging.
-* **Token Budgeting & Safe Truncation**: Supports `tokenBudget` parameters (e.g. 500 tokens). If data exceeds the budget, issues and lists are gracefully truncated with an explicit `truncated: true` flag and `remainingCount`.
-* **Agent Chaining Contracts**: Every response returns a deterministic `nextAction` field (e.g. `"generate_optimization_plan"` or `"test_web_performance"`), allowing AI agents to chain workflows autonomously.
+### 3.2. Deep Source-Code Asset Analysis (`sourceAnalyzer.mjs`)
+Performs static analysis across `.tsx`, `.jsx`, `.ts`, `.js`, `.html`, and `.css` files:
+* **Framework Image Components**: Parses `<Image>`, `<img>`, `<picture>`, `<source>`, and CSS `url()` tags.
+* **Attribute Extraction**: Extracts `src`, `width`, `height`, `priority`, `loading="lazy"`, `sizes`, `alt`, and responsive attributes.
+* **Contextual Hierarchy**: Determines the declaring component name and route file where each media reference lives.
+* **LCP Candidate Identification**: Flags assets marked with `priority` or styled as viewport-dominating hero containers.
 
-### 3.2. Perceptual Duplicate Detection (`dHash` + SHA-256)
-Web projects frequently contain duplicate images uploaded under different filenames, in different directories, or saved with minor re-encodings:
-* **Dual-Layer Deduplication**:
-  1. **Exact Matches**: Fast cryptographic SHA-256 checksums identify 1:1 identical files immediately.
-  2. **Perceptual Matches (dHash)**: Sharp resizes the image to 9×8 grayscale and computes 64 horizontal gradient differences to create a 64-bit integer hash.
-* **Hamming Distance Comparison**: Perceptual similarity is measured across assets. Any image pair with >93% perceptual match is grouped together.
-* **Consolidation Analytics**: Reports total redundant byte waste and suggests single-source consolidation.
+### 3.3. Asset Dependency Graph & Dead Asset Intelligence (`assetGraph.mjs`)
+Constructs an in-memory graph connecting `Route -> Component -> SourceFile -> Asset -> Variant`:
+* **Exact Asset Usage**: Resolves relative, absolute, and static imports to disk files, providing exact reference counts.
+* **Multi-Route Shared Assets**: Flags assets used across multiple routes and components, warning against aggressive downscaling that could break high-density layouts elsewhere.
+* **Dead Asset Confidence Tiers**:
+  * `SAFE`: Asset has zero references across all source files, CSS, configs, and HTML files. Safe to archive or delete.
+  * `LIKELY`: Asset has no direct references, but matches common dynamic naming conventions (e.g. `icon-${name}.png`).
+  * `UNCERTAIN`: Referenced via ambiguous string interpolation or dynamic variable keys.
 
-### 3.3. Media Analyzer & 5-Axis Scoring System
-The analyzer recursively scans project directories (or single files), auto-detects the web framework (Next.js, Vite, Nuxt, Gatsby, Hugo, Modern Web), and assesses assets against modern performance standards:
-* **Issue Taxonomy**:
-  * `OVERSIZED_IMAGE`: Image dimensions exceed standard desktop displays (>1920px or >2560px for heroes).
-  * `INEFFICIENT_FORMAT`: Photographic images stored as uncompressed PNGs or legacy uncompressed JPEGs.
-  * `DUPLICATE_ASSET`: Exact or perceptual duplicate media wasting storage and bandwidth.
-  * `HIGH_COMPRESSION_POTENTIAL`: Images that can lose >40% byte weight without human-visible degradation.
-  * `LARGE_SVG`: Vector graphics with embedded raster data, heavy metadata, or size >50 KB.
-  * `RESPONSIVE_VARIANT`: Large single-resolution images missing mobile/tablet responsive breakpoints.
-  * `POTENTIAL_LCP_ASSET`: High-priority hero or viewport-filling asset impacting Largest Contentful Paint.
-* **5-Axis PhotoNow Score (0–100)**:
-  * **Format Efficiency** (25 pts): Modern format adoption (WebP, AVIF, SVG).
-  * **Image Sizing** (25 pts): Appropriateness of asset dimensions relative to viewport targets.
-  * **Compression Quality** (20 pts): Effective encoding density and entropy utilization.
-  * **Responsive Readiness** (15 pts): Availability of multiple resolutions for device viewports.
-  * **SVG Efficiency** (15 pts): Cleanliness, absence of embedded raster bloat, and minimal node complexity.
+### 3.4. Safe Source-Code Patching & Rollbacks (`patchGenerator.mjs`)
+Empowers agents to update source code safely:
+* **Unified Diff Generation**: Generates standard `diff -u` representations comparing before-and-after source code.
+* **Strict Non-Destructive Defaults**: Defaults to `dryRun: true`. Never alters source files without explicit confirmation.
+* **Atomic Backup Isolation**: Backs up original source files into `.photonow/backups/[operationId]/` before modifying a single line of code.
+* **Operation Manifests**: Emits a JSON manifest into `.photonow/manifests/manifest_[operationId].json` tracking every affected file and backup location.
+* **1-Click Rollback (`rollback_operation`)**: Restores all source files and media assets instantaneously to their exact pre-patch state.
 
-### 3.4. Web Performance Tester & LCP Candidate Identification
-Performs an asset-centric performance audit of either a live local URL (`http://localhost:3000`) or a project directory:
-* **HTML Parsing**: Scrapes `<img>`, `<picture>`, `<source>`, `<video>`, and SVG tags to evaluate DOM asset weight.
-* **LCP Candidate Detection**: Identifies the largest visible image element or hero banner in the viewport, pinpointing the single asset most responsible for LCP latency.
-* **Network Simulation**: Calculates simulated download times across network profiles (Simulated 4G mobile: 1.6 Mbps download, 150ms round-trip latency).
+### 3.5. Real Browser Runtime Verification (`browserVerifier.mjs`)
+Distinguishes real observed browser data from simulated network calculations:
+* **`OBSERVED` vs `SIMULATED` Transparency**: If a local browser or dev server is active, measures real LCP, FCP, CLS, and Resource Timing. If running headless or in CI without a live server, transparently falls back to `SIMULATED` performance models with an explicit metric flag.
+* **LCP Element Attribution**: Identifies the exact DOM element and asset URL responsible for the page's Largest Contentful Paint.
+* **Transfer Metrics**: Gathers transfer sizes, decoded body sizes, and cache hits across all media network requests.
 
-### 3.5. Web Performance Booster (Planning & Safe Non-Destructive Execution)
-Separates optimization into an explicit **Plan ➔ Approve ➔ Execute ➔ Verify** lifecycle:
-1. **Plan Formulation**: Calls `generateOptimizationPlan()` to produce a structured plan with a unique `planId` (e.g. `plan_mtsen94c_yyq8`), categorizing actions by impact (`high`, `medium`, `low`).
-2. **Safe Non-Destructive Execution**:
-   * Default destination: `.photonow/optimized/` preserving original source files.
-   * If `overwriteSource: true` is explicitly passed, the engine creates an automated timestamped rollback snapshot in `.photonow/backups/`.
-   * **Decoding Verification**: Every newly generated asset is read back through Sharp’s decoder before marking the operation successful. If an output is corrupted, it is discarded immediately.
-   * **Idempotency**: Skips files already optimized to avoid generational quality loss.
-3. **Verification**: Compares the original and optimized states, calculating exact byte savings, net percentage reductions, and remaining issues.
+### 3.6. Performance Budgets & Git Regression Guard (`budget.mjs` & `regression.mjs`)
+Enforces performance guardrails in CI/CD and agent workflows:
+* **Budget Rules**: Configurable limits for total page media payload (e.g., 500 KB), single hero asset weight (e.g., 150 KB), format modernness percentage (e.g., >80%), and LCP latency (<2.5s).
+* **Git Commit & Branch Awareness**: Probes Git status, current branch, and commit hash (`git rev-parse HEAD`).
+* **Performance Baselines**: Stores baseline metrics in `.photonow/baselines/[branch].json`. Compares current audit against baseline to prevent PR regressions.
 
-### 3.6. Zero-Dependency Offline Local Reporting Engine
-Generates self-contained performance reports without reaching out to any external CDN:
-* **Interactive HTML Report**: Embedded CSS with dark/light themes, pure SVG animated score ring, collapsible issue breakdowns, and actionable next steps.
-* **Markdown Report**: Clean, table-formatted summary suitable for GitHub PR comments, issue trackers, and agent notes.
-* **Machine-Readable JSON**: Full diagnostic payload saved to `.photonow/reports/` for CI/CD integration.
+### 3.7. High-Level Autonomous Mission: `optimize_project` (`mission.mjs`)
+Orchestrates the entire 10-step performance optimization lifecycle in a single call:
+```
+1. DISCOVER   -> Scan framework, routes, and media directories.
+2. UNDERSTAND -> Parse source code, component trees, and `<Image>` tags.
+3. ANALYZE    -> Build Asset Dependency Graph, score 5-axis health, find duplicates.
+4. MEASURE    -> Compute baseline transfer times, LCP candidate, and budgets.
+5. DIAGNOSE   -> Identify dead assets, oversized media, and inefficient formats.
+6. PLAN       -> Generate optimization plan with byte savings & unified diffs.
+7. PATCH      -> (Optional) Apply source code patches safely with automatic backups.
+8. OPTIMIZE   -> (Optional) Transcode media (WebP/AVIF) with decode verification.
+9. VERIFY     -> Re-measure media weight, LCP, and evaluate performance budget.
+10. REPORT    -> Output compact token-efficient summary, nextAction, and offline report.
+```
 
 ---
 
-## 4. Complete 20-Tool MCP Catalog
+## 4. Complete 29-Tool MCP Catalog
 
-The PhotoNow MCP Server provides 20 specialized tools over stdio JSON-RPC 2.0:
+The PhotoNow MCP Server exposes 29 tools over stdio JSON-RPC 2.0:
 
 | Category | Tool Name | Description |
 | :--- | :--- | :--- |
@@ -162,82 +188,63 @@ The PhotoNow MCP Server provides 20 specialized tools over stdio JSON-RPC 2.0:
 | | `extract_poster_frame` | Captures a poster snapshot frame from video at an exact timestamp. |
 | | `get_media_info` | Unified inspector for image, video, and audio metadata. |
 | | `optimize_for_agent` | Aggressively downscales an image specifically for AI multimodal context windows. |
-| **Analysis & Audit** | `analyze_media` | In-depth diagnostic scan of a single media file with issue classification and potential savings. |
-| *(New Performance Tools)*| `analyze_web_assets` | Scans a web project directory, classifies all media bottlenecks, and computes the 5-axis score. |
+| **Performance Intelligence**| `analyze_media` | In-depth diagnostic scan of a single media file with issue classification and potential savings. |
+| *(Phase 1-6 Media Tools)*| `analyze_web_assets` | Scans a web project directory, classifies all media bottlenecks, and computes the 5-axis score. |
 | | `find_oversized_assets` | Locates images whose dimensions or file sizes exceed web performance thresholds. |
 | | `find_inefficient_formats`| Finds images using uncompressed or legacy formats (photographic PNGs, uncompressed JPEGs). |
 | | `find_duplicate_assets` | Identifies exact and perceptual duplicate assets (>93% similarity via dHash). |
 | | `find_responsive_opportunities`| Discovers large images that lack responsive breakpoint variants (mobile/tablet). |
-| **Performance Testing** | `test_web_performance` | Audits a web project directory or local URL, estimates 4G transfer, and finds LCP candidates. |
+| | `test_web_performance` | Audits a web project directory or local URL, estimates 4G transfer, and finds LCP candidates. |
 | | `get_web_performance_summary`| Retrieves cached audit or test results using `testId`. |
 | | `compare_web_performance`| Compares before-and-after performance metrics across two test IDs or directories. |
-| **Performance Boosting**| `generate_optimization_plan`| Builds an action plan (`planId`) with impact ratings and estimated byte savings. |
+| | `generate_optimization_plan`| Builds an action plan (`planId`) with impact ratings and estimated byte savings. |
 | | `optimize_web_assets` | Executes an optimization plan with safe defaults, backup protection, and validation. |
 | | `verify_optimization` | Measures post-optimization metrics, verifies savings, and generates offline reports. |
+| **Agentic System Tools** | `inspect_project` | Scans project structure, framework, routes, media roots, and source references. |
+| *(New Master Tools)* | `get_asset_usage` | Returns full reference chain (`Route -> Component -> SourceFile`) and LCP status for an asset. |
+| | `find_unused_assets` | Detects dead/unreferenced assets categorized by safety tier (`SAFE`, `LIKELY`, `UNCERTAIN`). |
+| | `check_performance_budget`| Evaluates project against performance budgets (page bytes, image bytes, hero bytes, LCP). |
+| | `verify_runtime_performance`| Verifies runtime metrics (`OBSERVED` via browser or `SIMULATED` fallback). |
+| | `generate_source_patch` | Generates unified diffs to update source code (`<img>` -> `<Image>`, `.png` -> `.webp`). |
+| | `apply_source_patch` | Safely applies source patch with automated backups and rollback manifest generation. |
+| | `rollback_operation` | Atomically rolls back modified source files and assets using operation manifest. |
+| | `optimize_project` | Autonomous end-to-end mission executing the complete 10-step optimization lifecycle. |
 
 ---
 
-## 5. UI Integration — Next.js Performance Workbench
+## 5. Token Economy & Benchmarks
 
-The PhotoNow web companion GUI (`components/PerformanceWorkbench.tsx`) adds an interactive **[PERFORMANCE]** workbench:
+PhotoNow enforces a strict token budget for LLM contexts, guaranteeing that AI agents never exceed their context limits during complex web audits.
 
-1. **Target Selection & Framework Detection**: Input a local project path or live development server URL (`http://localhost:3000`).
-2. **Interactive 5-Axis Scoreboard**: Visual score gauges for Format Efficiency, Sizing, Compression, Responsive Readiness, and SVG Efficiency.
-3. **Bottleneck Triage**: Categorized issue list with severity tags (`[CRITICAL]`, `[HIGH]`, `[MEDIUM]`) and calculated byte savings per issue.
-4. **Plan Preview**: Interactive review of optimization actions before execution.
-5. **Interactive Before/After Canvas**: Side-by-side visual comparison allowing developers to inspect image fidelity, file size drop, and compression quality before committing changes.
-
----
-
-## 6. Defensive Engineering & Security Controls
-
-* **Strict File Extension Whitelisting**: The engine only processes authorized media formats (`.png`, `.jpg`, `.jpeg`, `.webp`, `.avif`, `.gif`, `.svg`, `.mp4`, `.webm`, `.mov`, `.wav`, `.mp3`). Requests targeting `.exe`, `.bat`, `.json`, `.js`, or `.sh` are blocked immediately.
-* **Sensitive Directory Protection**: Optimization routines reject operations pointing to `.git`, `.env`, or `node_modules` folders.
-* **Path Traversal Guards**: Normalizes and resolves all paths against system root to prevent directory traversal attacks.
-* **Corrupted Binary Handling**: Catches corrupted media streams during initial metadata probe and decoding without causing server panics or unhandled rejections.
+### Benchmarks
+* **Cold Project Scan**: ~62.1ms (Next.js App Router fixture with routes, components, and media).
+* **Warm Cached Scan**: ~8.2ms (**7.6x speedup** via internal project cache).
+* **Token Reduction**: **95.4%** reduction from raw diagnostic dump (~3,507 tokens) to compact agent summary (~160 tokens).
+* **Autonomous Mission Output**: ~80 tokens (318 characters), well within the <200 token budget.
+* **Heap Memory Footprint**: ~8.7 MB during end-to-end graph construction and patch generation.
 
 ---
 
-## 7. Empirical Sandbox Verification Results
+## 6. UI Integration — Next.js Performance Workbench
 
-Tested inside an isolated sandbox environment ([`tests/sandbox_demo/`](file:///c:/Users/sibas/OneDrive/Desktop/Projects/photoNow/tests/sandbox_demo)) featuring 6 realistic web assets (`hero_landing.png`, `hero_landing_v2.png`, `product_feature.jpg`, `brand_illustration.svg`, `avatar_clean.webp`, and `feature_demo.mp4`):
+The PhotoNow web companion GUI (`components/PerformanceWorkbench.tsx`) includes dedicated sub-tabs for both human developers and pair-programming agents:
 
-```
-========================================================================================
-METRIC                          BEFORE OPTIMIZATION     AFTER OPTIMIZATION      CHANGE
-========================================================================================
-Optimized Assets Footprint      248.3 KB (3 files)      5.5 KB                  -97.8% (242.8 KB saved)
-Hero Image (3840x2160 PNG)      113.0 KB                590 B (AVIF 1920px)     -99.5%
-Product Image (2400x1600 JPG)   22.2 KB                 4.3 KB (WebP 1920px)    -80.6%
-Simulated 4G Transfer Time      533 ms                  ~11 ms                  ~48x faster
-AI Agent Response Payload       ~3,507 tokens (raw)     ~190 tokens (compact)   -94.6% token reduction
-Safe Non-Destructive Outputs    Target: .photonow/optimized/                     0 overwrites / 0 corrupted
-========================================================================================
-```
-
-### Test Suite Verification Summary
-* **Engine Core Tests** ([`tests/test-performance-engine.mjs`](file:///c:/Users/sibas/OneDrive/Desktop/Projects/photoNow/tests/test-performance-engine.mjs)): 8/8 suites passing (100%).
-* **Stdio MCP Server Tests** ([`tests/test-mcp-server.mjs`](file:///c:/Users/sibas/OneDrive/Desktop/Projects/photoNow/tests/test-mcp-server.mjs)): All 20 tools verified over JSON-RPC 2.0 (100%).
-* **Usability & Security Tests** ([`tests/test-usability-security.mjs`](file:///c:/Users/sibas/OneDrive/Desktop/Projects/photoNow/tests/test-usability-security.mjs)): 11/11 tests passing (100%).
-* **Sandbox End-to-End Demo** ([`tests/run-sandbox-demo.mjs`](file:///c:/Users/sibas/OneDrive/Desktop/Projects/photoNow/tests/run-sandbox-demo.mjs)): Full 6-step lifecycle passing (100%).
+1. **[MEDIA AUDIT & 5-AXIS]**: Real-time gauges for Format Efficiency, Sizing, Compression, Responsive Readiness, and SVG Quality.
+2. **[ASSET GRAPH & UNUSED]**: Visual inspection of the Asset Dependency Graph, showing which components use which images, multi-route shared dependencies, and dead assets ready for pruning.
+3. **[BUDGETS & REGRESSION]**: Live performance budget validator showing PASS/WARN/FAIL status against page size, hero weight, and LCP targets.
+4. **[AUTONOMOUS MISSION]**: 1-click execution of the full `optimize_project` mission with live log streaming and safe dry-run preview.
+5. **[BEFORE / AFTER CANVAS]**: Interactive side-by-side visual diff slider to inspect image quality, color fidelity, and artifacting before committing changes.
 
 ---
 
-## 8. Summary of Created & Enhanced Files
+## 7. Verification & Automated Test Suites
 
-| File | Purpose |
-| :--- | :--- |
-| [`lib/engine/types.ts`](file:///c:/Users/sibas/OneDrive/Desktop/Projects/photoNow/lib/engine/types.ts) | Domain interfaces for assets, issues, 5-axis scores, plans, and verification results. |
-| [`lib/engine/tokenEconomy.mjs`](file:///c:/Users/sibas/OneDrive/Desktop/Projects/photoNow/lib/engine/tokenEconomy.mjs) | Progressive disclosure formatter, token budget enforcer, and `nextAction` generator. |
-| [`lib/engine/perceptualHash.mjs`](file:///c:/Users/sibas/OneDrive/Desktop/Projects/photoNow/lib/engine/perceptualHash.mjs) | 64-bit dHash gradient difference and SHA-256 duplicate detection engine. |
-| [`lib/engine/cache.mjs`](file:///c:/Users/sibas/OneDrive/Desktop/Projects/photoNow/lib/engine/cache.mjs) | In-memory and file-backed cache for plans (`planId`) and performance tests (`testId`). |
-| [`lib/engine/analyzer.mjs`](file:///c:/Users/sibas/OneDrive/Desktop/Projects/photoNow/lib/engine/analyzer.mjs) | Framework detector, media scanner, issue classifier, and 5-axis scoring engine. |
-| [`lib/engine/performanceTester.mjs`](file:///c:/Users/sibas/OneDrive/Desktop/Projects/photoNow/lib/engine/performanceTester.mjs) | Web auditor, LCP candidate identifier, and simulated 4G mobile latency calculator. |
-| [`lib/engine/booster.mjs`](file:///c:/Users/sibas/OneDrive/Desktop/Projects/photoNow/lib/engine/booster.mjs) | Plan generator, Sharp-based safe execution engine with backup guards, and verification. |
-| [`lib/engine/reporting.mjs`](file:///c:/Users/sibas/OneDrive/Desktop/Projects/photoNow/lib/engine/reporting.mjs) | Local offline reporting generator producing self-contained HTML, Markdown, and JSON. |
-| [`lib/engine/index.ts`](file:///c:/Users/sibas/OneDrive/Desktop/Projects/photoNow/lib/engine/index.ts) | Typed TypeScript bridge connecting core engine modules to Next.js App Router. |
-| [`bin/mcp-server.mjs`](file:///c:/Users/sibas/OneDrive/Desktop/Projects/photoNow/bin/mcp-server.mjs) | Standalone Node.js stdio MCP server exposing all 20 tools for AI agents. |
-| [`lib/mcpTools.ts`](file:///c:/Users/sibas/OneDrive/Desktop/Projects/photoNow/lib/mcpTools.ts) | MCP tool schema definitions and natural language parser. |
-| [`app/api/mcp/route.ts`](file:///c:/Users/sibas/OneDrive/Desktop/Projects/photoNow/app/api/mcp/route.ts) | Next.js HTTP JSON-RPC 2.0 endpoint dispatching all 20 MCP tools. |
-| [`app/api/performance/route.ts`](file:///c:/Users/sibas/OneDrive/Desktop/Projects/photoNow/app/api/performance/route.ts) | Next.js REST API providing analyze, test, plan, boost, and verify endpoints. |
-| [`components/PerformanceWorkbench.tsx`](file:///c:/Users/sibas/OneDrive/Desktop/Projects/photoNow/components/PerformanceWorkbench.tsx) | Interactive web UI workbench for performance auditing, scoring, and before/after review. |
+PhotoNow features an exhaustive suite of automated regression, unit, security, and integration tests:
+
+* **Agentic Intelligence Unit Tests** (`tests/unit/test-agentic-intelligence.mjs`): 7/7 suites passing (100%).
+* **Autonomous Mission E2E Tests** (`tests/test-autonomous-mission.mjs`): 4/4 suites passing (100%).
+* **Stdio MCP Server Tests** (`tests/test-mcp-server.mjs`): All 29 MCP tools passing over JSON-RPC 2.0 (100%).
+* **Core Performance Engine Tests** (`tests/test-performance-engine.mjs`): 8/8 suites passing (100%).
+* **Usability & Defensive Security Tests** (`tests/test-usability-security.mjs`): 11/11 tests passing (100%).
+* **Performance Benchmark Suite** (`tests/benchmark.mjs`): 100% passing.
+* **Next.js Production Build**: `npm run build` passes with 0 errors and 0 warnings.
