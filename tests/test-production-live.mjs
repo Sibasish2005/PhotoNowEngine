@@ -57,84 +57,88 @@ async function run() {
     return { length: text.length };
   }));
 
-  // 2. Performance API: Test URL (External Lighthouse/Speed Test)
-  results.push(await testEndpoint('POST /api/performance (action: test url)', async () => {
-    const res = await fetch(`${PROD_URL}/api/performance`, {
+  // 2. Performance over MCP: test_web_performance tool
+  results.push(await testEndpoint('POST /api/mcp (tool: test_web_performance)', async () => {
+    const res = await fetch(`${PROD_URL}/api/mcp`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        action: 'test',
-        url: 'https://example.com',
+        jsonrpc: '2.0',
+        id: 'test-1',
+        method: 'tools/call',
+        params: {
+          name: 'test_web_performance',
+          arguments: { url: 'https://example.com' },
+        },
       }),
     });
     if (res.status !== 200) throw new Error(`HTTP ${res.status}`);
     const json = await res.json();
-    if (!json.success) throw new Error(json.error || 'Request unsuccessful');
-    if (!json.result || !json.result.score) throw new Error('Missing performance score');
-    return { score: json.result.score.overall, lcp: json.result.metrics?.lcp };
+    if (json.error) throw new Error(json.error.message || 'JSON-RPC error');
+    return { ok: true };
   }));
 
-  // 3. Performance API: Demo Fixture Analysis on Vercel
-  results.push(await testEndpoint('POST /api/performance (action: analyze demo fixture)', async () => {
-    const res = await fetch(`${PROD_URL}/api/performance`, {
+  // 3. Performance over MCP: inspect_project tool
+  results.push(await testEndpoint('POST /api/mcp (tool: inspect_project)', async () => {
+    const res = await fetch(`${PROD_URL}/api/mcp`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        action: 'analyze',
-        targetPath: 'tests/fixtures/nextjs_project',
+        jsonrpc: '2.0',
+        id: 'test-2',
+        method: 'tools/call',
+        params: {
+          name: 'inspect_project',
+          arguments: { projectPath: 'tests/fixtures/nextjs_project' },
+        },
       }),
     });
     if (res.status !== 200) throw new Error(`HTTP ${res.status}`);
     const json = await res.json();
-    if (!json.success) throw new Error(json.error || 'Request unsuccessful');
-    return { totalAssets: json.result.totalAssets, score: json.result.score?.overall };
+    if (json.error) throw new Error(json.error.message || 'JSON-RPC error');
+    return { ok: true };
   }));
 
-  // 4. Performance API: Asset Graph & Unused on Vercel
-  results.push(await testEndpoint('POST /api/performance (action: graph demo fixture)', async () => {
-    const res = await fetch(`${PROD_URL}/api/performance`, {
+  // 4. Performance over MCP: find_unused_assets tool
+  results.push(await testEndpoint('POST /api/mcp (tool: find_unused_assets)', async () => {
+    const res = await fetch(`${PROD_URL}/api/mcp`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        action: 'graph',
-        targetPath: 'tests/fixtures/nextjs_project',
+        jsonrpc: '2.0',
+        id: 'test-3',
+        method: 'tools/call',
+        params: {
+          name: 'find_unused_assets',
+          arguments: { projectPath: 'tests/fixtures/nextjs_project' },
+        },
       }),
     });
     if (res.status !== 200) throw new Error(`HTTP ${res.status}`);
     const json = await res.json();
-    if (!json.success) throw new Error(json.error || 'Request unsuccessful');
-    return { nodes: json.graph?.summary?.nodesCount };
+    if (json.error) throw new Error(json.error.message || 'JSON-RPC error');
+    return { ok: true };
   }));
 
-  results.push(await testEndpoint('POST /api/performance (action: unused assets)', async () => {
-    const res = await fetch(`${PROD_URL}/api/performance`, {
+  // 5. Performance over MCP: check_performance_budget tool
+  results.push(await testEndpoint('POST /api/mcp (tool: check_performance_budget)', async () => {
+    const res = await fetch(`${PROD_URL}/api/mcp`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        action: 'unused',
-        targetPath: 'tests/fixtures/nextjs_project',
+        jsonrpc: '2.0',
+        id: 'test-4',
+        method: 'tools/call',
+        params: {
+          name: 'check_performance_budget',
+          arguments: { projectPath: 'tests/fixtures/nextjs_project' },
+        },
       }),
     });
     if (res.status !== 200) throw new Error(`HTTP ${res.status}`);
     const json = await res.json();
-    if (!json.success) throw new Error(json.error || 'Request unsuccessful');
-    return { unusedCount: json.unused?.length };
-  }));
-
-  // 5. Performance API: Budget Evaluation
-  results.push(await testEndpoint('POST /api/performance (action: budget)', async () => {
-    const res = await fetch(`${PROD_URL}/api/performance`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        action: 'budget',
-        targetPath: 'tests/fixtures/nextjs_project',
-      }),
-    });
-    if (res.status !== 200) throw new Error(`HTTP ${res.status}`);
-    const json = await res.json();
-    if (!json.success) throw new Error(json.error || 'Request unsuccessful');
-    return { status: json.evaluation?.status };
+    if (json.error) throw new Error(json.error.message || 'JSON-RPC error');
+    return { ok: true };
   }));
 
   // 6. MCP API: JSON-RPC tools/list

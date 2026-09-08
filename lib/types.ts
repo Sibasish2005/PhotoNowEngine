@@ -51,9 +51,15 @@ export interface AgentStep {
 export interface McpToolDefinition {
   name: string;
   description: string;
+  domain?: 'Autonomous Missions' | 'Auditing & Diagnostics' | 'Asset Graph & AST' | 'Multimedia Foundation' | 'Execution & Patching' | 'Budget & Runtime';
+  promptExample?: string;
+  detailedGuide?: string;
+  safety?: string;
+  outputSample?: string;
   inputSchema: {
     type: string;
     properties: Record<string, any>;
     required?: string[];
   };
 }
+

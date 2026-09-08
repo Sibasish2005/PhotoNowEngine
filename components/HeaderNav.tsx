@@ -97,14 +97,14 @@ export const HeaderNav: React.FC<HeaderNavProps> = ({
 
         <button
           onClick={() => setActiveTab('performance')}
-          className={`hand-btn ${activeTab === 'performance' ? 'active' : ''}`}
+          className={`hand-btn ${activeTab === 'performance' || activeTab === 'mcp' ? 'active' : ''}`}
           style={{
             padding: '6px 14px',
             fontSize: '11px',
             position: 'relative',
           }}
         >
-          [PERFORMANCE]
+          [MCP PERFORMANCE HUB]
           <span style={{
             position: 'absolute',
             top: '-8px',
@@ -115,7 +115,7 @@ export const HeaderNav: React.FC<HeaderNavProps> = ({
             padding: '1px 4px',
             borderRadius: '2px',
           }}>
-            INTELLIGENCE
+            29 TOOLS
           </span>
         </button>
 
@@ -125,14 +125,6 @@ export const HeaderNav: React.FC<HeaderNavProps> = ({
           style={{ padding: '6px 14px', fontSize: '11px' }}
         >
           [STORAGE: {storageCount}]
-        </button>
-
-        <button
-          onClick={() => setActiveTab('mcp')}
-          className={`hand-btn ${activeTab === 'mcp' ? 'active' : ''}`}
-          style={{ padding: '6px 14px', fontSize: '11px' }}
-        >
-          [MCP SERVER]
         </button>
       </nav>
     </header>

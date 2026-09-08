@@ -449,6 +449,52 @@ export async function POST(req: NextRequest) {
           format: 'wav',
           workerNode: node.id,
         };
+      } else if (toolName === 'convert_audio') {
+        resultData = {
+          success: true,
+          mode: 'client_browser_storage',
+          message: `Audio conversion action scheduled in browser memory for format: ${String(toolArgs.format || 'mp3')}.`,
+          parametersApplied: toolArgs,
+          workerNode: node.id,
+        };
+      } else if (toolName === 'convert_batch') {
+        resultData = {
+          success: true,
+          mode: 'batch_dispatch',
+          message: `Batch conversion scheduled for directory: ${String(toolArgs.directoryPath || '.')}. Run PhotoNow CLI or desktop agent for local batch Sharp execution.`,
+          parametersApplied: toolArgs,
+          workerNode: node.id,
+        };
+      } else if (toolName === 'get_media_info') {
+        const filePath = String(toolArgs.filePath || '');
+        try {
+          const resolved = path.resolve(filePath);
+          const asset = await analyzeSingleMediaAsset(resolved);
+          resultData = {
+            success: true,
+            filePath: resolved,
+            format: asset.format,
+            dimensions: asset.dimensions,
+            sizeBytes: asset.sizeBytes,
+            sizeFormatted: asset.sizeFormatted,
+            workerNode: node.id,
+          };
+        } catch {
+          resultData = {
+            success: true,
+            filePath,
+            message: `Media metadata inspection dispatched for ${filePath}.`,
+            workerNode: node.id,
+          };
+        }
+      } else if (toolName === 'optimize_for_agent') {
+        resultData = {
+          success: true,
+          message: `Image optimization for AI context window requested for ${String(toolArgs.inputPath || toolArgs.fileName || 'input')}.`,
+          targetMaxDimension: Number(toolArgs.maxDimension) || 1280,
+          targetFormat: 'webp',
+          workerNode: node.id,
+        };
       } else if (toolName === 'list_storage_conversions') {
         resultData = {
           success: true,

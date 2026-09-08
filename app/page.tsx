@@ -43,23 +43,12 @@ const AgenticPanel = dynamic(
   }
 );
 
-const McpPlayground = dynamic(
-  () => import('@/components/McpPlayground').then((mod) => mod.McpPlayground),
+const McpDeveloperHub = dynamic(
+  () => import('@/components/McpDeveloperHub').then((mod) => mod.McpDeveloperHub),
   {
     loading: () => (
       <div className="hand-box" style={{ padding: '32px', textAlign: 'center' }}>
-        [LOADING MCP PLAYGROUND...]
-      </div>
-    ),
-  }
-);
-
-const PerformanceWorkbench = dynamic(
-  () => import('@/components/PerformanceWorkbench').then((mod) => mod.PerformanceWorkbench),
-  {
-    loading: () => (
-      <div className="hand-box" style={{ padding: '32px', textAlign: 'center' }}>
-        [LOADING PERFORMANCE INTELLIGENCE ENGINE...]
+        [LOADING DEVELOPER MCP HUB & TOOLCALLING SPECIFICATION...]
       </div>
     ),
   }
@@ -131,16 +120,12 @@ export default function Home() {
               <AgenticPanel onConversionSuccess={handleConversionSuccess} />
             )}
 
-            {activeTab === 'performance' && (
-              <PerformanceWorkbench />
+            {(activeTab === 'performance' || activeTab === 'mcp') && (
+              <McpDeveloperHub />
             )}
 
             {activeTab === 'storage' && (
               <StorageHistory onStorageUpdated={refreshStorageStats} />
-            )}
-
-            {activeTab === 'mcp' && (
-              <McpPlayground />
             )}
           </section>
         </div>
