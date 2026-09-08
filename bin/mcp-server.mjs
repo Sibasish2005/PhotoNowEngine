@@ -24,6 +24,15 @@ import ffmpeg from 'fluent-ffmpeg';
 import ffmpegInstaller from '@ffmpeg-installer/ffmpeg';
 import ffprobeInstaller from '@ffprobe-installer/ffprobe';
 
+// PhotoNow Core Performance Intelligence & Optimization Engine
+import { analyzeSingleMediaAsset, analyzeWebAssets } from '../lib/engine/analyzer.mjs';
+import { testWebPerformance, comparePerformanceTests } from '../lib/engine/performanceTester.mjs';
+import { generateOptimizationPlan, executeOptimizationPlan, verifyOptimization } from '../lib/engine/booster.mjs';
+import { groupDuplicates } from '../lib/engine/perceptualHash.mjs';
+import { formatMcpResponse } from '../lib/engine/tokenEconomy.mjs';
+import { engineCache } from '../lib/engine/cache.mjs';
+import { saveLocalReport } from '../lib/engine/reporting.mjs';
+
 // Initialize bundled static binary paths for zero external setup
 const ffmpegPath = ffmpegInstaller.path || ffmpegInstaller.default?.path;
 const ffprobePath = ffprobeInstaller.path || ffprobeInstaller.default?.path;
@@ -475,6 +484,59 @@ function processVideoConversion({
         reject(new Error(`Video conversion failed: ${err.message}`));
       })
       .save(finalOutputPath);
+  });
+}
+
+/**
+ * Perform poster frame extraction from video
+ */
+function processPosterExtraction({
+  inputPath,
+  timestamp = 0.5,
+  format = 'webp',
+  outputPath,
+  overwrite = false,
+}) {
+  return new Promise((resolve, reject) => {
+    const resolvedInput = resolvePath(inputPath);
+    if (!fsSync.existsSync(resolvedInput)) {
+      return reject(new Error(`Input file not found at: ${resolvedInput}`));
+    }
+    const stat = fsSync.statSync(resolvedInput);
+    if (stat.isDirectory()) {
+      return reject(new Error(`'${resolvedInput}' is a directory, not a video file.`));
+    }
+    const fmt = format.toLowerCase();
+    let finalOutputPath = outputPath ? resolvePath(outputPath) : null;
+    if (!finalOutputPath) {
+      const parsed = path.parse(resolvedInput);
+      finalOutputPath = path.join(parsed.dir, `${parsed.name}_poster.${fmt}`);
+    }
+    validateOutputPathSecurity(finalOutputPath);
+    finalOutputPath = handleCollision(finalOutputPath, overwrite);
+    fsSync.mkdirSync(path.dirname(finalOutputPath), { recursive: true });
+
+    ffmpeg(resolvedInput)
+      .seekInput(Number(timestamp) || 0.5)
+      .frames(1)
+      .save(finalOutputPath)
+      .on('end', () => {
+        try {
+          const outStat = fsSync.statSync(finalOutputPath);
+          resolve({
+            success: true,
+            inputPath: resolvedInput,
+            outputPath: finalOutputPath,
+            timestamp: Number(timestamp) || 0.5,
+            format: fmt,
+            sizeBytes: outStat.size,
+            sizeFormatted: formatBytes(outStat.size),
+          });
+        } catch (err) {
+          reject(err);
+        }
+      })
+      .on('error', (err) => reject(new Error(`Poster frame extraction failed: ${err.message}`)));
   });
 }
 
@@ -1151,6 +1213,603 @@ server.tool(
       return {
         isError: true,
         content: [{ type: 'text', text: `Optimization error: ${err.message}` }],
+      };
+    }
+  }
+);
+
+// ==========================================
+// TOOL 8: extract_poster_frame (Video -> Poster)
+// ==========================================
+server.tool(
+  'extract_poster_frame',
+  {
+    inputPath: z.string().describe('Path to source video file (.mp4, .mov, .mkv, .webm, etc.)'),
+    timestamp: z.number().default(0.5).describe('Timestamp in seconds to capture poster frame (default: 0.5)'),
+    format: z.enum(['webp', 'jpeg', 'png']).default('webp').describe('Target image format for poster (default: webp)'),
+    outputPath: z.string().optional().describe('Optional destination image path'),
+    overwrite: z.boolean().default(false).describe('Overwrite existing destination file'),
+  },
+  async (args) => {
+    try {
+      const result = await processPosterExtraction(args);
+      return {
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify(
+              {
+                status: 'success',
+                message: `Successfully extracted poster frame at ${result.timestamp}s as ${result.format.toUpperCase()} (${result.sizeFormatted})`,
+                details: result,
+              },
+              null,
+              2
+            ),
+          },
+        ],
+      };
+    } catch (err) {
+      return { isError: true, content: [{ type: 'text', text: `Poster extraction error: ${err.message}` }] };
+    }
+  }
+);
+
+// ==========================================
+// TOOL 9: analyze_media (Media Analyzer - Single File)
+// ==========================================
+server.tool(
+  'analyze_media',
+  {
+    filePath: z.string().describe('Path to image or SVG file to analyze for website performance bottlenecks'),
+    detailLevel: z.enum(['compact', 'standard', 'detailed', 'raw']).default('compact').describe('Level of detail: compact (default), standard, detailed, raw'),
+    tokenBudget: z.number().optional().describe('Optional token budget to cap MCP response size'),
+  },
+  async ({ filePath, detailLevel, tokenBudget }) => {
+    try {
+      const resolved = resolvePath(filePath);
+      if (!fsSync.existsSync(resolved)) {
+        throw new Error(`File not found: ${resolved}`);
+      }
+      const asset = await analyzeSingleMediaAsset(resolved);
+      const formatted = formatMcpResponse({
+        ok: true,
+        summary: {
+          path: asset.relativePath,
+          format: asset.format,
+          dimensions: asset.dimensions,
+          sizeBytes: asset.sizeBytes,
+          sizeFormatted: asset.sizeFormatted,
+          potentialSavingsBytes: asset.optimizationPotentialBytes,
+          potentialSavingsFormatted: formatBytes(asset.optimizationPotentialBytes),
+          issueCount: asset.issues.length,
+          topIssues: asset.issues.map((i) => `${i.id}: ${i.message}`),
+        },
+        issues: asset.issues,
+        recommendations: asset.issues.map((i) => i.recommendation),
+        nextAction: asset.issues.length > 0 ? 'generate_optimization_plan' : 'all_assets_optimized',
+        details: asset,
+        detailLevel,
+        tokenBudget,
+      });
+      return { content: [{ type: 'text', text: JSON.stringify(formatted, null, 2) }] };
+    } catch (err) {
+      return {
+        isError: true,
+        content: [{ type: 'text', text: JSON.stringify(formatMcpResponse({ ok: false, error: err }), null, 2) }],
+      };
+    }
+  }
+);
+
+// ==========================================
+// TOOL 10: analyze_web_assets (Media Analyzer - Project/Dir)
+// ==========================================
+server.tool(
+  'analyze_web_assets',
+  {
+    directoryPath: z.string().optional().describe('Project directory or asset directory to analyze (e.g. ./public or .). Defaults to current workspace.'),
+    recursive: z.boolean().default(true).describe('Whether to recursively scan nested directories (default: true)'),
+    detailLevel: z.enum(['compact', 'standard', 'detailed', 'raw']).default('compact').describe('Detail level: compact (default), standard, detailed, raw'),
+    tokenBudget: z.number().default(1200).optional().describe('Token budget for response (default: 1200 tokens)'),
+  },
+  async ({ directoryPath, recursive, detailLevel, tokenBudget }) => {
+    try {
+      const target = resolvePath(directoryPath || '.');
+      const analysis = await analyzeWebAssets(target, recursive);
+      const formatted = formatMcpResponse({
+        ok: true,
+        summary: {
+          score: analysis.score.overall,
+          scoreBreakdown: analysis.score.breakdown,
+          framework: analysis.framework,
+          totalAssets: analysis.totalAssets,
+          totalSizeBytes: analysis.totalSizeBytes,
+          totalSizeFormatted: analysis.totalSizeFormatted,
+          potentialSavingsBytes: analysis.potentialSavingsBytes,
+          potentialSavingsFormatted: analysis.potentialSavingsFormatted,
+          issueCount: analysis.issues.length,
+          duplicateGroupsCount: analysis.duplicateGroups.length,
+          topIssues: analysis.issues.slice(0, 5).map((i) => `${i.id}: ${i.message}`),
+        },
+        issues: analysis.issues,
+        recommendations: analysis.recommendations,
+        nextAction: analysis.nextAction,
+        details: analysis,
+        detailLevel,
+        tokenBudget,
+      });
+      return { content: [{ type: 'text', text: JSON.stringify(formatted, null, 2) }] };
+    } catch (err) {
+      return {
+        isError: true,
+        content: [{ type: 'text', text: JSON.stringify(formatMcpResponse({ ok: false, error: err }), null, 2) }],
+      };
+    }
+  }
+);
+
+// ==========================================
+// TOOL 11: find_oversized_assets (Media Analyzer)
+// ==========================================
+server.tool(
+  'find_oversized_assets',
+  {
+    directoryPath: z.string().optional().describe('Directory path to inspect (defaults to current directory)'),
+    maxDimension: z.number().default(1920).describe('Max width or height in px (default: 1920)'),
+    maxSizeBytes: z.number().default(500 * 1024).describe('Max file size in bytes (default: 500 KB)'),
+    detailLevel: z.enum(['compact', 'standard', 'detailed', 'raw']).default('compact').optional(),
+    tokenBudget: z.number().optional(),
+  },
+  async ({ directoryPath, maxDimension, maxSizeBytes, detailLevel, tokenBudget }) => {
+    try {
+      const target = resolvePath(directoryPath || '.');
+      const analysis = await analyzeWebAssets(target);
+      const oversized = analysis.assets.filter(
+        (a) => (a.width && a.width > maxDimension) || (a.height && a.height > maxDimension) || a.sizeBytes > maxSizeBytes
+      );
+      const formatted = formatMcpResponse({
+        ok: true,
+        summary: {
+          totalOversizedFound: oversized.length,
+          potentialSavingsBytes: oversized.reduce((acc, a) => acc + a.optimizationPotentialBytes, 0),
+          potentialSavingsFormatted: formatBytes(oversized.reduce((acc, a) => acc + a.optimizationPotentialBytes, 0)),
+          topIssues: oversized.slice(0, 5).map((a) => `${a.relativePath}: ${a.dimensions || formatBytes(a.sizeBytes)} exceeds limits`),
+        },
+        issues: oversized.flatMap((a) => a.issues.filter((i) => i.id === 'OVERSIZED_IMAGE')),
+        recommendations: ['Downscale oversized images to max 1920px width and convert to WebP/AVIF.'],
+        nextAction: oversized.length > 0 ? 'generate_optimization_plan' : 'all_assets_optimized',
+        details: oversized,
+        detailLevel,
+        tokenBudget,
+      });
+      return { content: [{ type: 'text', text: JSON.stringify(formatted, null, 2) }] };
+    } catch (err) {
+      return {
+        isError: true,
+        content: [{ type: 'text', text: JSON.stringify(formatMcpResponse({ ok: false, error: err }), null, 2) }],
+      };
+    }
+  }
+);
+
+// ==========================================
+// TOOL 12: find_inefficient_formats (Media Analyzer)
+// ==========================================
+server.tool(
+  'find_inefficient_formats',
+  {
+    directoryPath: z.string().optional().describe('Directory path to inspect (defaults to current directory)'),
+    detailLevel: z.enum(['compact', 'standard', 'detailed', 'raw']).default('compact').optional(),
+    tokenBudget: z.number().optional(),
+  },
+  async ({ directoryPath, detailLevel, tokenBudget }) => {
+    try {
+      const target = resolvePath(directoryPath || '.');
+      const analysis = await analyzeWebAssets(target);
+      const inefficient = analysis.assets.filter((a) => a.issues.some((i) => i.id === 'INEFFICIENT_FORMAT'));
+      const formatted = formatMcpResponse({
+        ok: true,
+        summary: {
+          totalInefficientFound: inefficient.length,
+          potentialSavingsBytes: inefficient.reduce((acc, a) => acc + a.optimizationPotentialBytes, 0),
+          potentialSavingsFormatted: formatBytes(inefficient.reduce((acc, a) => acc + a.optimizationPotentialBytes, 0)),
+          topIssues: inefficient.slice(0, 5).map((a) => `${a.relativePath} (${a.format.toUpperCase()}) -> recommend ${a.recommendedFormat?.toUpperCase() || 'WEBP'}`),
+        },
+        issues: inefficient.flatMap((a) => a.issues.filter((i) => i.id === 'INEFFICIENT_FORMAT')),
+        recommendations: ['Convert non-transparent PNGs and legacy JPEGs to modern WebP or AVIF.'],
+        nextAction: inefficient.length > 0 ? 'generate_optimization_plan' : 'all_assets_optimized',
+        details: inefficient,
+        detailLevel,
+        tokenBudget,
+      });
+      return { content: [{ type: 'text', text: JSON.stringify(formatted, null, 2) }] };
+    } catch (err) {
+      return {
+        isError: true,
+        content: [{ type: 'text', text: JSON.stringify(formatMcpResponse({ ok: false, error: err }), null, 2) }],
+      };
+    }
+  }
+);
+
+// ==========================================
+// TOOL 13: find_duplicate_assets (Media Analyzer - Perceptual Duplicate Detection)
+// ==========================================
+server.tool(
+  'find_duplicate_assets',
+  {
+    directoryPath: z.string().optional().describe('Directory path to inspect (defaults to current directory)'),
+    similarityThreshold: z.number().default(93.75).describe('Perceptual similarity percentage threshold (default: 93.75%)'),
+    detailLevel: z.enum(['compact', 'standard', 'detailed', 'raw']).default('compact').optional(),
+    tokenBudget: z.number().optional(),
+  },
+  async ({ directoryPath, similarityThreshold, detailLevel, tokenBudget }) => {
+    try {
+      const target = resolvePath(directoryPath || '.');
+      const analysis = await analyzeWebAssets(target);
+      const duplicateGroups = groupDuplicates(analysis.assets, similarityThreshold);
+      const totalDupSavings = duplicateGroups.reduce((acc, g) => acc + g.potentialSavingsBytes, 0);
+
+      const formatted = formatMcpResponse({
+        ok: true,
+        summary: {
+          totalDuplicateGroups: duplicateGroups.length,
+          potentialSavingsBytes: totalDupSavings,
+          potentialSavingsFormatted: formatBytes(totalDupSavings),
+          topIssues: duplicateGroups.slice(0, 5).map((g) => `${path.basename(g.representative)}: ${g.files.length} redundant copies (${g.similarityPercent}% similarity, saves ${g.potentialSavingsFormatted})`),
+        },
+        issues: duplicateGroups.map((g) => ({
+          id: 'DUPLICATE_ASSET',
+          severity: 'medium',
+          message: `${g.files.length} duplicate or visually redundant copies (${g.similarityPercent}% similarity)`,
+          recommendation: `Retain ${path.basename(g.representative)} and consolidate duplicates`,
+          potentialSavingsBytes: g.potentialSavingsBytes,
+        })),
+        recommendations: duplicateGroups.length > 0
+          ? [`Consolidate ${duplicateGroups.length} duplicate groups to save ${formatBytes(totalDupSavings)}.`]
+          : ['No duplicate assets detected. Clean media library.'],
+        nextAction: duplicateGroups.length > 0 ? 'generate_optimization_plan' : 'test_web_performance',
+        details: duplicateGroups,
+        detailLevel,
+        tokenBudget,
+      });
+      return { content: [{ type: 'text', text: JSON.stringify(formatted, null, 2) }] };
+    } catch (err) {
+      return {
+        isError: true,
+        content: [{ type: 'text', text: JSON.stringify(formatMcpResponse({ ok: false, error: err }), null, 2) }],
+      };
+    }
+  }
+);
+
+// ==========================================
+// TOOL 14: find_responsive_opportunities (Media Analyzer)
+// ==========================================
+server.tool(
+  'find_responsive_opportunities',
+  {
+    directoryPath: z.string().optional().describe('Directory path to inspect (defaults to current directory)'),
+    detailLevel: z.enum(['compact', 'standard', 'detailed', 'raw']).default('compact').optional(),
+    tokenBudget: z.number().optional(),
+  },
+  async ({ directoryPath, detailLevel, tokenBudget }) => {
+    try {
+      const target = resolvePath(directoryPath || '.');
+      const analysis = await analyzeWebAssets(target);
+      const responsiveOpportunities = analysis.assets.filter((a) => a.issues.some((i) => i.id === 'RESPONSIVE_VARIANT'));
+      const formatted = formatMcpResponse({
+        ok: true,
+        summary: {
+          totalOpportunitiesFound: responsiveOpportunities.length,
+          topIssues: responsiveOpportunities.slice(0, 5).map((a) => `${a.relativePath} (${a.dimensions}): missing responsive srcset variants`),
+        },
+        issues: responsiveOpportunities.flatMap((a) => a.issues.filter((i) => i.id === 'RESPONSIVE_VARIANT')),
+        recommendations: ['Generate responsive variants (640w, 1024w, 1920w) and use picture or srcset.'],
+        nextAction: 'generate_optimization_plan',
+        details: responsiveOpportunities,
+        detailLevel,
+        tokenBudget,
+      });
+      return { content: [{ type: 'text', text: JSON.stringify(formatted, null, 2) }] };
+    } catch (err) {
+      return {
+        isError: true,
+        content: [{ type: 'text', text: JSON.stringify(formatMcpResponse({ ok: false, error: err }), null, 2) }],
+      };
+    }
+  }
+);
+
+// ==========================================
+// TOOL 15: test_web_performance (Performance Tester)
+// ==========================================
+server.tool(
+  'test_web_performance',
+  {
+    url: z.string().optional().describe('Target URL (e.g. http://localhost:3000 or https://example.com)'),
+    localPath: z.string().optional().describe('Local project folder or HTML build directory to test locally'),
+    detailLevel: z.enum(['compact', 'standard', 'detailed', 'raw']).default('compact').optional(),
+    tokenBudget: z.number().optional(),
+  },
+  async ({ url, localPath, detailLevel, tokenBudget }) => {
+    try {
+      const target = url || (localPath ? resolvePath(localPath) : resolvePath('.'));
+      const testResult = await testWebPerformance(target);
+      const formatted = formatMcpResponse({
+        ok: true,
+        summary: {
+          testId: testResult.testId,
+          target: testResult.target,
+          score: testResult.score.overall,
+          scoreBreakdown: testResult.score.breakdown,
+          totalAssets: testResult.metrics.totalAssetsCount,
+          totalSizeBytes: testResult.metrics.totalSizeBytes,
+          totalSizeFormatted: testResult.metrics.totalSizeFormatted,
+          potentialSavingsBytes: testResult.potentialSavingsBytes,
+          potentialSavingsFormatted: testResult.potentialSavingsFormatted,
+          issueCount: testResult.issueCount,
+          topIssues: testResult.topIssues,
+          lcpCandidate: testResult.metrics.lcpCandidate,
+          estimatedTransferTime4GMs: testResult.metrics.estimatedTransferTime4GMs,
+        },
+        issues: testResult.topIssues,
+        recommendations: testResult.recommendations,
+        nextAction: testResult.nextAction,
+        details: testResult,
+        detailLevel,
+        tokenBudget,
+      });
+      return { content: [{ type: 'text', text: JSON.stringify(formatted, null, 2) }] };
+    } catch (err) {
+      return {
+        isError: true,
+        content: [{ type: 'text', text: JSON.stringify(formatMcpResponse({ ok: false, error: err }), null, 2) }],
+      };
+    }
+  }
+);
+
+// ==========================================
+// TOOL 16: get_web_performance_summary (Performance Tester)
+// ==========================================
+server.tool(
+  'get_web_performance_summary',
+  {
+    testId: z.string().optional().describe('Test ID of previous audit. Defaults to most recent test.'),
+    detailLevel: z.enum(['compact', 'standard', 'detailed', 'raw']).default('compact').optional(),
+    tokenBudget: z.number().optional(),
+  },
+  async ({ testId, detailLevel, tokenBudget }) => {
+    try {
+      const test = engineCache.getTest(testId);
+      if (!test) {
+        throw new Error(`No performance test record found${testId ? ` for ID: ${testId}` : ''}. Please run test_web_performance first.`);
+      }
+      const formatted = formatMcpResponse({
+        ok: true,
+        summary: {
+          testId: test.testId,
+          target: test.target,
+          score: test.score.overall,
+          scoreBreakdown: test.score.breakdown,
+          totalAssets: test.metrics.totalAssetsCount,
+          totalSizeFormatted: test.metrics.totalSizeFormatted,
+          potentialSavingsFormatted: test.potentialSavingsFormatted,
+          topIssues: test.topIssues,
+          lcpCandidate: test.metrics.lcpCandidate,
+        },
+        issues: test.topIssues,
+        recommendations: test.recommendations,
+        nextAction: test.nextAction,
+        details: test,
+        detailLevel,
+        tokenBudget,
+      });
+      return { content: [{ type: 'text', text: JSON.stringify(formatted, null, 2) }] };
+    } catch (err) {
+      return {
+        isError: true,
+        content: [{ type: 'text', text: JSON.stringify(formatMcpResponse({ ok: false, error: err }), null, 2) }],
+      };
+    }
+  }
+);
+
+// ==========================================
+// TOOL 17: compare_web_performance (Performance Tester)
+// ==========================================
+server.tool(
+  'compare_web_performance',
+  {
+    beforeTestId: z.string().optional().describe('Test ID before optimization'),
+    afterTestId: z.string().optional().describe('Test ID after optimization (defaults to most recent test)'),
+    detailLevel: z.enum(['compact', 'standard', 'detailed', 'raw']).default('compact').optional(),
+    tokenBudget: z.number().optional(),
+  },
+  async ({ beforeTestId, afterTestId, detailLevel, tokenBudget }) => {
+    try {
+      const afterTest = engineCache.getTest(afterTestId);
+      const beforeTest = engineCache.getTest(beforeTestId);
+      if (!afterTest || !beforeTest) {
+        throw new Error('Could not find performance test records for comparison. Ensure both before and after tests exist.');
+      }
+      const comparison = comparePerformanceTests(beforeTest, afterTest);
+      const formatted = formatMcpResponse({
+        ok: true,
+        summary: {
+          scoreBefore: comparison.scoreBefore,
+          scoreAfter: comparison.scoreAfter,
+          scoreDelta: comparison.scoreDelta,
+          mediaBefore: comparison.mediaBeforeFormatted,
+          mediaAfter: comparison.mediaAfterFormatted,
+          savedBytes: comparison.savedFormatted,
+          reductionPercent: comparison.reductionPercent,
+          measuredImprovements: comparison.measuredImprovements,
+        },
+        recommendations: comparison.scoreDelta > 0 ? ['Optimizations confirmed successful! Commit changes to repository.'] : ['Verify remaining bottlenecks.'],
+        nextAction: 'all_verified',
+        details: comparison,
+        detailLevel,
+        tokenBudget,
+      });
+      return { content: [{ type: 'text', text: JSON.stringify(formatted, null, 2) }] };
+    } catch (err) {
+      return {
+        isError: true,
+        content: [{ type: 'text', text: JSON.stringify(formatMcpResponse({ ok: false, error: err }), null, 2) }],
+      };
+    }
+  }
+);
+
+// ==========================================
+// TOOL 18: generate_optimization_plan (Performance Booster)
+// ==========================================
+server.tool(
+  'generate_optimization_plan',
+  {
+    directoryPath: z.string().optional().describe('Directory path of website/project to optimize (defaults to current directory)'),
+    targetDir: z.string().optional().describe('Target folder for optimized files (defaults to safe non-destructive ./.photonow/optimized)'),
+    format: z.enum(['webp', 'avif']).default('webp').describe('Preferred modern format (default: webp)'),
+    quality: z.number().default(82).describe('Compression quality 1-100 (default: 82)'),
+    maxDimension: z.number().default(1920).describe('Max width/height for downscaling oversized images (default: 1920)'),
+    detailLevel: z.enum(['compact', 'standard', 'detailed', 'raw']).default('compact').optional(),
+    tokenBudget: z.number().optional(),
+  },
+  async ({ directoryPath, targetDir, format, quality, maxDimension, detailLevel, tokenBudget }) => {
+    try {
+      const target = resolvePath(directoryPath || '.');
+      const plan = await generateOptimizationPlan(target, {
+        targetDir: targetDir ? resolvePath(targetDir) : undefined,
+        format,
+        quality,
+        maxDimension,
+      });
+      const formatted = formatMcpResponse({
+        ok: true,
+        summary: {
+          planId: plan.planId,
+          actionsCount: plan.actionsCount,
+          impactSummary: plan.impactSummary,
+          estimatedBefore: plan.estimatedBeforeFormatted,
+          estimatedAfter: plan.estimatedAfterFormatted,
+          estimatedSaved: plan.estimatedSavedFormatted,
+          estimatedReductionPercent: plan.estimatedReductionPercent,
+          targetDir: plan.targetDir,
+          topActions: plan.actions.slice(0, 5).map((a) => `[${a.impact.toUpperCase()}] ${path.basename(a.inputPath)} -> ${path.basename(a.outputPath)} (${a.estimatedSavingsFormatted} est. savings)`),
+        },
+        recommendations: [
+          `Execute optimization with optimize_web_assets(planId="${plan.planId}")`,
+          'Default execution is non-destructive and saves to safe target directory.',
+        ],
+        nextAction: `optimize_web_assets("${plan.planId}")`,
+        details: plan,
+        detailLevel,
+        tokenBudget,
+      });
+      return { content: [{ type: 'text', text: JSON.stringify(formatted, null, 2) }] };
+    } catch (err) {
+      return {
+        isError: true,
+        content: [{ type: 'text', text: JSON.stringify(formatMcpResponse({ ok: false, error: err }), null, 2) }],
+      };
+    }
+  }
+);
+
+// ==========================================
+// TOOL 19: optimize_web_assets (Performance Booster)
+// ==========================================
+server.tool(
+  'optimize_web_assets',
+  {
+    planId: z.string().optional().describe('Plan ID generated by generate_optimization_plan'),
+    directoryPath: z.string().optional().describe('Project directory if optimizing ad-hoc without pre-generated plan'),
+    overwriteSource: z.boolean().default(false).describe('If true, creates backup in .photonow/backups and replaces original files. Default: false (non-destructive).'),
+    detailLevel: z.enum(['compact', 'standard', 'detailed', 'raw']).default('compact').optional(),
+    tokenBudget: z.number().optional(),
+  },
+  async ({ planId, directoryPath, overwriteSource, detailLevel, tokenBudget }) => {
+    try {
+      const target = planId || (directoryPath ? resolvePath(directoryPath) : resolvePath('.'));
+      const execution = await executeOptimizationPlan(target, { overwriteSource });
+      const formatted = formatMcpResponse({
+        ok: true,
+        summary: {
+          planId: execution.planId,
+          totalProcessed: execution.totalProcessed,
+          succeeded: execution.succeeded,
+          failed: execution.failed,
+          alreadyOptimizedCount: execution.alreadyOptimizedCount,
+          actualBefore: execution.actualBeforeFormatted,
+          actualAfter: execution.actualAfterFormatted,
+          actualSaved: execution.actualSavedFormatted,
+          actualReductionPercent: execution.actualReductionPercent,
+          backupLocation: execution.backupLocation,
+        },
+        recommendations: [`Verify optimization gains with verify_optimization(planId="${execution.planId}")`],
+        nextAction: `verify_optimization("${execution.planId}")`,
+        details: execution,
+        detailLevel,
+        tokenBudget,
+      });
+      return { content: [{ type: 'text', text: JSON.stringify(formatted, null, 2) }] };
+    } catch (err) {
+      return {
+        isError: true,
+        content: [{ type: 'text', text: JSON.stringify(formatMcpResponse({ ok: false, error: err }), null, 2) }],
+      };
+    }
+  }
+);
+
+// ==========================================
+// TOOL 20: verify_optimization (Performance Booster)
+// ==========================================
+server.tool(
+  'verify_optimization',
+  {
+    planId: z.string().optional().describe('Plan ID to verify'),
+    directoryPath: z.string().optional().describe('Directory path to verify if ad-hoc'),
+    generateReport: z.boolean().default(true).describe('Generate local self-contained HTML/Markdown report'),
+    reportFormat: z.enum(['html', 'markdown', 'json']).default('html').describe('Report format: html (default), markdown, json'),
+    detailLevel: z.enum(['compact', 'standard', 'detailed', 'raw']).default('compact').optional(),
+    tokenBudget: z.number().optional(),
+  },
+  async ({ planId, directoryPath, generateReport, reportFormat, detailLevel, tokenBudget }) => {
+    try {
+      const target = planId || (directoryPath ? resolvePath(directoryPath) : resolvePath('.'));
+      const verification = await verifyOptimization(target);
+      let reportSavedPath = null;
+      if (generateReport) {
+        reportSavedPath = await saveLocalReport(verification, reportFormat);
+        verification.reportSavedPath = reportSavedPath;
+      }
+      const formatted = formatMcpResponse({
+        ok: true,
+        summary: {
+          planId: verification.planId,
+          mediaBefore: verification.mediaBeforeFormatted,
+          mediaAfter: verification.mediaAfterFormatted,
+          savedBytes: verification.savedFormatted,
+          reductionPercent: verification.reductionPercent,
+          scoreAfter: verification.scoreAfter,
+          measuredImprovements: verification.measuredImprovements,
+          reportSavedPath,
+        },
+        recommendations: ['All optimizations verified locally. Ready for deployment.'],
+        nextAction: verification.nextAction,
+        details: verification,
+        detailLevel,
+        tokenBudget,
+      });
+      return { content: [{ type: 'text', text: JSON.stringify(formatted, null, 2) }] };
+    } catch (err) {
+      return {
+        isError: true,
+        content: [{ type: 'text', text: JSON.stringify(formatMcpResponse({ ok: false, error: err }), null, 2) }],
       };
     }
   }

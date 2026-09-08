@@ -226,6 +226,166 @@ export const MCP_TOOLS: McpToolDefinition[] = [
     },
   },
   {
+    name: 'analyze_media',
+    description: 'Inspects a single image or SVG file for website performance bottlenecks, dimensions, format efficiency, and optimization potential.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        filePath: { type: 'string', description: 'Path to media file to analyze' },
+        detailLevel: { type: 'string', enum: ['compact', 'standard', 'detailed', 'raw'], default: 'compact' },
+        tokenBudget: { type: 'number', description: 'Optional token budget' },
+      },
+      required: ['filePath'],
+    },
+  },
+  {
+    name: 'analyze_web_assets',
+    description: 'Deeply scans a project or directory for media bottlenecks, duplicates, and calculates the PhotoNow Performance Score.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        directoryPath: { type: 'string', description: 'Directory path to scan (defaults to project workspace)' },
+        recursive: { type: 'boolean', default: true },
+        detailLevel: { type: 'string', enum: ['compact', 'standard', 'detailed', 'raw'], default: 'compact' },
+        tokenBudget: { type: 'number', default: 1200 },
+      },
+    },
+  },
+  {
+    name: 'find_oversized_assets',
+    description: 'Finds media assets exceeding maximum web display dimensions or file size thresholds.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        directoryPath: { type: 'string', description: 'Directory to inspect' },
+        maxDimension: { type: 'number', default: 1920 },
+        maxSizeBytes: { type: 'number', default: 512000 },
+        detailLevel: { type: 'string', enum: ['compact', 'standard', 'detailed', 'raw'], default: 'compact' },
+        tokenBudget: { type: 'number' },
+      },
+    },
+  },
+  {
+    name: 'find_inefficient_formats',
+    description: 'Identifies photographic PNGs, legacy JPEGs, and animated GIFs that would benefit from WebP/AVIF.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        directoryPath: { type: 'string', description: 'Directory to inspect' },
+        detailLevel: { type: 'string', enum: ['compact', 'standard', 'detailed', 'raw'], default: 'compact' },
+        tokenBudget: { type: 'number' },
+      },
+    },
+  },
+  {
+    name: 'find_duplicate_assets',
+    description: 'Finds exact and perceptual duplicates across project assets using local dHash and SHA-256.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        directoryPath: { type: 'string', description: 'Directory to inspect' },
+        similarityThreshold: { type: 'number', default: 93.75 },
+        detailLevel: { type: 'string', enum: ['compact', 'standard', 'detailed', 'raw'], default: 'compact' },
+        tokenBudget: { type: 'number' },
+      },
+    },
+  },
+  {
+    name: 'find_responsive_opportunities',
+    description: 'Identifies large single-resolution images that cause mobile bandwidth bloat without responsive variants.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        directoryPath: { type: 'string', description: 'Directory to inspect' },
+        detailLevel: { type: 'string', enum: ['compact', 'standard', 'detailed', 'raw'], default: 'compact' },
+        tokenBudget: { type: 'number' },
+      },
+    },
+  },
+  {
+    name: 'test_web_performance',
+    description: 'Audits asset-centric website performance, measures media weights, identifies LCP candidate, and calculates PhotoNow Score.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        url: { type: 'string', description: 'Website URL (e.g. http://localhost:3000 or https://example.com)' },
+        localPath: { type: 'string', description: 'Local project path or HTML directory' },
+        detailLevel: { type: 'string', enum: ['compact', 'standard', 'detailed', 'raw'], default: 'compact' },
+        tokenBudget: { type: 'number' },
+      },
+    },
+  },
+  {
+    name: 'get_web_performance_summary',
+    description: 'Retrieves compact summary of the latest website performance audit with top actionable opportunities.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        testId: { type: 'string', description: 'Optional previous test ID' },
+        detailLevel: { type: 'string', enum: ['compact', 'standard', 'detailed', 'raw'], default: 'compact' },
+        tokenBudget: { type: 'number' },
+      },
+    },
+  },
+  {
+    name: 'compare_web_performance',
+    description: 'Compares two website performance audit snapshots to quantify score changes and bandwidth reductions.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        beforeTestId: { type: 'string', description: 'Test ID before optimization' },
+        afterTestId: { type: 'string', description: 'Test ID after optimization' },
+        detailLevel: { type: 'string', enum: ['compact', 'standard', 'detailed', 'raw'], default: 'compact' },
+        tokenBudget: { type: 'number' },
+      },
+    },
+  },
+  {
+    name: 'generate_optimization_plan',
+    description: 'Generates a step-by-step optimization plan with planId, estimated savings, and non-destructive target paths.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        directoryPath: { type: 'string', description: 'Project directory to optimize' },
+        targetDir: { type: 'string', description: 'Destination folder for optimized assets (default: .photonow/optimized)' },
+        format: { type: 'string', enum: ['webp', 'avif'], default: 'webp' },
+        quality: { type: 'number', default: 82 },
+        maxDimension: { type: 'number', default: 1920 },
+        detailLevel: { type: 'string', enum: ['compact', 'standard', 'detailed', 'raw'], default: 'compact' },
+        tokenBudget: { type: 'number' },
+      },
+    },
+  },
+  {
+    name: 'optimize_web_assets',
+    description: 'Safely executes media optimizations from a plan with output validation, backup guards, and idempotency.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        planId: { type: 'string', description: 'Plan ID from generate_optimization_plan' },
+        directoryPath: { type: 'string', description: 'Directory path if optimizing ad-hoc' },
+        overwriteSource: { type: 'boolean', default: false },
+        detailLevel: { type: 'string', enum: ['compact', 'standard', 'detailed', 'raw'], default: 'compact' },
+        tokenBudget: { type: 'number' },
+      },
+    },
+  },
+  {
+    name: 'verify_optimization',
+    description: 'Re-audits optimized media, validates decoding and dimensions, measures actual byte reductions, and generates local reports.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        planId: { type: 'string', description: 'Plan ID to verify' },
+        directoryPath: { type: 'string', description: 'Directory path if ad-hoc' },
+        generateReport: { type: 'boolean', default: true },
+        reportFormat: { type: 'string', enum: ['html', 'markdown', 'json'], default: 'html' },
+        detailLevel: { type: 'string', enum: ['compact', 'standard', 'detailed', 'raw'], default: 'compact' },
+        tokenBudget: { type: 'number' },
+      },
+    },
+  },
+  {
     name: 'list_storage_conversions',
     description: 'Lists all stored media files and conversions saved in the browser IndexedDB.',
     inputSchema: {

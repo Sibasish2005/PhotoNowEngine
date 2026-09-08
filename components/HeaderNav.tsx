@@ -3,8 +3,8 @@
 import React from 'react';
 
 interface HeaderNavProps {
-  activeTab: 'photo' | 'video' | 'storage' | 'agent' | 'mcp';
-  setActiveTab: (tab: 'photo' | 'video' | 'storage' | 'agent' | 'mcp') => void;
+  activeTab: 'photo' | 'video' | 'storage' | 'agent' | 'mcp' | 'performance';
+  setActiveTab: (tab: 'photo' | 'video' | 'storage' | 'agent' | 'mcp' | 'performance') => void;
   storageCount: number;
 }
 
@@ -92,6 +92,30 @@ export const HeaderNav: React.FC<HeaderNavProps> = ({
             borderRadius: '2px',
           }}>
             PROMPT
+          </span>
+        </button>
+
+        <button
+          onClick={() => setActiveTab('performance')}
+          className={`hand-btn ${activeTab === 'performance' ? 'active' : ''}`}
+          style={{
+            padding: '6px 14px',
+            fontSize: '11px',
+            position: 'relative',
+          }}
+        >
+          [PERFORMANCE]
+          <span style={{
+            position: 'absolute',
+            top: '-8px',
+            right: '-6px',
+            background: 'var(--ink)',
+            color: 'var(--ink-inverted)',
+            fontSize: '8px',
+            padding: '1px 4px',
+            borderRadius: '2px',
+          }}>
+            INTELLIGENCE
           </span>
         </button>
 

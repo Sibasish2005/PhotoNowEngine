@@ -333,7 +333,105 @@ async function runTests() {
       throw new Error(`Optimized file does not exist: ${optData.optimizedFilePath}`);
     }
 
-    console.log('\n🎉 ALL 7 MULTIMEDIA MCP TOOLS VERIFIED SUCCESSFULLY! 100% PASSING!\n');
+    // 12. Test extract_poster_frame
+    console.log('\n--- Testing Tool: extract_poster_frame ---');
+    const posterRes = await client.sendRequest('tools/call', {
+      name: 'extract_poster_frame',
+      arguments: {
+        inputPath: video1Path,
+        timestamp: 0.5,
+        format: 'webp',
+      },
+    });
+    const posterData = JSON.parse(posterRes.content[0].text);
+    console.log('extract_poster_frame result:', posterData.message);
+    if (!fsSync.existsSync(posterData.details.outputPath)) {
+      throw new Error(`Poster frame not found at: ${posterData.details.outputPath}`);
+    }
+
+    // 13. Test analyze_media
+    console.log('\n--- Testing Tool: analyze_media ---');
+    const analyzeMediaRes = await client.sendRequest('tools/call', {
+      name: 'analyze_media',
+      arguments: {
+        filePath: img1Path,
+        detailLevel: 'compact',
+      },
+    });
+    const analyzeMediaData = JSON.parse(analyzeMediaRes.content[0].text);
+    console.log('analyze_media result summary:', JSON.stringify(analyzeMediaData.summary));
+    if (!analyzeMediaData.ok || !analyzeMediaData.summary) {
+      throw new Error('analyze_media did not return ok=true summary');
+    }
+
+    // 14. Test analyze_web_assets
+    console.log('\n--- Testing Tool: analyze_web_assets ---');
+    const scanRes = await client.sendRequest('tools/call', {
+      name: 'analyze_web_assets',
+      arguments: {
+        directoryPath: TEST_DIR,
+        detailLevel: 'compact',
+      },
+    });
+    const scanData = JSON.parse(scanRes.content[0].text);
+    console.log(`  ✓ Scan Score: ${scanData.summary.score}/100, Assets: ${scanData.summary.totalAssets}, Savings: ${scanData.summary.potentialSavingsFormatted}`);
+    console.log(`  ✓ Next Action: ${scanData.nextAction}`);
+    if (!scanData.summary?.score) throw new Error('Expected score in analyze_web_assets summary');
+
+    // 15. Test test_web_performance
+    console.log('\n--- Testing Tool: test_web_performance ---');
+    const perfRes = await client.sendRequest('tools/call', {
+      name: 'test_web_performance',
+      arguments: {
+        localPath: TEST_DIR,
+        detailLevel: 'compact',
+      },
+    });
+    const perfData = JSON.parse(perfRes.content[0].text);
+    console.log(`  ✓ Performance Score: ${perfData.summary.score}/100, Media: ${perfData.summary.totalSizeFormatted}`);
+    console.log(`  ✓ 4G Mobile Transfer Estimate: ${perfData.summary.estimatedTransferTime4GMs}ms`);
+
+    // 16. Test generate_optimization_plan
+    console.log('\n--- Testing Tool: generate_optimization_plan ---');
+    const planRes = await client.sendRequest('tools/call', {
+      name: 'generate_optimization_plan',
+      arguments: {
+        directoryPath: TEST_DIR,
+        format: 'webp',
+        quality: 80,
+      },
+    });
+    const planData = JSON.parse(planRes.content[0].text);
+    const planId = planData.summary.planId;
+    console.log(`  ✓ Plan ID: ${planId}, Actions: ${planData.summary.actionsCount}, Est. Reduction: ${planData.summary.estimatedReductionPercent}`);
+    if (!planId) throw new Error('Expected valid planId in planData');
+
+    // 17. Test optimize_web_assets
+    console.log('\n--- Testing Tool: optimize_web_assets ---');
+    const execRes = await client.sendRequest('tools/call', {
+      name: 'optimize_web_assets',
+      arguments: {
+        planId: planId,
+        overwriteSource: false,
+      },
+    });
+    const execData = JSON.parse(execRes.content[0].text);
+    console.log(`  ✓ Succeeded: ${execData.summary.succeeded}, Saved: ${execData.summary.actualSaved} (${execData.summary.actualReductionPercent})`);
+
+    // 18. Test verify_optimization
+    console.log('\n--- Testing Tool: verify_optimization ---');
+    const verifyRes = await client.sendRequest('tools/call', {
+      name: 'verify_optimization',
+      arguments: {
+        planId: planId,
+        generateReport: true,
+        reportFormat: 'html',
+      },
+    });
+    const verifyData = JSON.parse(verifyRes.content[0].text);
+    console.log(`  ✓ Verified Reduction: ${verifyData.summary.reductionPercent}, Report: ${verifyData.summary.reportSavedPath}`);
+
+    console.log('\n🎉 ALL MULTIMEDIA & PERFORMANCE MCP TOOLS VERIFIED SUCCESSFULLY OVER STDIO! 100% PASSING!\n');
   } finally {
     client.stop();
   }

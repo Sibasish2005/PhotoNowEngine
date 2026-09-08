@@ -10,8 +10,9 @@
     "mcp": "node ./bin/mcp-server.mjs",
     "mcp:sync": "node ./tests/sync-mcp-schemas.mjs",
     "test:mcp": "node ./tests/test-mcp-server.mjs",
+    "test:performance": "node ./tests/test-performance-engine.mjs",
     "test:security": "node ./tests/test-usability-security.mjs",
-    "test": "node ./tests/test-mcp-server.mjs && node ./tests/test-usability-security.mjs"
+    "test": "node ./tests/test-performance-engine.mjs && node ./tests/test-mcp-server.mjs && node ./tests/test-usability-security.mjs"
   },
   "bin": {
     "photo-convert-mcp": "./bin/mcp-server.mjs"

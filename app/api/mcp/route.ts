@@ -2,6 +2,21 @@ import { NextRequest, NextResponse } from 'next/server';
 import { MCP_TOOLS } from '@/lib/mcpTools';
 import { checkRateLimit, getRateLimiterStats } from '@/lib/rateLimiter';
 import { mcpLoadBalancer } from '@/lib/loadBalancer';
+import {
+  analyzeSingleMediaAsset,
+  analyzeWebAssets,
+  testWebPerformance,
+  comparePerformanceTests,
+  generateOptimizationPlan,
+  executeOptimizationPlan,
+  verifyOptimization,
+  groupDuplicates,
+  formatMcpResponse,
+  formatBytes,
+  engineCache,
+  saveLocalReport,
+} from '@/lib/engine';
+import path from 'path';
 
 const CORS_HEADERS = {
   'Access-Control-Allow-Origin': '*',
@@ -431,6 +446,293 @@ export async function POST(req: NextRequest) {
           storageEngine: 'IndexedDB (photoConvert_DB)',
           workerNode: node.id,
         };
+      } else if (toolName === 'analyze_media') {
+        const filePath = String(toolArgs.filePath || '');
+        const resolved = path.resolve(filePath);
+        const asset = await analyzeSingleMediaAsset(resolved);
+        resultData = formatMcpResponse({
+          ok: true,
+          summary: {
+            path: asset.relativePath,
+            format: asset.format,
+            dimensions: asset.dimensions,
+            sizeBytes: asset.sizeBytes,
+            sizeFormatted: asset.sizeFormatted,
+            potentialSavingsBytes: asset.optimizationPotentialBytes,
+            potentialSavingsFormatted: formatBytes(asset.optimizationPotentialBytes),
+            issueCount: asset.issues.length,
+            topIssues: asset.issues.map((i: any) => `${i.id}: ${i.message}`),
+          },
+          issues: asset.issues,
+          recommendations: asset.issues.map((i: any) => i.recommendation),
+          nextAction: asset.issues.length > 0 ? 'generate_optimization_plan' : 'all_assets_optimized',
+          details: asset,
+          detailLevel: toolArgs.detailLevel,
+          tokenBudget: toolArgs.tokenBudget,
+        });
+      } else if (toolName === 'analyze_web_assets') {
+        const target = path.resolve(String(toolArgs.directoryPath || '.'));
+        const analysis = await analyzeWebAssets(target, toolArgs.recursive !== false);
+        resultData = formatMcpResponse({
+          ok: true,
+          summary: {
+            score: analysis.score.overall,
+            scoreBreakdown: analysis.score.breakdown,
+            framework: analysis.framework,
+            totalAssets: analysis.totalAssets,
+            totalSizeBytes: analysis.totalSizeBytes,
+            totalSizeFormatted: analysis.totalSizeFormatted,
+            potentialSavingsBytes: analysis.potentialSavingsBytes,
+            potentialSavingsFormatted: analysis.potentialSavingsFormatted,
+            issueCount: analysis.issues.length,
+            duplicateGroupsCount: analysis.duplicateGroups.length,
+            topIssues: analysis.issues.slice(0, 5).map((i: any) => `${i.id}: ${i.message}`),
+          },
+          issues: analysis.issues,
+          recommendations: analysis.recommendations,
+          nextAction: analysis.nextAction,
+          details: analysis,
+          detailLevel: toolArgs.detailLevel,
+          tokenBudget: toolArgs.tokenBudget,
+        });
+      } else if (toolName === 'find_oversized_assets') {
+        const target = path.resolve(String(toolArgs.directoryPath || '.'));
+        const analysis = await analyzeWebAssets(target);
+        const maxDim = Number(toolArgs.maxDimension) || 1920;
+        const maxSize = Number(toolArgs.maxSizeBytes) || 500 * 1024;
+        const oversized = analysis.assets.filter(
+          (a: any) => (a.width && a.width > maxDim) || (a.height && a.height > maxDim) || a.sizeBytes > maxSize
+        );
+        resultData = formatMcpResponse({
+          ok: true,
+          summary: {
+            totalOversizedFound: oversized.length,
+            potentialSavingsBytes: oversized.reduce((acc: number, a: any) => acc + a.optimizationPotentialBytes, 0),
+            potentialSavingsFormatted: formatBytes(oversized.reduce((acc: number, a: any) => acc + a.optimizationPotentialBytes, 0)),
+            topIssues: oversized.slice(0, 5).map((a: any) => `${a.relativePath}: ${a.dimensions || formatBytes(a.sizeBytes)} exceeds limits`),
+          },
+          issues: oversized.flatMap((a: any) => a.issues.filter((i: any) => i.id === 'OVERSIZED_IMAGE')),
+          recommendations: ['Downscale oversized images to max 1920px width and convert to WebP/AVIF.'],
+          nextAction: oversized.length > 0 ? 'generate_optimization_plan' : 'all_assets_optimized',
+          details: oversized,
+          detailLevel: toolArgs.detailLevel,
+          tokenBudget: toolArgs.tokenBudget,
+        });
+      } else if (toolName === 'find_inefficient_formats') {
+        const target = path.resolve(String(toolArgs.directoryPath || '.'));
+        const analysis = await analyzeWebAssets(target);
+        const inefficient = analysis.assets.filter((a: any) => a.issues.some((i: any) => i.id === 'INEFFICIENT_FORMAT'));
+        resultData = formatMcpResponse({
+          ok: true,
+          summary: {
+            totalInefficientFound: inefficient.length,
+            potentialSavingsBytes: inefficient.reduce((acc: number, a: any) => acc + a.optimizationPotentialBytes, 0),
+            potentialSavingsFormatted: formatBytes(inefficient.reduce((acc: number, a: any) => acc + a.optimizationPotentialBytes, 0)),
+            topIssues: inefficient.slice(0, 5).map((a: any) => `${a.relativePath} (${a.format.toUpperCase()}) -> recommend ${a.recommendedFormat?.toUpperCase() || 'WEBP'}`),
+          },
+          issues: inefficient.flatMap((a: any) => a.issues.filter((i: any) => i.id === 'INEFFICIENT_FORMAT')),
+          recommendations: ['Convert non-transparent PNGs and legacy JPEGs to modern WebP or AVIF.'],
+          nextAction: inefficient.length > 0 ? 'generate_optimization_plan' : 'all_assets_optimized',
+          details: inefficient,
+          detailLevel: toolArgs.detailLevel,
+          tokenBudget: toolArgs.tokenBudget,
+        });
+      } else if (toolName === 'find_duplicate_assets') {
+        const target = path.resolve(String(toolArgs.directoryPath || '.'));
+        const analysis = await analyzeWebAssets(target);
+        const threshold = Number(toolArgs.similarityThreshold) || 93.75;
+        const duplicateGroups = groupDuplicates(analysis.assets, threshold);
+        const totalDupSavings = duplicateGroups.reduce((acc: number, g: any) => acc + g.potentialSavingsBytes, 0);
+        resultData = formatMcpResponse({
+          ok: true,
+          summary: {
+            totalDuplicateGroups: duplicateGroups.length,
+            potentialSavingsBytes: totalDupSavings,
+            potentialSavingsFormatted: formatBytes(totalDupSavings),
+            topIssues: duplicateGroups.slice(0, 5).map((g: any) => `${path.basename(g.representative)}: ${g.files.length} redundant copies (${g.similarityPercent}% match)`),
+          },
+          issues: duplicateGroups.map((g: any) => ({
+            id: 'DUPLICATE_ASSET',
+            severity: 'medium',
+            message: `${g.files.length} duplicate or visually redundant copies (${g.similarityPercent}% match)`,
+            recommendation: `Retain ${path.basename(g.representative)} and consolidate duplicates`,
+            potentialSavingsBytes: g.potentialSavingsBytes,
+          })),
+          recommendations: duplicateGroups.length > 0 ? [`Consolidate ${duplicateGroups.length} duplicate groups.`] : ['No duplicate assets found.'],
+          nextAction: duplicateGroups.length > 0 ? 'generate_optimization_plan' : 'test_web_performance',
+          details: duplicateGroups,
+          detailLevel: toolArgs.detailLevel,
+          tokenBudget: toolArgs.tokenBudget,
+        });
+      } else if (toolName === 'find_responsive_opportunities') {
+        const target = path.resolve(String(toolArgs.directoryPath || '.'));
+        const analysis = await analyzeWebAssets(target);
+        const responsiveOpportunities = analysis.assets.filter((a: any) => a.issues.some((i: any) => i.id === 'RESPONSIVE_VARIANT'));
+        resultData = formatMcpResponse({
+          ok: true,
+          summary: {
+            totalOpportunitiesFound: responsiveOpportunities.length,
+            topIssues: responsiveOpportunities.slice(0, 5).map((a: any) => `${a.relativePath} (${a.dimensions}): missing responsive srcset variants`),
+          },
+          issues: responsiveOpportunities.flatMap((a: any) => a.issues.filter((i: any) => i.id === 'RESPONSIVE_VARIANT')),
+          recommendations: ['Generate responsive variants (640w, 1024w, 1920w) and use picture or srcset.'],
+          nextAction: 'generate_optimization_plan',
+          details: responsiveOpportunities,
+          detailLevel: toolArgs.detailLevel,
+          tokenBudget: toolArgs.tokenBudget,
+        });
+      } else if (toolName === 'test_web_performance') {
+        const target = toolArgs.url || (toolArgs.localPath ? path.resolve(String(toolArgs.localPath)) : path.resolve('.'));
+        const testResult = await testWebPerformance(target);
+        resultData = formatMcpResponse({
+          ok: true,
+          summary: {
+            testId: testResult.testId,
+            target: testResult.target,
+            score: testResult.score.overall,
+            scoreBreakdown: testResult.score.breakdown,
+            totalAssets: testResult.metrics.totalAssetsCount,
+            totalSizeBytes: testResult.metrics.totalSizeBytes,
+            totalSizeFormatted: testResult.metrics.totalSizeFormatted,
+            potentialSavingsBytes: testResult.potentialSavingsBytes,
+            potentialSavingsFormatted: testResult.potentialSavingsFormatted,
+            issueCount: testResult.issueCount,
+            topIssues: testResult.topIssues,
+            lcpCandidate: testResult.metrics.lcpCandidate,
+          },
+          issues: testResult.topIssues,
+          recommendations: testResult.recommendations,
+          nextAction: testResult.nextAction,
+          details: testResult,
+          detailLevel: toolArgs.detailLevel,
+          tokenBudget: toolArgs.tokenBudget,
+        });
+      } else if (toolName === 'get_web_performance_summary') {
+        const test = engineCache.getTest(toolArgs.testId);
+        if (!test) {
+          throw new Error('No performance test found. Please run test_web_performance first.');
+        }
+        resultData = formatMcpResponse({
+          ok: true,
+          summary: {
+            testId: test.testId,
+            target: test.target,
+            score: test.score.overall,
+            scoreBreakdown: test.score.breakdown,
+            totalAssets: test.metrics.totalAssetsCount,
+            totalSizeFormatted: test.metrics.totalSizeFormatted,
+            potentialSavingsFormatted: test.potentialSavingsFormatted,
+            topIssues: test.topIssues,
+            lcpCandidate: test.metrics.lcpCandidate,
+          },
+          issues: test.topIssues,
+          recommendations: test.recommendations,
+          nextAction: test.nextAction,
+          details: test,
+          detailLevel: toolArgs.detailLevel,
+          tokenBudget: toolArgs.tokenBudget,
+        });
+      } else if (toolName === 'compare_web_performance') {
+        const afterTest = engineCache.getTest(toolArgs.afterTestId);
+        const beforeTest = engineCache.getTest(toolArgs.beforeTestId);
+        if (!afterTest || !beforeTest) {
+          throw new Error('Ensure both before and after tests exist for comparison.');
+        }
+        const comparison = comparePerformanceTests(beforeTest, afterTest);
+        resultData = formatMcpResponse({
+          ok: true,
+          summary: {
+            scoreBefore: comparison.scoreBefore,
+            scoreAfter: comparison.scoreAfter,
+            scoreDelta: comparison.scoreDelta,
+            mediaBefore: comparison.mediaBeforeFormatted,
+            mediaAfter: comparison.mediaAfterFormatted,
+            savedBytes: comparison.savedFormatted,
+            reductionPercent: comparison.reductionPercent,
+            measuredImprovements: comparison.measuredImprovements,
+          },
+          recommendations: ['Optimizations compared.'],
+          nextAction: 'all_verified',
+          details: comparison,
+          detailLevel: toolArgs.detailLevel,
+          tokenBudget: toolArgs.tokenBudget,
+        });
+      } else if (toolName === 'generate_optimization_plan') {
+        const target = path.resolve(String(toolArgs.directoryPath || '.'));
+        const plan = await generateOptimizationPlan(target, {
+          targetDir: toolArgs.targetDir ? path.resolve(String(toolArgs.targetDir)) : undefined,
+          format: toolArgs.format,
+          quality: Number(toolArgs.quality) || 82,
+          maxDimension: Number(toolArgs.maxDimension) || 1920,
+        });
+        resultData = formatMcpResponse({
+          ok: true,
+          summary: {
+            planId: plan.planId,
+            actionsCount: plan.actionsCount,
+            impactSummary: plan.impactSummary,
+            estimatedBefore: plan.estimatedBeforeFormatted,
+            estimatedAfter: plan.estimatedAfterFormatted,
+            estimatedSaved: plan.estimatedSavedFormatted,
+            estimatedReductionPercent: plan.estimatedReductionPercent,
+            targetDir: plan.targetDir,
+            topActions: plan.actions.slice(0, 5).map((a: any) => `[${a.impact.toUpperCase()}] ${path.basename(a.inputPath)} -> ${path.basename(a.outputPath)} (${a.estimatedSavingsFormatted} est. savings)`),
+          },
+          recommendations: [`Apply plan with optimize_web_assets(planId="${plan.planId}")`],
+          nextAction: `optimize_web_assets("${plan.planId}")`,
+          details: plan,
+          detailLevel: toolArgs.detailLevel,
+          tokenBudget: toolArgs.tokenBudget,
+        });
+      } else if (toolName === 'optimize_web_assets') {
+        const target = toolArgs.planId || (toolArgs.directoryPath ? path.resolve(String(toolArgs.directoryPath)) : path.resolve('.'));
+        const execution = await executeOptimizationPlan(target, { overwriteSource: !!toolArgs.overwriteSource });
+        resultData = formatMcpResponse({
+          ok: true,
+          summary: {
+            planId: execution.planId,
+            totalProcessed: execution.totalProcessed,
+            succeeded: execution.succeeded,
+            failed: execution.failed,
+            alreadyOptimizedCount: execution.alreadyOptimizedCount,
+            actualBefore: execution.actualBeforeFormatted,
+            actualAfter: execution.actualAfterFormatted,
+            actualSaved: execution.actualSavedFormatted,
+            actualReductionPercent: execution.actualReductionPercent,
+            backupLocation: execution.backupLocation,
+          },
+          recommendations: [`Verify optimization gains with verify_optimization(planId="${execution.planId}")`],
+          nextAction: `verify_optimization("${execution.planId}")`,
+          details: execution,
+          detailLevel: toolArgs.detailLevel,
+          tokenBudget: toolArgs.tokenBudget,
+        });
+      } else if (toolName === 'verify_optimization') {
+        const target = toolArgs.planId || (toolArgs.directoryPath ? path.resolve(String(toolArgs.directoryPath)) : path.resolve('.'));
+        const verification = await verifyOptimization(target);
+        let reportSavedPath = null;
+        if (toolArgs.generateReport !== false) {
+          reportSavedPath = await saveLocalReport(verification, String(toolArgs.reportFormat || 'html'));
+          verification.reportSavedPath = reportSavedPath;
+        }
+        resultData = formatMcpResponse({
+          ok: true,
+          summary: {
+            planId: verification.planId,
+            mediaBefore: verification.mediaBeforeFormatted,
+            mediaAfter: verification.mediaAfterFormatted,
+            savedBytes: verification.savedFormatted,
+            reductionPercent: verification.reductionPercent,
+            scoreAfter: verification.scoreAfter,
+            measuredImprovements: verification.measuredImprovements,
+            reportSavedPath,
+          },
+          recommendations: ['All optimizations verified locally.'],
+          nextAction: verification.nextAction,
+          details: verification,
+          detailLevel: toolArgs.detailLevel,
+          tokenBudget: toolArgs.tokenBudget,
+        });
       }
 
       executionSuccess = true;

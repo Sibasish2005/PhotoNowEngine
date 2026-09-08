@@ -54,8 +54,19 @@ const McpPlayground = dynamic(
   }
 );
 
+const PerformanceWorkbench = dynamic(
+  () => import('@/components/PerformanceWorkbench').then((mod) => mod.PerformanceWorkbench),
+  {
+    loading: () => (
+      <div className="hand-box" style={{ padding: '32px', textAlign: 'center' }}>
+        [LOADING PERFORMANCE INTELLIGENCE ENGINE...]
+      </div>
+    ),
+  }
+);
+
 export default function Home() {
-  const [activeTab, setActiveTab] = useState<'photo' | 'video' | 'storage' | 'agent' | 'mcp'>('photo');
+  const [activeTab, setActiveTab] = useState<'photo' | 'video' | 'storage' | 'agent' | 'mcp' | 'performance'>('photo');
   const [storageCount, setStorageCount] = useState<number>(0);
 
   const refreshStorageStats = async () => {
@@ -118,6 +129,10 @@ export default function Home() {
 
             {activeTab === 'agent' && (
               <AgenticPanel onConversionSuccess={handleConversionSuccess} />
+            )}
+
+            {activeTab === 'performance' && (
+              <PerformanceWorkbench />
             )}
 
             {activeTab === 'storage' && (
