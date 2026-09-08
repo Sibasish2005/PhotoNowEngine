@@ -333,33 +333,57 @@ export const PerformanceWorkbench: React.FC = () => {
         </div>
       )}
 
+      {/* TARGET PROJECT PATH BAR (Visible on all project-centric tabs) */}
+      {subTab !== 'test' && (
+        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center', marginBottom: '16px', background: '#f8fafc', border: '1.5px solid var(--ink)', padding: '8px 12px' }}>
+          <label style={{ fontSize: '12px', fontWeight: 700 }}>Project / Directory Target:</label>
+          <input
+            type="text"
+            value={projectPath}
+            onChange={(e) => setProjectPath(e.target.value)}
+            placeholder="e.g. . or tests/fixtures/nextjs_project"
+            style={{
+              flex: 1,
+              minWidth: '220px',
+              padding: '6px 10px',
+              border: '1px solid var(--ink)',
+              fontFamily: 'monospace',
+              fontSize: '12px',
+              background: 'var(--bg-paper)',
+            }}
+          />
+          <button
+            type="button"
+            onClick={() => setProjectPath('tests/fixtures/nextjs_project')}
+            className="hand-btn"
+            style={{ padding: '4px 10px', fontSize: '11px', background: '#fef3c7' }}
+            title="Load the realistic Next.js demo fixture with hero banner and dead assets"
+          >
+            [Demo Fixture]
+          </button>
+          <button
+            type="button"
+            onClick={() => setProjectPath('.')}
+            className="hand-btn"
+            style={{ padding: '4px 10px', fontSize: '11px' }}
+            title="Target the current root repository"
+          >
+            [Root: .]
+          </button>
+        </div>
+      )}
+
       {/* 1. ANALYZE PROJECT VIEW */}
       {subTab === 'analyze' && (
         <div>
           <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center', marginBottom: '16px' }}>
-            <label style={{ fontSize: '12px', fontWeight: 700 }}>Project / Asset Path:</label>
-            <input
-              type="text"
-              value={projectPath}
-              onChange={(e) => setProjectPath(e.target.value)}
-              placeholder="e.g. . or ./public"
-              style={{
-                flex: 1,
-                minWidth: '200px',
-                padding: '6px 10px',
-                border: '1.5px solid var(--ink)',
-                fontFamily: 'monospace',
-                fontSize: '12px',
-                background: 'var(--bg-paper)',
-              }}
-            />
             <button
               onClick={runAnalysis}
               disabled={loading}
-              className="hand-btn"
-              style={{ padding: '6px 16px', fontSize: '12px', fontWeight: 700 }}
+              className="hand-btn active"
+              style={{ padding: '8px 20px', fontSize: '12px', fontWeight: 700, background: 'var(--ink)', color: '#fff' }}
             >
-              {loading ? '[ANALYZING...]' : '[RUN MEDIA AUDIT]'}
+              {loading ? '[ANALYZING DIRECTORY...]' : '[RUN MEDIA AUDIT NOW ➔]'}
             </button>
           </div>
 
