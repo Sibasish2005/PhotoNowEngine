@@ -147,14 +147,11 @@ The codebase has strong architectural foundations (100% local-first, zero cloud 
 
 ---
 
-## 6. Legacy / Outdated Documentation Files
+## 6. Legacy / Outdated Documentation Files (Resolved)
 
-### 6.1. Outdated `MCP_PLUG_AND_PLAY.md`
-* **Location**: [`MCP_PLUG_AND_PLAY.md`](file:///c:/Users/sibas/OneDrive/Desktop/Projects/photoNow/MCP_PLUG_AND_PLAY.md)
-* **Why Unnecessary**: Contains outdated paths pointing to the old project directory `photoConvert` (`"c:/Users/sibas/OneDrive/Desktop/Projects/photoConvert/bin/mcp-server.mjs"`). Completely superseded by [`HOW_TO_USE_MCP_AND_UI.md`](file:///c:/Users/sibas/OneDrive/Desktop/Projects/photoNow/HOW_TO_USE_MCP_AND_UI.md) and [`PHOTONOW_PERFORMANCE_ENGINE.md`](file:///c:/Users/sibas/OneDrive/Desktop/Projects/photoNow/PHOTONOW_PERFORMANCE_ENGINE.md).
-* **Impact of Removal**: Prevents developer confusion and eliminates conflicting setup instructions.
-* **Risks**: None.
-* **Recommended Plan**: Delete `MCP_PLUG_AND_PLAY.md` or redirect it to `HOW_TO_USE_MCP_AND_UI.md`.
+### 6.1. Outdated `MCP_PLUG_AND_PLAY.md`, `HOW_TO_USE_MCP_AND_UI.md`, and `PHOTONOW_PERFORMANCE_ENGINE.md`
+* **Status**: Successfully merged into [`BUILD_FROM_SCRATCH_GUIDE.md`](file:///c:/Users/sibas/OneDrive/Desktop/Projects/photoNow/BUILD_FROM_SCRATCH_GUIDE.md) and [`ARCHITECTURE.md`](file:///c:/Users/sibas/OneDrive/Desktop/Projects/photoNow/ARCHITECTURE.md).
+* **Impact**: Eliminates 3 redundant documentation files, fixes stale paths, and establishes two definitive master blueprints.
 
 ---
 

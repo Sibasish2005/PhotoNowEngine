@@ -9,8 +9,8 @@
 [![Storage](https://img.shields.io/badge/Storage-IndexedDB-black?style=flat-square)](https://developer.mozilla.org/en-US/docs/Web/API/IndexedDB_API)
 [![Privacy](https://img.shields.io/badge/Privacy-100%25%20Local%20%2F%20Zero%20Cloud-black?style=flat-square)](#zero-cloud-privacy)
 [![License: MIT](https://img.shields.io/badge/License-MIT-black?style=flat-square)](./LICENSE)
-[![Build Guide](https://img.shields.io/badge/Guide-Build%20From%20Scratch-black?style=flat-square)](./BUILD_FROM_SCRATCH_GUIDE.md)
-[![Performance Engine](https://img.shields.io/badge/Architecture-Performance%20Engine-black?style=flat-square)](./PHOTONOW_PERFORMANCE_ENGINE.md)
+[![Build & Usage Guide](https://img.shields.io/badge/Guide-Build%20%26%20Usage-black?style=flat-square)](./BUILD_FROM_SCRATCH_GUIDE.md)
+[![Architecture & Specs](https://img.shields.io/badge/Architecture-Master%20Blueprint-black?style=flat-square)](./ARCHITECTURE.md)
 
 ---
 

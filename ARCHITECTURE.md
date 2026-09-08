@@ -280,6 +280,6 @@ PhotoNow exposes 29 tools over stdio and HTTP JSON-RPC 2.0:
 
 ## 6. Cross-References
 
-- For the step-by-step implementation guide: [`BUILD_FROM_SCRATCH_GUIDE.md`](file:///c:/Users/sibas/OneDrive/Desktop/Projects/photoNow/BUILD_FROM_SCRATCH_GUIDE.md)
-- For the practical user manual and AI agent prompt recipes: [`HOW_TO_USE_MCP_AND_UI.md`](file:///c:/Users/sibas/OneDrive/Desktop/Projects/photoNow/HOW_TO_USE_MCP_AND_UI.md)
-- For the performance engine benchmarks: [`PHOTONOW_PERFORMANCE_ENGINE.md`](file:///c:/Users/sibas/OneDrive/Desktop/Projects/photoNow/PHOTONOW_PERFORMANCE_ENGINE.md)
+- **Step-by-Step Implementation & Hands-On User Guide**: [`BUILD_FROM_SCRATCH_GUIDE.md`](file:///c:/Users/sibas/OneDrive/Desktop/Projects/photoNow/BUILD_FROM_SCRATCH_GUIDE.md)
+- **Codebase Cleanup & Technical Debt Analysis**: [`CODEBASE_CLEANUP_AND_TECHNICAL_DEBT_ANALYSIS.md`](file:///c:/Users/sibas/OneDrive/Desktop/Projects/photoNow/CODEBASE_CLEANUP_AND_TECHNICAL_DEBT_ANALYSIS.md)
+- **Primary Product Overview**: [`README.md`](file:///c:/Users/sibas/OneDrive/Desktop/Projects/photoNow/README.md)
