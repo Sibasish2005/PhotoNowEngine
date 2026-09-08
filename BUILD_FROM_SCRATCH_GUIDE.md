@@ -63,8 +63,7 @@ flowchart TB
     subgraph Protocol_Gateway["Protocol & API Layer"]
         StdioServer["bin/mcp-server.mjs<br/>(Stdio JSON-RPC 2.0 - 29 Tools)"]
         HttpRoute["app/api/mcp/route.ts<br/>(HTTP JSON-RPC 2.0 Endpoint)"]
-        RestRoute["app/api/performance/route.ts<br/>(REST Performance API)"]
-        WebGUI["components/PerformanceWorkbench.tsx<br/>(Next.js Companion UI)"]
+        UI_Hub["components/McpDeveloperHub.tsx<br/>(Developer MCP Hub & Playground)"]
     end
 
     subgraph Token_Guard["Token Economy & Cache Layer"]
@@ -100,12 +99,11 @@ flowchart TB
 
     AIAgent --> StdioServer
     AIAgent --> HttpRoute
-    BrowserUser --> WebGUI
-    WebGUI --> RestRoute
+    BrowserUser --> UI_Hub
+    UI_Hub --> HttpRoute
 
     StdioServer --> TokenEconomy
     HttpRoute --> TokenEconomy
-    RestRoute --> Core_Engine
 
     TokenEconomy --> MissionRunner
     MissionRunner --> Scanner
@@ -137,19 +135,17 @@ photoNow/
 │   └── mcp-server.mjs                 # Standalone Stdio MCP server (29 tools)
 ├── app/
 │   ├── api/
-│   │   ├── mcp/
-│   │   │   └── route.ts               # HTTP JSON-RPC 2.0 MCP endpoint
-│   │   └── performance/
-│   │       └── route.ts               # REST API for workbench GUI
+│   │   └── mcp/
+│   │       └── route.ts               # HTTP JSON-RPC 2.0 MCP endpoint (29 tools)
 │   ├── globals.css                    # Hand-drawn ink design tokens & animations
-│   ├── layout.tsx                     # App layout, Google Fonts (Permanent Marker & Space Mono)
+│   ├── layout.tsx                     # App layout, Google Fonts, JSON-LD Schema & AEO
 │   ├── page.tsx                       # Main split-screen workbench controller
 │   ├── icon.svg                       # Vector SVG favicon
 │   ├── apple-icon.png                 # Mobile touch icon
 │   ├── robots.ts                      # SEO robots configuration
 │   └── sitemap.ts                     # Automated sitemap generator
 ├── components/
-│   ├── PerformanceWorkbench.tsx       # 7-subtab performance intelligence GUI
+│   ├── McpDeveloperHub.tsx            # Developer MCP Hub, Prompt Generator & Testing Console
 │   ├── PhotoConverter.tsx             # Canvas 2D image converter & Sobel shader
 │   ├── VideoConverter.tsx             # Video player, WebM transcoder & audio extractor
 │   ├── StorageHistory.tsx             # IndexedDB history manager & ZIP bundle exporter
@@ -159,11 +155,9 @@ photoNow/
 │   ├── DoodleDecorations.tsx          # Right-edge tab strip & footer stamps
 │   └── AgenticPanel.tsx               # Natural-language prompt simulation bar
 ├── lib/
-│   ├── engine/                        # Core Engine Layer (Shared by stdio, HTTP, REST & UI)
+│   ├── engine/                        # Core Performance Engine (Shared by Stdio & HTTP MCP)
 │   │   ├── types.ts                   # TypeScript interfaces & domain models
-│   │   ├── index.ts                   # Typed Next.js module re-exports
-│   │   ├── index.mjs                  # Native ES module entry point
-│   │   ├── tokenEconomy.mjs           # Progressive disclosure & token budgeting
+│   │   ├── tokenEconomy.mjs           # Progressive disclosure & token budgeting (<200 tokens)
 │   │   ├── perceptualHash.mjs         # 64-bit dHash gradient difference & SHA-256
 │   │   ├── cache.mjs                  # Local memory cache for plans & test snapshots
 │   │   ├── analyzer.mjs               # 5-axis scorer & media bottleneck classifier
@@ -189,10 +183,13 @@ photoNow/
 │   ├── unit/
 │   │   └── test-agentic-intelligence.mjs # 7-suite unit tests for agentic pillars
 │   ├── fixtures/                      # Realistic Next.js & Vite test sandboxes
+│   ├── sandbox_catalog/               # Live fixture for all 29 tools & external agents
 │   ├── test-autonomous-mission.mjs    # End-to-end mission, dry-run & rollback tests
-│   ├── test-mcp-server.mjs            # 29-tool verification over stdio JSON-RPC
-│   ├── test-performance-engine.mjs   # Core performance engine verification
-│   ├── test-usability-security.mjs    # 11/11 usability & security penetration tests
+│   ├── test-mcp-catalog.mjs           # 29-tool verification over stdio JSON-RPC
+│   ├── test-mcp-http.mjs              # HTTP JSON-RPC 2.0 endpoint verification
+│   ├── test-external-sandbox.mjs      # 15-stage sandboxed external project verification
+│   ├── test-security-edge-cases.mjs   # 15 adversarial security penetration tests
+│   ├── sync-mcp-schemas.mjs           # Schema synchronization between Stdio & HTTP
 │   └── benchmark.mjs                  # Cold/warm scan benchmarks & memory profiling
 ├── package.json                       # Dependencies, npm scripts & binary link
 ├── tsconfig.json                      # TypeScript configuration
@@ -227,9 +224,13 @@ PhotoNow uses native, self-contained packages without external servers:
     "start": "next start",
     "mcp": "node ./bin/mcp-server.mjs",
     "mcp:sync": "node ./tests/sync-mcp-schemas.mjs",
-    "test": "node ./tests/unit/test-agentic-intelligence.mjs && node ./tests/test-autonomous-mission.mjs && node ./tests/test-performance-engine.mjs && node ./tests/test-mcp-server.mjs && node ./tests/test-usability-security.mjs",
+    "test": "node ./tests/unit/test-agentic-intelligence.mjs && node ./tests/test-security-edge-cases.mjs && node ./tests/test-mcp-catalog.mjs && node ./tests/test-autonomous-mission.mjs",
     "test:unit": "node ./tests/unit/test-agentic-intelligence.mjs",
+    "test:security": "node ./tests/test-security-edge-cases.mjs",
+    "test:mcp": "node ./tests/test-mcp-catalog.mjs",
+    "test:http": "node ./tests/test-mcp-http.mjs",
     "test:mission": "node ./tests/test-autonomous-mission.mjs",
+    "test:sandbox": "node ./tests/test-external-sandbox.mjs",
     "test:benchmark": "node ./tests/benchmark.mjs"
   },
   "bin": {
@@ -583,17 +584,19 @@ The MCP server connects to Claude Desktop, Cursor, and Antigravity over stdio JS
 
 ---
 
-## Stage 7: Interactive Web Companion Workbench
+## Stage 7: Developer MCP Hub & Web Companion
 
-The web companion GUI (`components/PerformanceWorkbench.tsx`) includes 7 interactive sub-tabs:
+The web companion GUI incorporates the **Developer MCP Hub** (`components/McpDeveloperHub.tsx`), accessible via the **`[MCP PERFORMANCE HUB]`** navigation tab:
 
-1. **`[1. MEDIA AUDIT]`**: Visual 5-axis score gauges, asset count, total media footprint, and prioritized bottleneck triage.
-2. **`[2. ASSET GRAPH & UNUSED]`**: Complete graph visualizer showing routes, components, and dead assets (`SAFE`, `LIKELY`, `UNCERTAIN`).
-3. **`[3. BUDGETS]`**: Core Web Vitals budget validator (PASS / WARN / FAIL).
-4. **`[4. TEST URL]`**: Live website auditor measuring DOM media, LCP candidates, and simulated 4G mobile transfer times.
-5. **`[5. PLAN]`**: Optimization plan inspector with estimated byte reductions.
-6. **`[6. BEFORE/AFTER]`**: Interactive split-screen visual comparison slider to inspect image fidelity before committing changes.
-7. **`[⚡ AUTONOMOUS MISSION]`**: 1-click execution of the full 10-step autonomous mission with dry-run preview and rollback tracking.
+> [!IMPORTANT]
+> **Local Execution & Fork Requirement**:
+> Because deep performance engineering requires direct filesystem access (reading source code, parsing ASTs, scanning media assets, writing optimized variants, and generating git baselines), the 21 Performance & Agentic tools operate over Stdio MCP on your local machine. Fork this repository and run it locally (`npm run dev` or `npm run mcp`) to give your AI assistant zero-latency, zero-cloud access to all 29 tools!
+
+The Developer MCP Hub provides:
+1. **Interactive Client Configuration Generator**: Ready-to-paste JSON configurations for **Claude Desktop**, **Cursor**, **Google Antigravity**, and **Windsurf**.
+2. **In-Browser JSON-RPC 2.0 Testing Console**: Send live JSON-RPC requests (`tools/list`, `tools/call`, `initialize`) against the `/api/mcp` endpoint and inspect structured responses.
+3. **Complete 29-Tool Directory**: Organized across all 6 functional domains with parameter schemas, safety tiers (`SAFE`, `LIKELY`, `UNCERTAIN`), and token contracts.
+4. **Live Prompt Generator**: Copy pre-formulated prompts with exact parameter bindings for any of the 29 tools.
 
 ---
 
@@ -601,16 +604,15 @@ The web companion GUI (`components/PerformanceWorkbench.tsx`) includes 7 interac
 
 ### A. How to Use the Web UI (`http://localhost:3000` or `photonow.vercel.app`)
 
-* **Local Projects**: When running locally (`npm run dev`), type any folder path into the target bar:
-  - `.` (current project root)
-  - `./public`
-  - `tests/fixtures/nextjs_project` (or click **`[Demo Fixture]`**)
-* **Live Websites**: Go to **`[4. TEST URL]`**, enter any live URL (e.g. `https://my-site.com` or `http://localhost:3000`), and click **`[RUN AUDIT]`**.
-* **Converting Photos/Videos**: Go to **`[PHOTO CONVERT]`** or **`[VIDEO & AUDIO]`**, drag & drop files from your desktop. Processing runs 100% locally in browser memory.
+* **Photo Conversion**: Open **`[PHOTO CONVERT]`**, drop image files into the hand-drawn canvas dropzone, adjust quality/scale/filter sliders, and click **`CONVERT NOW ➔`**.
+* **Video & Audio Processing**: Open **`[VIDEO CONVERT]`**, select a video file, scrub the timeline for poster snapshots, or extract 16-bit uncompressed WAV soundtracks.
+* **Natural-Language Conversions**: Open **`[AGENTIC AI]`**, drop media, and type plain-English transformation instructions.
+* **Developer MCP Hub**: Open **`[MCP PERFORMANCE HUB]`** to copy client configurations, run JSON-RPC tests, or generate tool prompts.
+* **Local Storage & ZIP Export**: Open **`[STORAGE: N]`** to inspect your persistent IndexedDB cache and download all transformed assets as a single `.zip` bundle.
 
 ### B. How to Use with AI Agents (Claude Desktop, Cursor, Antigravity)
 
-Add this entry to your MCP configuration:
+Add this entry to your client's MCP configuration (`claude_desktop_config.json`, `.cursor/mcp.json`, or Antigravity settings):
 
 ```json
 {
@@ -628,7 +630,9 @@ Add this entry to your MCP configuration:
 #### Practical Prompt Recipes:
 
 * *"Audit this repository with PhotoNow. Find any oversized images or formats hurting our LCP, and summarize the top bottlenecks."*
+* *"Inspect project structure and tell me the reference chain for hero_banner.png."*
 * *"Scan our public folder for dead images. Tell me which files are 100% SAFE to delete."*
+* *"Check our performance budget against Core Web Vitals targets."*
 * *"Run an autonomous optimization mission in dry-run mode and show me the unified diffs."*
 * *"Apply the optimization plan, patch our Next.js <Image> tags to WebP, and verify that our performance budget passes."*
 
@@ -636,26 +640,32 @@ Add this entry to your MCP configuration:
 
 ## Stage 9: Automated Verification Test Suites & Benchmarks
 
-PhotoNow features an exhaustive test suite covering all layers:
+PhotoNow features an exhaustive, standardized test suite covering all layers with a **100% pass rate**:
 
 ```bash
-# 1. Run all 7 unit test suites for agentic intelligence
-node tests/unit/test-agentic-intelligence.mjs
+# 1. Run standard multi-suite automated verification
+npm test
 
-# 2. Run end-to-end autonomous mission tests (dry-run, patching, rollback)
-node tests/test-autonomous-mission.mjs
+# 2. Run 7-suite unit tests for agentic intelligence pillars
+npm run test:unit
 
-# 3. Test all 29 tools over stdio MCP JSON-RPC 2.0
-node tests/test-mcp-server.mjs
+# 3. Run 15 adversarial security penetration & edge-case checks
+npm run test:security
 
-# 4. Run core performance engine tests (8 suites)
-node tests/test-performance-engine.mjs
+# 4. Verify all 29 tools over Stdio JSON-RPC 2.0
+npm run test:mcp
 
-# 5. Run defensive usability & security tests (11/11 tests)
-node tests/test-usability-security.mjs
+# 5. Verify HTTP JSON-RPC 2.0 endpoint (/api/mcp)
+npm run test:http
 
-# 6. Run performance benchmark suite
-node tests/benchmark.mjs
+# 6. Run 15-stage sandboxed external project verification
+npm run test:sandbox
+
+# 7. Run end-to-end autonomous mission, dry-run, patching & rollback
+npm run test:mission
+
+# 8. Run performance benchmark suite
+npm run test:benchmark
 ```
 
 ### Verified Benchmark Metrics
@@ -664,3 +674,4 @@ node tests/benchmark.mjs
 - **Token Reduction**: **95.4%** reduction from raw diagnostic dump (~3,507 tokens) to compact summary (~160 tokens).
 - **Autonomous Mission Output**: ~80 tokens (318 characters), well within the <200 token budget.
 - **Production Build**: Next.js 16 (Turbopack) builds with **0 errors and 0 warnings**.
+- **External Sandbox**: 15/15 phases pass with 100% fidelity.

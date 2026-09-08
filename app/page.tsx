@@ -175,37 +175,55 @@ export default function Home() {
             }}>
               <div>
                 <h3 style={{ fontSize: '13px', fontWeight: 700, marginBottom: '6px' }}>
-                  [1. NATIVE STDIO MCP — ZERO PERMISSION PROMPTS]
+                  [1. NATIVE STDIO MCP — 29 ZERO-PERMISSION TOOLS]
                 </h3>
                 <p style={{ color: 'var(--ink-gray)' }}>
-                  Autonomous coding agents (Claude Desktop, Cursor, Google Antigravity, Claude Code) typically trigger 7–10 disruptive terminal permission popups per image when using shell scripts. PhotoNow runs as a native Stdio MCP server (<code>node ./bin/mcp-server.mjs</code>), enabling single and batch image conversion with <em>one single initial approval</em>.
+                  Autonomous coding agents (Claude Desktop, Cursor, Google Antigravity, Windsurf) typically encounter repetitive terminal permission popups per command. PhotoNow runs as a native Stdio MCP server (<code>node ./bin/mcp-server.mjs</code>), unlocking single, batch, video, and performance operations with <em>one single initial approval</em>.
                 </p>
               </div>
 
               <div>
                 <h3 style={{ fontSize: '13px', fontWeight: 700, marginBottom: '6px' }}>
-                  [2. BATCH FOLDER PROCESSING & TOKEN OPTIMIZER]
+                  [2. AGENTIC WEBSITE PERFORMANCE INTELLIGENCE]
                 </h3>
                 <p style={{ color: 'var(--ink-gray)' }}>
-                  Includes <code>convert_batch</code> to transform entire directory trees in parallel while filtering out <code>.git</code> and <code>node_modules</code>, and <code>optimize_for_agent</code> to downscale high-res UI screenshots into compact WebP under 1568px—reducing vision model context window consumption by up to 90%.
+                  Provides 5-axis media scoring across format efficiency, image sizing, compression potential, responsive srcset readiness, and SVG cleanliness. Identifies LCP bottlenecks, calculates 4G mobile transfer savings, and formulates explainable plans.
                 </p>
               </div>
 
               <div>
                 <h3 style={{ fontSize: '13px', fontWeight: 700, marginBottom: '6px' }}>
-                  [3. REAL-TIME NATIVE SHARP & HIGH PERFORMANCE]
+                  [3. ASSET DEPENDENCY GRAPH & DEAD ASSET PRUNING]
                 </h3>
                 <p style={{ color: 'var(--ink-gray)' }}>
-                  Powered by native Sharp (libvips 8.16) for blazing-fast ~250ms in-memory transformations. Supports WebP, AVIF, PNG, JPEG, and BMP formats with configurable quality, dimensional bounding boxes, grayscale, and Sobel ink sketch filters.
+                  Constructs the complete <code>Route ➔ Component ➔ Asset</code> dependency graph. Identifies multi-route shared dependencies and flags unreferenced dead assets classified into safety tiers (<code>SAFE</code>, <code>LIKELY</code>, <code>UNCERTAIN</code>) to prevent accidental deletions.
                 </p>
               </div>
 
               <div>
                 <h3 style={{ fontSize: '13px', fontWeight: 700, marginBottom: '6px' }}>
-                  [4. 100% ZERO-CLOUD PRIVACY & BROWSER ENGINE]
+                  [4. SAFE AST SOURCE PATCHING & ATOMIC ROLLBACK]
                 </h3>
                 <p style={{ color: 'var(--ink-gray)' }}>
-                  In web environments, PhotoNow processes media via client-side HTML5 Canvas 2D, MediaRecorder, and Web Audio APIs with persistence in IndexedDB (<code>photoConvert_DB</code>). In both desktop MCP and web modes, zero bytes are uploaded to remote cloud servers or third-party databases.
+                  Parses JSX/TSX source code ASTs, generates unified diffs, creates automated backups in <code>.photonow/backups/</code>, and requires explicit confirmation. The <code>rollback_operation</code> tool enables 1-click atomic restoration of all modified source files and assets.
+                </p>
+              </div>
+
+              <div>
+                <h3 style={{ fontSize: '13px', fontWeight: 700, marginBottom: '6px' }}>
+                  [5. AUTONOMOUS MISSION & TOKEN CONTRACT (&lt;200 TOKENS)]
+                </h3>
+                <p style={{ color: 'var(--ink-gray)' }}>
+                  Orchestrates the entire 10-step autonomous optimization loop via <code>optimize_project</code>. Heavy diagnostics are stored locally while returning compact intelligence (&lt;200 tokens) with next-action guidance to protect AI agent context windows from token blowups.
+                </p>
+              </div>
+
+              <div>
+                <h3 style={{ fontSize: '13px', fontWeight: 700, marginBottom: '6px' }}>
+                  [6. 100% ZERO-CLOUD ARCHITECTURE & LOCAL ENGINE]
+                </h3>
+                <p style={{ color: 'var(--ink-gray)' }}>
+                  Zero bytes are uploaded to remote cloud servers. Bundles static FFmpeg/FFprobe binaries and native Sharp for local Node.js execution, accompanied by HTML5 Canvas 2D, MediaRecorder, and IndexedDB in the browser companion workbench.
                 </p>
               </div>
             </div>

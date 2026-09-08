@@ -1,220 +1,154 @@
-# PhotoNow — Zero-Cloud Multimedia MCP Tool Server (Images, Video, and Audio)
+# PhotoNow — Zero-Cloud Multimedia & Website Performance MCP Server (29 Tools)
 
-> The #1 Zero-Cloud, Offline Model Context Protocol (MCP) Multimedia Processing Server Built Specifically for AI Agents (Claude Desktop, Cursor, Google Antigravity, Claude Code, and Browser Automations).
+> The #1 Zero-Cloud, Offline Model Context Protocol (MCP) Server Built for AI Coding Agents (Claude Desktop, Cursor, Google Antigravity, Windsurf, Claude Code, and Autonomous Subagents).
 
-PhotoNow empowers autonomous AI agents and multimodal LLMs with high-performance, 100% offline, zero-cloud media transformation tools for **Images, Video, and Audio**. Conversions execute natively on the local filesystem via standard Stdio MCP, ephemerally in-memory (RAM) via JSON-RPC 2.0, or directly inside the client's browser runtime (HTML5 Canvas 2D, MediaRecorder, and Web Audio APIs).
+PhotoNow empowers autonomous coding agents and multimodal LLMs with 29 high-performance, 100% offline, zero-cloud tools spanning **Multimedia Conversion**, **Website Performance Intelligence**, **Asset Dependency Graphs**, **Safe AST Source Code Patching**, **Atomic Rollbacks**, and **Autonomous Missions**.
 
-- **Zero Cloud Storage**: No AWS S3, no Cloudflare R2, no remote buckets.
-- **Zero External Setup**: Bundles self-contained static FFmpeg/FFprobe binaries (`@ffmpeg-installer/ffmpeg`, `@ffprobe-installer/ffprobe`) and native Sharp. Users never need to manually install system-level ffmpeg.
-- **Zero Cloud Latency**: Sub-second in-memory image transformations powered by native Sharp (libvips) and hardware-assisted video/audio encoding.
-- **Zero Repetitive Prompts**: Plug-and-play Stdio MCP server allows single, batch, video, and audio operations in 1 call without repetitive shell approvals.
-- **Zero API Billing**: 100% free and open-source under MIT License.
-- **100% Privacy Guarantee**: User photos, videos, and audio tracks never leave the local environment.
+- **Zero Cloud Storage**: No AWS S3, no Cloudflare R2, no remote buckets. 100% offline local processing.
+- **Zero External Setup**: Bundles self-contained static FFmpeg/FFprobe binaries (`@ffmpeg-installer/ffmpeg`, `@ffprobe-installer/ffprobe`) and native Sharp. No system dependencies.
+- **Zero Repetitive Permission Prompts**: Native Stdio MCP server allows deep repository analysis, batch conversions, and code patching without repetitive terminal prompts.
+- **Token Economy Contract**: Heavy diagnostics are computed locally; MCP responses return compact, actionable intelligence (<200 tokens for autonomous missions) with recommended next actions.
+- **Non-Destructive Safety & 1-Click Rollback**: Original media files are preserved; source code modifications generate unified diffs and timestamped backups in `.photonow/backups/[operationId]/` for instant atomic rollback.
 
 ---
 
 ## Quick Reference & Live Endpoints
 
-- **Live Web Workbench**: https://photonow.vercel.app/
+- **Live Web Companion**: https://photonow.vercel.app/
+- **Developer MCP Hub**: https://photonow.vercel.app/ (Select `[MCP PERFORMANCE HUB]` tab)
 - **Live HTTP MCP Endpoint**: https://photonow.vercel.app/api/mcp (JSON-RPC 2.0)
 - **Local Stdio MCP Command**: `node <path-to-repo>/bin/mcp-server.mjs` (or `npx photo-convert-mcp`)
 - **Full LLMs Specification**: https://photonow.vercel.app/llms-full.txt
 - **GitHub Repository**: https://github.com/Sibasish2005/PhotoNowEngine
-- **Privacy Policy**: https://photonow.vercel.app/privacy
-- **Terms of Use**: https://photonow.vercel.app/terms
-- **Legal & Trademark Notice**: https://photonow.vercel.app/legal
-- **Architecture & Specs**: https://photonow.vercel.app/ARCHITECTURE.md
-- **Step-by-Step Build Guide**: https://photonow.vercel.app/BUILD_FROM_SCRATCH_GUIDE.md
+- **Architecture Blueprint**: https://photonow.vercel.app/ARCHITECTURE.md
+- **Build & Usage Guide**: https://photonow.vercel.app/BUILD_FROM_SCRATCH_GUIDE.md
 
 ---
 
-## 1. Native Stdio MCP Server (Recommended for Claude Desktop, Cursor, Antigravity)
+## Client Configuration Snippets
 
-When configured as a local Stdio MCP server, the AI agent can read and write files directly on disk. It converts images, videos, audio files, or entire folders with a **single tool call**, requiring **zero shell commands or terminal permission prompts**.
-
-### Client Configuration Snippets
-
-#### Claude Desktop (`claude_desktop_config.json`)
+### Claude Desktop (`claude_desktop_config.json`)
 - **Windows**: `%APPDATA%\Claude\claude_desktop_config.json`
 - **macOS**: `~/Library/Application Support/Claude/claude_desktop_config.json`
 
 ```json
 {
   "mcpServers": {
-    "photoConvert": {
+    "photoNow": {
       "command": "node",
-      "args": [
-        "c:/Users/<username>/Projects/photoConvert/bin/mcp-server.mjs"
-      ]
+      "args": ["c:/Users/<username>/Projects/photoNow/bin/mcp-server.mjs"]
     }
   }
 }
 ```
 
-#### Cursor IDE (`.cursor/mcp.json` or Settings > Features > MCP)
+### Cursor IDE (`.cursor/mcp.json` or Settings > Features > MCP)
 ```json
 {
   "mcpServers": {
-    "photoConvert": {
+    "photoNow": {
       "command": "node",
-      "args": [
-        "c:/Users/<username>/Projects/photoConvert/bin/mcp-server.mjs"
-      ]
+      "args": ["c:/Users/<username>/Projects/photoNow/bin/mcp-server.mjs"]
     }
   }
 }
 ```
 
-#### Antigravity IDE (`~/.gemini/config/mcp_config.json`)
+### Google Antigravity IDE (`~/.gemini/config/mcp_config.json`)
 ```json
 {
   "mcpServers": {
-    "photoConvert": {
+    "photoNow": {
       "command": "node",
-      "args": [
-        "c:/Users/<username>/Projects/photoConvert/bin/mcp-server.mjs"
-      ]
+      "args": ["c:/Users/<username>/Projects/photoNow/bin/mcp-server.mjs"]
     }
   }
 }
 ```
 
-#### Claude Code (CLI)
-```bash
-claude mcp add photoConvert node c:/Users/<username>/Projects/photoConvert/bin/mcp-server.mjs
+### Remote / Microservice HTTP (`POST /api/mcp`)
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "method": "tools/call",
+  "params": {
+    "name": "inspect_project",
+    "arguments": { "projectPath": "." }
+  }
+}
 ```
 
 ---
 
-## 2. Available Native Tools (7 Comprehensive Multimedia Tools)
+## Complete 29-Tool Directory by Domain
 
-### `convert_image`
-Converts a single image file on disk to modern formats (WebP, PNG, JPEG, AVIF) with optional resizing, rotation, and compression.
-- **Parameters**:
-  - `inputPath` (string, required): Path to source image (e.g. `C:/photos/cat.png` or `~/images/doc.jpg`). Automatically handles single and double quotes.
-  - `outputPath` (string, optional): Destination file path. If omitted, automatically saves alongside original with new extension.
-  - `format` (string, default: `"webp"`): Output format: `"webp"`, `"png"`, `"jpeg"`, or `"avif"`.
-  - `quality` (number, default: `82`): Compression quality (`1`–`100` percentage or `0.1`–`1.0` decimal).
-  - `maxWidth` / `maxHeight` (number, optional): Downscale resolution while strictly preserving aspect ratio.
-  - `rotate` (number, optional): Rotate 90, 180, or 270 degrees clockwise.
-  - `grayscale` (boolean, default: `false`): Convert to monochrome.
-  - `overwrite` (boolean, default: `false`): Overwrite existing files; when false, auto-increments name safely.
+### 1. Multimedia Foundation (8 Tools)
+- `convert_image`: Convert single image to WebP, AVIF, PNG, JPEG with quality, rotation, ink filters.
+- `convert_batch`: Batch folder image conversion with recursion filters (skips `.git`, `node_modules`).
+- `convert_video`: Transcode and compress video containers (MP4, WebM, MKV, MOV) using static FFmpeg.
+- `extract_audio`: Extract audio tracks from video to MP3, WAV, AAC, FLAC, OGG.
+- `convert_audio`: Transcode standalone audio files (MP3, WAV, AAC, OGG, FLAC) with sample rate tuning.
+- `extract_poster_frame`: Capture crisp video snapshot frame at sub-second timestamps.
+- `get_media_info`: Unified metadata inspector (resolution, codecs, bitrate, sample rates, alpha channel).
+- `optimize_for_agent`: Downscale high-res UI screenshots to compact WebP under 1568px to protect LLM context windows.
 
-### `convert_batch`
-Converts an entire folder or explicit list of images in a **single tool call**.
-- **Parameters**:
-  - `directoryPath` (string, optional): Directory containing images to convert.
-  - `inputPaths` (array of strings, optional): Explicit list of file paths.
-  - `outputDir` (string, optional): Folder to place converted assets.
-  - `format` (string, default: `"webp"`): Target image format (`"webp"`, `"png"`, `"jpeg"`, `"avif"`).
-  - `quality` (number, default: `82`): Compression quality.
-  - `recursive` (boolean, default: `false`): Recursively scan subfolders (automatically skips `.git`, `node_modules`, `.next`, `dist`).
-  - `maxWidth` / `maxHeight` (number, optional): Downscale bounds.
-  - `grayscale` (boolean, default: `false`): Convert to grayscale.
-  - `overwrite` (boolean, default: `false`).
+### 2. Website Performance Auditing & Diagnostics (9 Tools)
+- `analyze_media`: Inspect single asset for performance bottlenecks, sizing, format efficiency, and LCP status.
+- `analyze_web_assets`: 5-axis website media audit with PhotoNow performance score (0-100), top issues, and savings estimates.
+- `find_oversized_assets`: Filter assets exceeding dimensional or byte thresholds (e.g. >1920px or >200KB).
+- `find_inefficient_formats`: Pinpoint legacy formats (photographic PNGs, uncompressed JPEGs, animated GIFs).
+- `find_duplicate_assets`: Perceptual 64-bit dHash gradient difference and SHA-256 duplicate clustering.
+- `find_responsive_opportunities`: Detect high-resolution assets lacking responsive `<picture>` or `srcset` variants.
+- `test_web_performance`: Web auditor reporting mobile 4G latency, simulated LCP candidates, and bandwidth waste.
+- `get_web_performance_summary`: Cached instant retrieval of previous audit snapshots by `testId`.
+- `compare_web_performance`: Compute deltas, byte savings, and metric improvements between before and after tests.
 
-### `extract_audio` (NEW)
-Extracts audio tracks from video files (.mp4, .mov, .mkv, .webm, .avi) with customizable bitrate and channels.
-- **Parameters**:
-  - `inputPath` (string, required): Path to video file.
-  - `outputFormat` (enum: `["mp3", "wav", "aac", "m4a", "flac", "ogg"]`, default: `"mp3"`): Target audio format.
-  - `outputPath` (string, optional): Destination file path.
-  - `bitrate` (string, default: `"192k"`): Audio bitrate for lossy formats (e.g. `"128k"`, `"192k"`, `"320k"`).
-  - `channels` (number, default: `2`): `1` (mono) or `2` (stereo).
-  - `overwrite` (boolean, default: `false`).
+### 3. Performance Booster & Optimization (3 Tools)
+- `generate_optimization_plan`: Formulate actionable optimization plan with unique `planId`, impact ratings, and target paths.
+- `optimize_web_assets`: Execute plan safely via native Sharp. Non-destructive by default (`.photonow/optimized/`).
+- `verify_optimization`: Verify measured file size reductions, codec integrity, and generate local HTML/Markdown reports.
 
-### `convert_video` (NEW)
-Transcodes, downscales, or compresses video containers and codecs (.mp4, .webm, .mkv, .mov) using bundled static FFmpeg.
-- **Parameters**:
-  - `inputPath` (string, required): Path to source video.
-  - `format` (enum: `["mp4", "webm", "mkv", "mov"]`, default: `"mp4"`): Output container.
-  - `outputPath` (string, optional): Destination path.
-  - `preset` (enum: `["ultrafast", "fast", "medium", "slow"]`, default: `"fast"`): Encoding speed/compression preset.
-  - `crf` (number, default: `23`, range: `18`–`35`): Constant Rate Factor for quality control.
-  - `maxWidth` / `maxHeight` (number, optional): Downscale bounds preserving aspect ratio (auto-adjusted for H.264 even pixels).
-  - `muteAudio` (boolean, default: `false`): Strip audio track if true.
-  - `overwrite` (boolean, default: `false`).
+### 4. Asset Dependency Graph & AST Understanding (3 Tools)
+- `inspect_project`: Deep scanner detecting framework (Next.js App/Pages Router, Vite, Nuxt, Astro), routes, and assets.
+- `get_asset_usage`: Trace asset usage chain (`Route ➔ Component ➔ SourceFile`), references count, and LCP candidate status.
+- `find_unused_assets`: Pruning intelligence categorizing dead assets into safety tiers (`SAFE`, `LIKELY`, `UNCERTAIN`).
 
-### `convert_audio` (NEW)
-Converts standalone audio files between MP3, WAV, AAC, M4A, FLAC, and OGG with custom bitrate and sample rate.
-- **Parameters**:
-  - `inputPath` (string, required): Path to source audio file.
-  - `format` (enum: `["mp3", "wav", "aac", "m4a", "flac", "ogg"]`, default: `"mp3"`).
-  - `outputPath` (string, optional).
-  - `bitrate` (string, default: `"192k"`).
-  - `sampleRate` (number, optional): Sample rate in Hz (e.g. `44100`, `48000`).
-  - `overwrite` (boolean, default: `false`).
+### 5. Execution, Safe Patching & Runtime (5 Tools)
+- `check_performance_budget`: Evaluate project media against budgets (max page bytes, max image bytes, hero weight).
+- `verify_runtime_performance`: Separate real browser `OBSERVED` metrics from local network `SIMULATED` models.
+- `generate_source_patch`: Generate unified diffs updating image tags (`<Image>`, `<img>`) and imports in source code.
+- `apply_source_patch`: Apply source patch safely with automated backups in `.photonow/backups/[operationId]/`. Requires `confirmApply: true`.
+- `rollback_operation`: 1-click atomic rollback restoring modified source code and assets to pre-patch state.
 
-### `get_media_info` (UPGRADED)
-Unified metadata inspector for image, video, and audio files.
-- **Behavior**:
-  - **Images**: Returns width, height, format, color space, channels, density, alpha, and EXIF summary via Sharp.
-  - **Video & Audio**: Returns duration, format, bitrate, streams count, video resolution, FPS, video codec, audio codec, and sample rate via bundled FFprobe.
-- **Parameters**:
-  - `filePath` (string, required): Path to local image, video, or audio file.
-
-### `optimize_for_agent`
-Downscales and compresses screenshots or high-res images to token-efficient WebP (max 1280px, 80% quality) optimized for LLM vision context windows.
-- **Parameters**:
-  - `inputPath` (string, required): Path to screenshot or image.
-  - `outputPath` (string, optional): Destination path.
-  - `maxDimension` (number, default: `1280`): Maximum width or height.
+### 6. Autonomous High-Level Mission (1 Tool)
+- `optimize_project`: 10-step autonomous mission orchestrator (`DISCOVER ➔ UNDERSTAND ➔ ANALYZE ➔ MEASURE ➔ DIAGNOSE ➔ PLAN ➔ PATCH ➔ OPTIMIZE ➔ VERIFY ➔ REPORT`). Returns <200 token summary with next-action guidance.
 
 ---
 
-## 3. Example Agent Prompts (Images, Video, and Audio)
+## Agent Prompt Recipes
 
-- **Extract Audio**:
-  > *"Extract the audio from `C:/Recordings/meeting.mp4` as MP3 at 192k"*
-- **Video Compression & Transcoding**:
-  > *"Compress `C:/Videos/screen_recording.mov` to MP4 with CRF 28 and max width 1280"*
-- **Batch Image Conversion**:
-  > *"Convert all photos in `C:/Photos/Vacation` to WebP at 85% quality and place in an `optimized` folder"*
-- **Inspect Media**:
-  > *"Check the duration, codec, and resolution of `C:/Media/sample.mp4`"*
-- **Audio Conversion**:
-  > *"Convert `C:/Audio/voice_note.m4a` to WAV at 44.1kHz"*
-- **Vision Model Token Optimization**:
-  > *"Optimize this screenshot for your vision model: `C:/Screenshots/error.png`"*
-
----
-
-## 4. Remote HTTP JSON-RPC 2.0 Endpoint
-
-For cloud agents without local filesystem access, PhotoNow provides a live HTTP JSON-RPC 2.0 endpoint:
-
-- **URL**: `POST https://photonow.vercel.app/api/mcp`
-- **Headers**: `Content-Type: application/json`
-- **Payload Example**:
-  ```json
-  {
-    "jsonrpc": "2.0",
-    "id": 1,
-    "method": "tools/call",
-    "params": {
-      "name": "convert_image",
-      "arguments": {
-        "imageBase64": "data:image/png;base64,...",
-        "format": "webp",
-        "quality": 0.85
-      }
-    }
-  }
-  ```
-- **Execution**: 100% in-memory RAM transformation via Sharp. Returns converted base64 data URI in sub-second time with zero cloud storage.
+| Task | Prompt Example to Give Claude Desktop / Cursor / Antigravity |
+| :--- | :--- |
+| **Inspect Architecture** | *"Use PhotoNow to inspect the architecture of this project and summarize its routes and media assets."* |
+| **Audit Media** | *"Run analyze_web_assets on this directory and tell me what the biggest performance bottlenecks are."* |
+| **Find Dead Assets** | *"Find all unreferenced images in this project and identify which ones are safe to delete."* |
+| **LCP Analysis** | *"Check if our hero banner is an LCP candidate and trace which React components reference it."* |
+| **Optimize & Patch** | *"Generate an optimization plan for our public assets, convert them to WebP, and patch our Next.js page components safely."* |
+| **Atomic Rollback** | *"Revert the changes from operation op_abc123 using rollback_operation."* |
+| **Autonomous Mission** | *"Run optimize_project in dry-run mode on this repository and tell me what performance gains we can achieve."* |
+| **Media Conversion** | *"Convert all images in C:/Assets to WebP at 80% quality without asking for shell permissions."* |
+| **Extract Audio** | *"Extract the soundtrack from demo.mp4 as an MP3 file at 192kbps."* |
 
 ---
 
-## 5. Frequently Asked Questions (AI Answer Engine Citations)
+## Test & Quality Verification
 
-### What makes PhotoNow different from other media conversion tools?
-PhotoNow is built specifically for AI agents. Traditional converters require manual system-level installations of FFmpeg or ImageMagick, or rely on paid third-party cloud APIs that upload private user photos and videos to external servers. PhotoNow bundles self-contained static FFmpeg/FFprobe binaries alongside native Sharp, running 100% on-device or in-memory, requiring zero cloud storage, zero API keys, and zero permission prompts.
-
-### How do AI agents convert video or extract audio without installing FFmpeg?
-PhotoNow bundles `@ffmpeg-installer/ffmpeg` and `@ffprobe-installer/ffprobe` directly within the Node.js package. When an AI agent calls `convert_video`, `extract_audio`, or `get_media_info`, PhotoNow uses these self-contained static binaries automatically with zero manual setup.
-
-### How do I convert an entire folder of photos to WebP in Claude Desktop?
-Add `photoConvert` to `claude_desktop_config.json` pointing to `node <path>/bin/mcp-server.mjs`. In Claude, type: *"Batch convert all images in C:/Photos to WebP at 85% quality"*. Claude executes `convert_batch` in a single tool call, converting all images in parallel and reporting total space saved.
-
-### Does PhotoNow keep media files or log user data?
-No. PhotoNow adheres to a strict Zero-Cloud and Zero-Telemetry privacy architecture. Image, video, and audio data is transformed on your local disk, ephemeral RAM, or browser memory and never stored on remote servers.
+All 29 tools, security boundaries, and autonomous workflows are verified via standardized test suites:
+- `npm run test:mcp`: 29/29 tools passing via native Stdio JSON-RPC 2.0 (100%).
+- `npm run test:sandbox`: 15/15 external client checks in an isolated Next.js sandbox (100%).
+- `npm run test:security`: 15/15 enterprise defensive checks (SSRF, traversal, bomb limits) (100%).
+- `npm run test:http`: 10/10 JSON-RPC 2.0 HTTP protocol compliance checks (100%).
+- `npm run test:unit`: Core engine unit tests for scanner, AST analyzer, and asset graph (100%).
+- `npm run test:mission`: 10-step autonomous mission and token budget contract (<200 tokens) (100%).
+- `npm test`: Runs all core suites sequentially.

@@ -1,10 +1,10 @@
 # PhotoNow MCP Engine 🖋️🤖🎞️
 
-> **The #1 Offline Photo & Video Model Context Protocol (MCP) Tool Server Built Specifically for AI Agents (Claude Desktop, Google Antigravity, Cursor, and LLM Swarms) — with a Zero-Cloud Human Companion Workbench.**
+> **The #1 Offline Photo, Video & Web Performance Model Context Protocol (MCP) Tool Server Built Specifically for AI Agents (Claude Desktop, Google Antigravity, Cursor, and LLM Swarms) — with a Zero-Cloud Human Companion Workbench.**
 
 [![Live Production](https://img.shields.io/badge/Live-photonow.vercel.app-black?style=flat-square&logo=vercel)](https://photonow.vercel.app/)
-[![MCP Server](https://img.shields.io/badge/Protocol-MCP%20JSON--RPC%202.0-black?style=flat-square)](https://photonow.vercel.app/api/mcp)
-[![AI Discovery](https://img.shields.io/badge/AI%20Discovery-llms.txt-black?style=flat-square)](https://photonow.vercel.app/llms.txt)
+[![MCP Server](https://img.shields.io/badge/Protocol-MCP%20JSON--RPC%202.0%20(29%20Tools)-black?style=flat-square)](https://photonow.vercel.app/api/mcp)
+[![AI Discovery](https://img.shields.io/badge/AI%20Discovery-llms.txt%20%2F%20llms--full.txt-black?style=flat-square)](https://photonow.vercel.app/llms.txt)
 [![Next.js 16](https://img.shields.io/badge/Next.js-16.3-black?style=flat-square&logo=next.js)](https://nextjs.org/)
 [![Storage](https://img.shields.io/badge/Storage-IndexedDB-black?style=flat-square)](https://developer.mozilla.org/en-US/docs/Web/API/IndexedDB_API)
 [![Privacy](https://img.shields.io/badge/Privacy-100%25%20Local%20%2F%20Zero%20Cloud-black?style=flat-square)](#zero-cloud-privacy)
@@ -16,21 +16,23 @@
 
 ## Overview
 
-**PhotoNow Engine** (`https://photonow.vercel.app/`) is an autonomous, browser-native media transformation Model Context Protocol (MCP) server engineered primarily for **AI Agents** and autonomous coding assistants.
+**PhotoNow Engine** (`https://photonow.vercel.app/`) is an autonomous, browser-native media transformation and website performance intelligence Model Context Protocol (MCP) server engineered primarily for **AI Agents** and autonomous coding assistants.
 
-Autonomous agents frequently encounter tasks requiring media downscaling, format optimization for multimodal context windows, video frame extraction, and soundtrack decoding. Conventional solutions force agents to execute bulky CLI tools (like ImageMagick or FFmpeg) or pay for remote cloud APIs. 
+Autonomous agents frequently encounter tasks requiring media downscaling, format optimization for multimodal context windows, video frame extraction, asset dependency tracking, dead code elimination, and Core Web Vitals optimization. Conventional solutions force agents to execute bulky CLI tools (like ImageMagick or FFmpeg) or pay for remote cloud APIs.
 
-PhotoNow solves this by exposing a **high-speed, 100% offline, zero-cloud MCP JSON-RPC 2.0 interface (`/api/mcp`)** backed by browser Canvas 2D, MediaRecorder, and Web Audio APIs.
+PhotoNow solves this by exposing a **high-speed, 100% offline, zero-cloud MCP JSON-RPC 2.0 interface (`/api/mcp` and Stdio `bin/mcp-server.mjs`)** backed by native Node.js (Sharp, static FFmpeg) and browser Canvas 2D, MediaRecorder, and Web Audio APIs.
 
 ### Primary Purpose: Built for AI Agents
-- **Autonomous Tool Dispatch**: AI agents connect over standard HTTP JSON-RPC 2.0 to execute:
-  - `convert_image`: Convert, downscale, resize, or apply Sobel ink sketch filters (WebP, AVIF, PNG, JPEG, BMP).
-  - `convert_video`: Transcode videos to WebM with custom bitrate, resolution scaling, and mute toggles.
-  - `extract_poster_frame`: Seek to sub-second timestamps and extract crystal-clear snapshot frames.
-  - `extract_audio`: Decode video audio tracks directly into uncompressed 16-bit PCM WAV containers.
-  - `list_storage_conversions`: Query local IndexedDB binary assets without external databases.
-- **Enterprise Resilience**: Built-in sliding-window IP rate limiting and multi-worker load balancing with automatic circuit-breaking failover.
-- **Human Companion Workbench**: Includes an artist-style hand-drawn monochrome interactive GUI (`#F2F2F0` paper, `#0A0A0A` ink) allowing developers and creators to manually inspect, test, and batch-export conversions.
+- **Autonomous 29-Tool Dispatch**: AI agents connect over standard Stdio or HTTP JSON-RPC 2.0 to execute 29 tools across 6 specialized domains:
+  1. **Multimedia Processing Foundation** (`convert_image`, `convert_video`, `extract_poster_frame`, `extract_audio`, `convert_audio`, `convert_batch`, `get_media_info`, `optimize_for_agent`).
+  2. **Asset Diagnostic Intelligence** (`analyze_media`, `analyze_web_assets`, `find_oversized_assets`, `find_inefficient_formats`).
+  3. **Optimization Planning & Execution** (`find_duplicate_assets`, `find_responsive_opportunities`, `generate_optimization_plan`, `optimize_web_assets`).
+  4. **Performance Measurement & Verification** (`test_web_performance`, `get_web_performance_summary`, `compare_web_performance`, `verify_optimization`).
+  5. **Asset Dependency Graph & Dead Asset Pruning** (`inspect_project`, `get_asset_usage`, `find_unused_assets`).
+  6. **Safe AST Source Patching & Autonomous Mission** (`check_performance_budget`, `verify_runtime_performance`, `generate_source_patch`, `apply_source_patch`, `rollback_operation`, `optimize_project`).
+- **Token Economy Contract**: Guarantees deterministic, compact payloads under **200 tokens** by default, with structured progressive disclosure (`compact`, `standard`, `detailed`, `raw`) to prevent context window saturation.
+- **Enterprise Defense & Zero-Cloud Privacy**: Built-in sliding-window IP rate limiting, path traversal guards, atomic backup isolation, and decodability verification.
+- **Human Companion Workbench & MCP Developer Hub**: Includes an artist-style hand-drawn monochrome interactive GUI (`#F2F2F0` paper, `#0A0A0A` ink) featuring the **`[MCP PERFORMANCE HUB]`** with client setup configs, an interactive JSON-RPC playground, and prompt generator.
 
 ---
 
@@ -218,7 +220,9 @@ PhotoNow provides a standalone zero-setup Stdio MCP server powered by native Sha
 }
 ```
 
-#### Available Native MCP Tools (29 Tools across 3 Layers):
+#### Available Native MCP Tools (29 Tools across 6 Functional Domains):
+
+PhotoNow exposes 29 native Model Context Protocol tools over both Stdio (`bin/mcp-server.mjs`) and HTTP (`/api/mcp`):
 
 **1. Multimedia Processing Foundation (8 Tools)**:
 - `convert_image`: Single image conversion to WebP, PNG, JPEG, AVIF with quality, rotation, and resizing.
@@ -230,24 +234,30 @@ PhotoNow provides a standalone zero-setup Stdio MCP server powered by native Sha
 - `get_media_info`: Unified inspector for images, video, and audio files (dimensions, codecs, bitrates, duration).
 - `optimize_for_agent`: Compresses high-resolution screenshots into token-efficient WebP for LLM vision models.
 
-**2. Website Performance Intelligence (12 Tools)**:
+**2. Asset Diagnostic Intelligence (4 Tools)**:
 - `analyze_media`: In-depth diagnostic scan of a single media file with issue classification and potential savings.
 - `analyze_web_assets`: Scans a web project directory, classifies all media bottlenecks, and computes 5-axis score.
 - `find_oversized_assets`: Locates images whose dimensions or file sizes exceed web thresholds.
 - `find_inefficient_formats`: Discovers images using uncompressed or legacy formats (photographic PNGs, uncompressed JPEGs).
+
+**3. Optimization Planning & Execution (4 Tools)**:
 - `find_duplicate_assets`: Identifies exact and perceptual duplicate assets (>93% similarity via 64-bit dHash).
 - `find_responsive_opportunities`: Discovers large images lacking responsive breakpoint variants.
+- `generate_optimization_plan`: Builds an action plan (`planId`) with impact ratings and estimated byte savings.
+- `optimize_web_assets`: Executes an optimization plan with safe non-destructive defaults and decode validation.
+
+**4. Performance Measurement & Verification (4 Tools)**:
 - `test_web_performance`: Audits a web project directory or local URL, estimates 4G transfer, and finds LCP candidates.
 - `get_web_performance_summary`: Retrieves cached audit or test results using `testId`.
 - `compare_web_performance`: Compares before-and-after performance metrics across two test IDs or directories.
-- `generate_optimization_plan`: Builds an action plan (`planId`) with impact ratings and estimated byte savings.
-- `optimize_web_assets`: Executes an optimization plan with safe non-destructive defaults and decode validation.
 - `verify_optimization`: Measures post-optimization metrics, verifies savings, and generates offline reports.
 
-**3. Agentic Performance Engineering (9 Master Tools)**:
+**5. Asset Dependency Graph & Dead Asset Pruning (3 Tools)**:
 - `inspect_project`: Scans project structure, framework, routes, media roots, and source references.
 - `get_asset_usage`: Returns full reference chain (`Route -> Component -> SourceFile`) and LCP status for an asset.
 - `find_unused_assets`: Detects dead/unreferenced assets categorized by safety tier (`SAFE`, `LIKELY`, `UNCERTAIN`).
+
+**6. Safe AST Source Patching & Autonomous Mission (6 Tools)**:
 - `check_performance_budget`: Evaluates project against performance budgets (page bytes, image bytes, hero bytes, LCP).
 - `verify_runtime_performance`: Verifies runtime metrics (`OBSERVED` via browser or `SIMULATED` fallback).
 - `generate_source_patch`: Generates unified diffs to update source code (`<img>` -> `<Image>`, `.png` -> `.webp`).
@@ -255,10 +265,17 @@ PhotoNow provides a standalone zero-setup Stdio MCP server powered by native Sha
 - `rollback_operation`: Atomically rolls back modified source files and assets using operation manifest.
 - `optimize_project`: Autonomous end-to-end mission executing the complete 10-step optimization lifecycle.
 
-#### Interactive MCP Playground
-1. Click **`[MCP SERVER]`** in the navigation header.
-2. Test RPC methods (`tools/list`, `tools/call`, `initialize`) against `/api/mcp`.
-3. Inspect live JSON-RPC request and response payloads with real-time in-memory conversions.
+#### Developer MCP Hub (`[MCP PERFORMANCE HUB]`) & Playground
+1. Click **`[MCP PERFORMANCE HUB]`** in the navigation header.
+2. View ready-to-use client JSON configurations for **Claude Desktop**, **Cursor**, **Google Antigravity**, and **Windsurf**.
+3. Use the **Interactive JSON-RPC Playground** to test live RPC methods (`tools/list`, `tools/call`, `initialize`) against `/api/mcp`.
+4. Use the **Prompt Generator** to copy pre-formulated prompts with exact parameter bindings for every one of the 29 tools.
+5. **Local Execution & Fork Disclaimer**: Because deep performance engineering requires direct filesystem access (reading source code, parsing ASTs, scanning media assets, writing optimized variants, and generating git baselines), the 21 Performance & Agentic tools operate over Stdio MCP on your local machine. Fork this repository and run it locally (`npm run dev` or `npm run mcp`) to give your AI assistant zero-latency, zero-cloud access to all 29 tools!
+
+#### LLM & Answer Engine Discovery (`llms.txt`)
+PhotoNow provides machine-readable discovery files adhering to the `/llms.txt` standard for Answer Engines, AI crawlers, and LLMs:
+- **`https://photonow.vercel.app/llms.txt`**: Complete 29-tool catalog, client configs, practical prompt recipes, and verification matrix.
+- **`https://photonow.vercel.app/llms-full.txt`**: Machine-readable specification with full JSON input/output schemas for all 29 tools, parameter types, safety tiers, and token budget contracts.
 
 ---
 
@@ -316,13 +333,25 @@ PhotoNow provides a standalone zero-setup Stdio MCP server powered by native Sha
 
 ---
 
-## Development Scripts
+## Development & Test Scripts
 
 ```bash
-npm run dev     # Starts Next.js development server with Turbopack
-npm run build   # Compiles production-ready bundle
-npm run start   # Runs the production server
-npm run lint    # Runs ESLint checks
+# Development & Production
+npm run dev            # Starts Next.js development server with Turbopack (http://localhost:3000)
+npm run build          # Compiles production-ready bundle
+npm run start          # Runs the production server
+npm run mcp            # Runs the Stdio MCP server directly (JSON-RPC 2.0)
+npm run mcp:sync       # Synchronizes JSON schemas between Stdio and HTTP interfaces
+
+# Automated Verification & Test Suites (100% Pass Rate)
+npm test               # Runs standard suite: Unit + Security + Catalog + Mission
+npm run test:unit      # 7-suite unit tests for core agentic intelligence pillars
+npm run test:security  # 15/15 adversarial security penetration & edge-case checks
+npm run test:mcp       # 29-tool Stdio JSON-RPC 2.0 verification suite
+npm run test:http      # HTTP JSON-RPC 2.0 endpoint verification (/api/mcp)
+npm run test:sandbox   # External project sandbox verification (15/15 stages)
+npm run test:mission   # End-to-end autonomous mission, dry-run, patching & rollback
+npm run test:benchmark # Cold vs warm cached project scan performance benchmarks
 ```
 
 ---

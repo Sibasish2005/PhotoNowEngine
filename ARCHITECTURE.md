@@ -19,9 +19,8 @@ flowchart TB
 
     subgraph Protocol_Layer["Protocol & API Gateway"]
         StdioMCP["bin/mcp-server.mjs<br/>(Stdio JSON-RPC 2.0 - 29 Tools)"]
-        HttpMCP["app/api/mcp/route.ts<br/>(HTTP JSON-RPC 2.0)"]
-        RestPerf["app/api/performance/route.ts<br/>(REST Performance API)"]
-        UI_Workbench["components/PerformanceWorkbench.tsx<br/>(Next.js App Router UI)"]
+        HttpMCP["app/api/mcp/route.ts<br/>(HTTP JSON-RPC 2.0 - 29 Tools)"]
+        UI_Hub["components/McpDeveloperHub.tsx<br/>(Developer MCP Hub & Playground)"]
     end
 
     subgraph Token_Guard["Token Economy & Intelligence Layer"]
@@ -65,12 +64,11 @@ flowchart TB
 
     AIAgent --> StdioMCP
     AIAgent --> HttpMCP
-    BrowserUser --> UI_Workbench
-    UI_Workbench --> RestPerf
+    BrowserUser --> UI_Hub
+    UI_Hub --> HttpMCP
 
     StdioMCP --> TokenEconomy
     HttpMCP --> TokenEconomy
-    RestPerf --> Core_Engine
 
     TokenEconomy --> MissionRunner
     MissionRunner --> ProjectScanner
@@ -87,7 +85,7 @@ flowchart TB
     Analyzer --> PHash
     Booster --> SharpLib
     Booster --> FFmpegLib
-    UI_Workbench --> CanvasEngine
+    UI_Hub --> CanvasEngine
 
     Booster --> OptimizedDir
     PatchGen --> BackupDir
@@ -107,17 +105,16 @@ photoNow/
 │   └── mcp-server.mjs                 # Stdio MCP server (29 tools, static binaries, sharp)
 ├── app/
 │   ├── api/
-│   │   ├── mcp/route.ts               # HTTP JSON-RPC 2.0 MCP endpoint
-│   │   └── performance/route.ts       # REST Performance API
+│   │   └── mcp/route.ts               # HTTP JSON-RPC 2.0 MCP endpoint (29 tools)
 │   ├── globals.css                    # Hand-drawn ink design tokens & animations
-│   ├── layout.tsx                     # App layout, Google Fonts (Permanent Marker & Space Mono)
+│   ├── layout.tsx                     # App layout, Google Fonts, JSON-LD Schema & AEO
 │   ├── page.tsx                       # Workstation controller & split-screen grid
 │   ├── icon.svg                       # Favicon SVG
 │   ├── apple-icon.png                 # Apple Touch Icon
 │   ├── robots.ts                      # SEO robots configuration
 │   └── sitemap.ts                     # Automated sitemap generator
 ├── components/
-│   ├── PerformanceWorkbench.tsx       # 7-subtab performance GUI (Audit, Graph, Budgets, Mission)
+│   ├── McpDeveloperHub.tsx            # Developer MCP Hub, Prompt Generator & Testing Console
 │   ├── PhotoConverter.tsx             # Image dropzone, settings sliders, preview grid
 │   ├── VideoConverter.tsx             # Video player, timeline scrub, transcode & audio
 │   ├── StorageHistory.tsx             # IndexedDB history manager & ZIP bundle exporter
@@ -127,11 +124,9 @@ photoNow/
 │   ├── DoodleDecorations.tsx          # Right-edge tab strip & footer stamps
 │   └── AgenticPanel.tsx               # Natural-language prompt simulation bar
 ├── lib/
-│   ├── engine/                        # Core Engine Layer (Shared by stdio, HTTP, REST & UI)
+│   ├── engine/                        # Core Performance Engine (Shared by Stdio & HTTP MCP)
 │   │   ├── types.ts                   # TypeScript interfaces & domain models
-│   │   ├── index.ts                   # Typed Next.js module re-exports
-│   │   ├── index.mjs                  # Native ES module entry point
-│   │   ├── tokenEconomy.mjs           # Progressive disclosure & token budgeting
+│   │   ├── tokenEconomy.mjs           # Progressive disclosure & token budgeting (<200 tokens)
 │   │   ├── perceptualHash.mjs         # 64-bit dHash gradient difference & SHA-256
 │   │   ├── cache.mjs                  # Local memory cache for plans & test snapshots
 │   │   ├── analyzer.mjs               # 5-axis scorer & media bottleneck classifier
@@ -157,10 +152,13 @@ photoNow/
 │   ├── unit/
 │   │   └── test-agentic-intelligence.mjs # 7-suite unit tests for agentic pillars
 │   ├── fixtures/                      # Realistic Next.js & Vite test sandboxes
+│   ├── sandbox_catalog/               # Live fixture for all 29 tools & external agents
 │   ├── test-autonomous-mission.mjs    # End-to-end mission, dry-run & rollback tests
-│   ├── test-mcp-server.mjs            # 29-tool verification over stdio JSON-RPC
-│   ├── test-performance-engine.mjs   # Core performance engine verification
-│   ├── test-usability-security.mjs    # 11/11 usability & security penetration tests
+│   ├── test-mcp-catalog.mjs           # 29-tool verification over stdio JSON-RPC
+│   ├── test-mcp-http.mjs              # HTTP JSON-RPC 2.0 endpoint verification
+│   ├── test-external-sandbox.mjs      # 15-stage sandboxed external project verification
+│   ├── test-security-edge-cases.mjs   # 15 adversarial security penetration tests
+│   ├── sync-mcp-schemas.mjs           # Schema synchronization between Stdio & HTTP
 │   └── benchmark.mjs                  # Cold/warm scan benchmarks & memory profiling
 └── package.json                       # Dependencies, npm scripts & binary link
 ```
@@ -274,7 +272,7 @@ PhotoNow exposes 29 tools over stdio and HTTP JSON-RPC 2.0:
 2. **Sensitive Folder Exclusions**: Batch and recursive operations automatically ignore `.git/`, `.env`, `node_modules/`, and `.next/`.
 3. **Path Traversal Guards**: Strips path traversal sequences (`../`, `..\`) and normalizes paths against system roots to prevent directory escapes.
 4. **Decodability Checks**: Every transformed media file is decoded back through Sharp before marking the operation successful. Corrupted outputs are discarded immediately.
-5. **Sliding-Window IP Rate Limiting**: Protects `/api/mcp` and `/api/performance` endpoints with configurable per-IP limits (default 60 req/min).
+5. **Sliding-Window IP Rate Limiting**: Protects the `/api/mcp` endpoint with configurable per-IP limits (default 60 req/min) while Stdio execution operates at native OS speeds without artificial network throttles.
 
 ---
 

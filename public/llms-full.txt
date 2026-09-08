@@ -1,342 +1,260 @@
-# PhotoNow MCP Server — Complete Protocol Specification & Tool Schemas
+# PhotoNow MCP Server — Complete 29-Tool Protocol Specification & Schemas
 
-> Machine-readable Model Context Protocol (MCP) and Answer Engine Optimization (AEO) Full Specification.
+> Machine-readable Model Context Protocol (MCP) and Answer Engine Optimization (AEO) Master Specification.
 > Canonical URL: https://photonow.vercel.app/llms-full.txt
 
 ---
 
-## Technical Overview
+## Technical Architecture Overview
 
 - **Protocol Version**: Model Context Protocol (MCP) JSON-RPC 2.0 (spec 2024-11-05)
 - **Primary Transports**: 
-  1. Stdio (Local Node.js process runner for Claude Desktop, Cursor, Antigravity)
-  2. HTTP JSON-RPC 2.0 (`POST https://photonow.vercel.app/api/mcp`)
-  3. Browser DOM Automation (`window.__photoConvertAgent`)
+  1. **Stdio**: Native Node.js child process runner (`node ./bin/mcp-server.mjs`) for Claude Desktop, Cursor, Antigravity, Windsurf.
+  2. **HTTP JSON-RPC 2.0**: `POST https://photonow.vercel.app/api/mcp` (Stateless remote agent execution).
+  3. **Browser DOM Companion**: `window.__photoConvertAgent` in client tabs.
 - **Core Processing Engines**:
-  - **Images**: Native Sharp (libvips 8.16) for ultra-fast, sub-second conversion & downscaling.
-  - **Video & Audio**: Self-contained static FFmpeg & FFprobe (`@ffmpeg-installer/ffmpeg`, `@ffprobe-installer/ffprobe`, `fluent-ffmpeg`) for zero-setup container transcoding, CRF compression, resolution scaling, and audio extraction.
-  - **Browser Runtime**: HTML5 Canvas 2D, MediaRecorder (VP9/VP8), Web Audio API (16-bit PCM WAV).
-- **Storage Tier**: 100% Client-Side On-Device Local Disk / IndexedDB (`photoConvert_DB`).
-- **Security Boundaries**: Strict output extension whitelist (`.webp`, `.png`, `.jpg`, `.jpeg`, `.avif`, `.mp4`, `.webm`, `.mkv`, `.mov`, `.mp3`, `.wav`, `.aac`, `.m4a`, `.flac`, `.ogg`), sensitive system directory guards (`system32`, `.git`, `.ssh`, `.aws`), `.env` overwrite defense, 250MB image / 2GB video safety limit, and 100 MegaPixel decompression bomb defense (`limitInputPixels`).
+  - **Images**: Native Sharp (libvips 8.16) for sub-second offline transforms, resizing, and filters.
+  - **Video & Audio**: Self-contained static FFmpeg & FFprobe (`@ffmpeg-installer/ffmpeg`, `@ffprobe-installer/ffprobe`) for container transcoding, downscaling, and audio extraction.
+  - **Project Understanding**: AST parsers for Next.js App/Pages Router, Vite, React, Nuxt, Astro, and HTML/CSS.
+  - **Asset Dependency Graph**: Directed graph mapping `Route ➔ Component ➔ Asset ➔ Variant`.
+  - **Safe AST Patching**: Unified diff generator and safe patch applicator with automated backups in `.photonow/backups/[operationId]/`.
+  - **Rollback Engine**: 1-click cryptographic atomic rollback restoring modified code and assets.
+  - **Autonomous Mission**: 10-step autonomous loop (`optimize_project`) under a strict <200 token budget contract.
+- **Enterprise Security Boundaries**:
+  - SSRF defense: Blocks private/link-local IPv4 & IPv6 (`169.254.169.254`, `metadata.google.internal`), restricts to HTTP/HTTPS, limits redirects to 3.
+  - Path traversal defense: Normalized slash checks protecting Windows and Unix system roots (`/etc/`, `C:\Windows\`, `.git`, `.env*`).
+  - Pixel Flood Protection: `limitInputPixels: 100_000_000` enforced on all Sharp operations.
+  - AST Patch Safety: Enforced `confirmApply: true` before touching source code on disk.
 
 ---
 
-## Complete MCP Tool Schemas (JSON Schema Format)
+## Complete 29-Tool Schema Directory
 
-### 1. `convert_image`
-Converts a single image file on disk to a modern format (WebP, PNG, JPEG, AVIF) with optional resizing, rotation, and compression.
+### Domain 1: Multimedia Foundation (8 Tools)
 
-```json
-{
-  "name": "convert_image",
-  "description": "Converts an image file on disk to a modern format (WebP, PNG, JPEG, AVIF) with optional aspect-ratio locked downscaling, quality compression, rotation, and monochrome grayscale.",
-  "inputSchema": {
-    "type": "object",
-    "properties": {
-      "inputPath": {
-        "type": "string",
-        "description": "Path to source image file (e.g. C:/photos/cat.png or ~/images/doc.jpg). Handles single and double quotes cleanly."
-      },
-      "outputPath": {
-        "type": "string",
-        "description": "Optional destination path for the converted file. Defaults to same directory as original with new extension."
-      },
-      "format": {
-        "type": "string",
-        "enum": ["webp", "png", "jpeg", "avif"],
-        "default": "webp",
-        "description": "Target image format."
-      },
-      "quality": {
-        "type": "number",
-        "minimum": 0.01,
-        "maximum": 100,
-        "default": 82,
-        "description": "Compression quality. Accepts percentage 1-100 or decimal 0.1-1.0."
-      },
-      "maxWidth": {
-        "type": "number",
-        "description": "Maximum width in pixels to downscale the image (aspect ratio preserved)."
-      },
-      "maxHeight": {
-        "type": "number",
-        "description": "Maximum height in pixels to downscale the image (aspect ratio preserved)."
-      },
-      "rotate": {
-        "type": "number",
-        "enum": [0, 90, 180, 270],
-        "description": "Clockwise rotation in degrees."
-      },
-      "grayscale": {
-        "type": "boolean",
-        "default": false,
-        "description": "Convert image to monochrome grayscale."
-      },
-      "overwrite": {
-        "type": "boolean",
-        "default": false,
-        "description": "Overwrite existing destination file. When false, auto-increments filename safely."
-      }
-    },
-    "required": ["inputPath"]
-  }
-}
-```
+#### 1. `convert_image`
+- **Description**: Converts a single image file on disk to WebP, AVIF, PNG, JPEG with optional aspect-ratio downscaling, quality compression, rotation, and grayscale.
+- **Safety**: Non-Destructive Write (default) / Overwrite with confirmation.
+- **Key Parameters**:
+  - `inputPath` (string, required): Source image path.
+  - `outputPath` (string, optional): Target file path.
+  - `format` (enum: `["webp", "png", "jpeg", "avif"]`, default: `"webp"`).
+  - `quality` (number, default: `82`): Compression quality (1-100).
+  - `maxWidth` / `maxHeight` (number, optional): Downscale bounds.
+  - `rotate` (number, optional): 90, 180, 270 degrees.
+  - `grayscale` (boolean, default: `false`).
+  - `overwrite` (boolean, default: `false`).
 
-### 2. `convert_batch`
-Batch converts an entire directory or explicit array of file paths in a single call.
+#### 2. `convert_batch`
+- **Description**: Converts an entire directory of images in parallel with recursion filters.
+- **Safety**: Non-Destructive Write.
+- **Key Parameters**:
+  - `directoryPath` (string, optional): Folder to convert.
+  - `inputPaths` (array of strings, optional): Explicit list of files.
+  - `outputDir` (string, optional): Output folder.
+  - `format` (enum: `["webp", "png", "jpeg", "avif"]`, default: `"webp"`).
+  - `quality` (number, default: `82`).
+  - `recursive` (boolean, default: `false`): Skips `.git`, `node_modules`, `.next`, `dist`.
 
-```json
-{
-  "name": "convert_batch",
-  "description": "Batch converts an entire folder or list of files to WebP/AVIF/PNG/JPEG in a single tool call without multi-turn permission prompts. Automatically ignores noise folders (.git, node_modules, .next).",
-  "inputSchema": {
-    "type": "object",
-    "properties": {
-      "directoryPath": {
-        "type": "string",
-        "description": "Directory path containing images to batch convert (e.g. C:/photos or ./screenshots)."
-      },
-      "inputPaths": {
-        "type": "array",
-        "items": { "type": "string" },
-        "description": "Explicit array of file paths to convert."
-      },
-      "outputDir": {
-        "type": "string",
-        "description": "Destination directory for converted files."
-      },
-      "format": {
-        "type": "string",
-        "enum": ["webp", "png", "jpeg", "avif"],
-        "default": "webp"
-      },
-      "quality": {
-        "type": "number",
-        "minimum": 0.01,
-        "maximum": 100,
-        "default": 82
-      },
-      "recursive": {
-        "type": "boolean",
-        "default": false,
-        "description": "Scan nested subdirectories recursively."
-      },
-      "maxWidth": { "type": "number" },
-      "maxHeight": { "type": "number" },
-      "grayscale": { "type": "boolean", "default": false },
-      "overwrite": { "type": "boolean", "default": false }
-    }
-  }
-}
-```
+#### 3. `convert_video`
+- **Description**: Transcodes, compresses, and downscales video containers (MP4, WebM, MKV, MOV) using static FFmpeg.
+- **Safety**: Non-Destructive Write.
+- **Key Parameters**:
+  - `inputPath` (string, required): Video path.
+  - `outputFormat` (enum: `["mp4", "webm", "mkv", "mov"]`, default: `"mp4"`).
+  - `crf` (number, default: `23`): Constant Rate Factor compression.
+  - `preset` (enum: `["ultrafast", "fast", "medium", "slow"]`, default: `"fast"`).
+  - `scale` (string, optional): e.g. `"1280:720"`, `"1920:1080"`, `"0.5"`.
+  - `mute` (boolean, default: `false`).
 
-### 3. `extract_audio`
-Extracts audio tracks from video files (.mp4, .mov, .mkv, .webm, .avi) to standalone audio files.
+#### 4. `extract_audio`
+- **Description**: Extracts soundtracks from video files into audio containers.
+- **Safety**: Non-Destructive Write.
+- **Key Parameters**:
+  - `inputPath` (string, required): Source video.
+  - `outputFormat` (enum: `["mp3", "wav", "aac", "m4a", "flac", "ogg"]`, default: `"mp3"`).
+  - `bitrate` (string, default: `"192k"`).
+  - `channels` (number, default: `2`).
 
-```json
-{
-  "name": "extract_audio",
-  "description": "Extract audio tracks from video files (.mp4, .mov, .mkv, .webm, .avi) to MP3, WAV, AAC, M4A, FLAC, or OGG.",
-  "inputSchema": {
-    "type": "object",
-    "properties": {
-      "inputPath": {
-        "type": "string",
-        "description": "Path to the video file (.mp4, .mov, .mkv, .webm, .avi, etc.). Quotes cleaned automatically."
-      },
-      "outputFormat": {
-        "type": "string",
-        "enum": ["mp3", "wav", "aac", "m4a", "flac", "ogg"],
-        "default": "mp3",
-        "description": "Target audio format (default: mp3)"
-      },
-      "outputPath": {
-        "type": "string",
-        "description": "Destination file path. Defaults to original name & folder with new audio extension."
-      },
-      "bitrate": {
-        "type": "string",
-        "default": "192k",
-        "description": "Audio bitrate for lossy formats (e.g. 128k, 192k, 320k)"
-      },
-      "channels": {
-        "type": "number",
-        "enum": [1, 2],
-        "default": 2,
-        "description": "Number of audio channels: 1 (mono) or 2 (stereo, default)"
-      },
-      "overwrite": {
-        "type": "boolean",
-        "default": false,
-        "description": "Overwrite destination file if it already exists"
-      }
-    },
-    "required": ["inputPath"]
-  }
-}
-```
+#### 5. `convert_audio`
+- **Description**: Transcodes standalone audio files with sample rate and channel controls.
+- **Safety**: Non-Destructive Write.
+- **Key Parameters**:
+  - `inputPath` (string, required): Source audio.
+  - `outputFormat` (enum: `["mp3", "wav", "aac", "m4a", "flac", "ogg"]`, default: `"mp3"`).
+  - `bitrate` (string, default: `"192k"`).
+  - `sampleRate` (number, default: `44100`).
 
-### 4. `convert_video`
-Compresses, resizes, or converts video containers and codecs (.mp4, .webm, .mkv, .mov).
+#### 6. `extract_poster_frame`
+- **Description**: Seeks to a sub-second timestamp and captures a high-resolution snapshot frame.
+- **Safety**: Non-Destructive Write.
+- **Key Parameters**:
+  - `inputPath` (string, required): Source video.
+  - `timestamp` (number, default: `0.5`): Seek time in seconds.
+  - `format` (enum: `["webp", "png", "jpeg"]`, default: `"webp"`).
 
-```json
-{
-  "name": "convert_video",
-  "description": "Compresses, downscales, or converts video containers and codecs (.mp4, .webm, .mkv, .mov) with CRF quality control.",
-  "inputSchema": {
-    "type": "object",
-    "properties": {
-      "inputPath": {
-        "type": "string",
-        "description": "Path to source video file (.mp4, .mov, .mkv, .webm, .avi, etc.)"
-      },
-      "format": {
-        "type": "string",
-        "enum": ["mp4", "webm", "mkv", "mov"],
-        "default": "mp4",
-        "description": "Target video container format (default: mp4)"
-      },
-      "outputPath": {
-        "type": "string",
-        "description": "Optional destination path. Defaults to same name and directory with new video extension."
-      },
-      "preset": {
-        "type": "string",
-        "enum": ["ultrafast", "fast", "medium", "slow"],
-        "default": "fast",
-        "description": "Encoding speed/compression preset (default: fast)"
-      },
-      "crf": {
-        "type": "number",
-        "minimum": 18,
-        "maximum": 35,
-        "default": 23,
-        "description": "Constant Rate Factor: lower = higher quality, 18-28 recommended (default: 23)"
-      },
-      "maxWidth": {
-        "type": "number",
-        "description": "Optional max width in pixels (aspect ratio strictly preserved)"
-      },
-      "maxHeight": {
-        "type": "number",
-        "description": "Optional max height in pixels (aspect ratio strictly preserved)"
-      },
-      "muteAudio": {
-        "type": "boolean",
-        "default": false,
-        "description": "Strip audio track from the video if true (default: false)"
-      },
-      "overwrite": {
-        "type": "boolean",
-        "default": false,
-        "description": "Overwrite existing destination file if present"
-      }
-    },
-    "required": ["inputPath"]
-  }
-}
-```
+#### 7. `get_media_info`
+- **Description**: Unified metadata inspector returning resolution, container, codecs, bitrate, sample rates, and alpha channels.
+- **Safety**: Read-Only.
+- **Key Parameters**:
+  - `filePath` (string, required): Media file path.
 
-### 5. `convert_audio`
-Converts standalone audio files between formats with bitrate and sample rate configuration.
-
-```json
-{
-  "name": "convert_audio",
-  "description": "Converts standalone audio files between MP3, WAV, AAC, M4A, FLAC, and OGG with bitrate and sample rate control.",
-  "inputSchema": {
-    "type": "object",
-    "properties": {
-      "inputPath": {
-        "type": "string",
-        "description": "Path to source audio file (.mp3, .wav, .aac, .m4a, .flac, .ogg, etc.)"
-      },
-      "format": {
-        "type": "string",
-        "enum": ["mp3", "wav", "aac", "m4a", "flac", "ogg"],
-        "default": "mp3",
-        "description": "Target audio format (default: mp3)"
-      },
-      "outputPath": {
-        "type": "string",
-        "description": "Optional destination path. Defaults to same folder with new audio extension."
-      },
-      "bitrate": {
-        "type": "string",
-        "default": "192k",
-        "description": "Target bitrate (e.g. 128k, 192k, 320k)"
-      },
-      "sampleRate": {
-        "type": "number",
-        "description": "Audio sample rate in Hz (e.g. 44100, 48000)"
-      },
-      "overwrite": {
-        "type": "boolean",
-        "default": false,
-        "description": "Overwrite output file if it already exists"
-      }
-    },
-    "required": ["inputPath"]
-  }
-}
-```
-
-### 6. `get_media_info`
-Unified metadata inspector for images, video, and audio files.
-
-```json
-{
-  "name": "get_media_info",
-  "description": "Inspects metadata for image, video, and audio files including dimensions, resolution, codec, bitrate, duration, and color space.",
-  "inputSchema": {
-    "type": "object",
-    "properties": {
-      "filePath": {
-        "type": "string",
-        "description": "Path to image, video, or audio file to inspect metadata"
-      }
-    },
-    "required": ["filePath"]
-  }
-}
-```
-
-### 7. `optimize_for_agent`
-Downscales heavy screenshots to token-efficient WebP for AI vision context windows.
-
-```json
-{
-  "name": "optimize_for_agent",
-  "description": "Optimizes high-resolution screenshots or images for LLM vision models (e.g. Gemini, Claude 3.5 Sonnet, GPT-4o).",
-  "inputSchema": {
-    "type": "object",
-    "properties": {
-      "inputPath": {
-        "type": "string",
-        "description": "Path to high-resolution screenshot or image."
-      },
-      "outputPath": {
-        "type": "string",
-        "description": "Optional destination path (.webp only)."
-      },
-      "maxDimension": {
-        "type": "number",
-        "default": 1280,
-        "description": "Max width or height in px for LLM vision models (default: 1280)."
-      }
-    },
-    "required": ["inputPath"]
-  }
-}
-```
+#### 8. `optimize_for_agent`
+- **Description**: Downscales high-resolution UI screenshots to compact WebP under 1568px to protect LLM vision context windows.
+- **Safety**: Non-Destructive Write.
+- **Key Parameters**:
+  - `inputPath` (string, required): Screenshot path.
+  - `maxDimension` (number, default: `1280`): Max px bound.
 
 ---
 
-## Legal, Privacy & Compliance References
+### Domain 2: Website Performance Auditing & Diagnostics (9 Tools)
 
-- **Privacy Policy (100% Offline Guarantee)**: https://photonow.vercel.app/privacy
-- **Terms of Service & Acceptable Use Policy**: https://photonow.vercel.app/terms
-- **Trademarks, Nominative Fair Use & Legal Notice**: https://photonow.vercel.app/legal
-- **Open-Source License (MIT)**: https://github.com/Sibasish2005/PhotoNowEngine/blob/main/LICENSE
+#### 9. `analyze_media`
+- **Description**: Inspects a single media asset for performance bottlenecks, layout shift risks, and LCP status.
+- **Safety**: Read-Only.
+- **Key Parameters**: `filePath` (string, required), `detailLevel` (enum).
 
+#### 10. `analyze_web_assets`
+- **Description**: Scans website media assets, computing the 5-axis PhotoNow performance score (0-100) and top issues.
+- **Safety**: Read-Only.
+- **Key Parameters**: `directoryPath` (string, optional), `detailLevel` (enum).
+
+#### 11. `find_oversized_assets`
+- **Description**: Filters assets exceeding specified dimensional or byte thresholds.
+- **Safety**: Read-Only.
+- **Key Parameters**: `directoryPath` (string), `maxDimension` (number, default: `1920`), `maxSizeBytes` (number, default: `204800`).
+
+#### 12. `find_inefficient_formats`
+- **Description**: Pinpoints legacy formats (photographic PNGs, uncompressed JPEGs, animated GIFs).
+- **Safety**: Read-Only.
+- **Key Parameters**: `directoryPath` (string), `detailLevel` (enum).
+
+#### 13. `find_duplicate_assets`
+- **Description**: Identifies exact and visually near-identical images via 64-bit dHash and SHA-256.
+- **Safety**: Read-Only.
+- **Key Parameters**: `directoryPath` (string), `similarityThreshold` (number, default: `90`).
+
+#### 14. `find_responsive_opportunities`
+- **Description**: Identifies high-resolution assets lacking responsive `<picture>` or `srcset` variants.
+- **Safety**: Read-Only.
+- **Key Parameters**: `directoryPath` (string), `minWidth` (number, default: `1200`).
+
+#### 15. `test_web_performance`
+- **Description**: Web auditor reporting mobile 4G latency, simulated LCP candidates, and bandwidth waste.
+- **Safety**: Read-Only.
+- **Key Parameters**: `localPath` (string), `targetUrl` (string, optional).
+
+#### 16. `get_web_performance_summary`
+- **Description**: Instant retrieval of cached performance test results by `testId`.
+- **Safety**: Read-Only.
+- **Key Parameters**: `testId` (string, required).
+
+#### 17. `compare_web_performance`
+- **Description**: Computes deltas, byte savings, and metric gains between before and after test snapshots.
+- **Safety**: Read-Only.
+- **Key Parameters**: `beforeTestId` (string, required), `afterTestId` (string, required).
+
+---
+
+### Domain 3: Performance Booster & Optimization (3 Tools)
+
+#### 18. `generate_optimization_plan`
+- **Description**: Formulates an explainable optimization plan with unique `planId`, impact ratings, and target paths.
+- **Safety**: Read-Only (Formulates plan without modifying files).
+- **Key Parameters**: `directoryPath` (string), `format` (enum: `["webp", "avif"]`), `quality` (number, default: `82`).
+
+#### 19. `optimize_web_assets`
+- **Description**: Safely executes an optimization plan via native Sharp.
+- **Safety**: Non-Destructive Write (defaults to `.photonow/optimized/`).
+- **Key Parameters**: `planId` (string, optional), `directoryPath` (string, optional), `overwriteSource` (boolean, default: `false`).
+
+#### 20. `verify_optimization`
+- **Description**: Verifies measured file size reductions, codec integrity, and generates offline local reports.
+- **Safety**: Read-Only / Local Report Generation.
+- **Key Parameters**: `planId` (string), `generateReport` (boolean, default: `true`).
+
+---
+
+### Domain 4: Asset Dependency Graph & AST Understanding (3 Tools)
+
+#### 21. `inspect_project`
+- **Description**: Deep repository scanner detecting framework (Next.js App/Pages Router, Vite, Nuxt, Astro), route trees, and public media roots.
+- **Safety**: Read-Only.
+- **Key Parameters**: `projectPath` (string, required).
+
+#### 22. `get_asset_usage`
+- **Description**: Traces asset usage chain (`Route ➔ Component ➔ SourceFile`), references count, and LCP candidate priority.
+- **Safety**: Read-Only.
+- **Key Parameters**: `projectPath` (string, required), `assetPath` (string, required).
+
+#### 23. `find_unused_assets`
+- **Description**: Pruning intelligence categorizing dead assets into safety tiers (`SAFE`, `LIKELY`, `UNCERTAIN`).
+- **Safety**: Read-Only.
+- **Key Parameters**: `projectPath` (string, required).
+
+---
+
+### Domain 5: Execution, Safe Patching & Runtime (5 Tools)
+
+#### 24. `check_performance_budget`
+- **Description**: Evaluates project media against budgets (max page bytes, max image bytes, hero weight).
+- **Safety**: Read-Only.
+- **Key Parameters**: `projectPath` (string, required), `customBudget` (object, optional).
+
+#### 25. `verify_runtime_performance`
+- **Description**: Separates real browser `OBSERVED` metrics from local network `SIMULATED` models for LCP, FCP, and CLS.
+- **Safety**: Read-Only.
+- **Key Parameters**: `targetUrl` (string, required), `timeoutMs` (number, default: `8000`).
+
+#### 26. `generate_source_patch`
+- **Description**: Generates unified diffs updating image tags (`<Image>`, `<img>`) and imports in source code.
+- **Safety**: Read-Only (diff preview).
+- **Key Parameters**: `projectPath` (string, required), `planId` (string, required), `dryRun` (boolean, default: `true`).
+
+#### 27. `apply_source_patch`
+- **Description**: Applies source patch safely with automated backups in `.photonow/backups/[operationId]/`.
+- **Safety**: Atomic Rollback Available. Requires `confirmApply: true`.
+- **Key Parameters**: `projectPath` (string, required), `patchId` (string, required), `confirmApply` (boolean, required: `true`).
+
+#### 28. `rollback_operation`
+- **Description**: 1-click atomic rollback restoring modified source code and assets to pre-patch state.
+- **Safety**: Restores verified backups.
+- **Key Parameters**: `projectPath` (string, required), `operationId` (string, required).
+
+---
+
+### Domain 6: Autonomous High-Level Mission (1 Tool)
+
+#### 29. `optimize_project`
+- **Description**: 10-step autonomous mission orchestrator (`DISCOVER ➔ UNDERSTAND ➔ ANALYZE ➔ MEASURE ➔ DIAGNOSE ➔ PLAN ➔ PATCH ➔ OPTIMIZE ➔ VERIFY ➔ REPORT`).
+- **Safety**: Dry-Run Safe / Rollback Available.
+- **Key Parameters**:
+  - `projectPath` (string, required): Project root.
+  - `mode` (enum: `["safe", "review", "aggressive"]`, default: `"safe"`).
+  - `dryRun` (boolean, default: `false`).
+  - `format` (enum: `["webp", "avif"]`, default: `"webp"`).
+  - `applySourcePatches` (boolean, default: `false`).
+  - `detailLevel` (enum: `["compact", "standard", "detailed", "raw"]`, default: `"compact"`).
+
+---
+
+## Token Economy Contract for AI Agents
+
+All tools implement progressive disclosure:
+- **Default Mode (`detailLevel: "compact"`)**: Emits high-level summaries (<200 tokens) with next-action guidance.
+- **Detailed Mode (`detailLevel: "detailed"`)**: Exposes raw diagnostic coordinates and full lists.
+- **Local Persistence**: Full reports are written to `.photonow/reports/` to keep agent contexts clean.
+
+---
+
+## Automated Verification Matrix
+
+| Test Suite Script | Checks | Pass Rate | Target Surface |
+| :--- | :--- | :--- | :--- |
+| `npm run test:mcp` | 29 | **100% (29/29)** | Native Stdio JSON-RPC 2.0 Catalog |
+| `npm run test:sandbox` | 15 | **100% (15/15)** | Isolated Next.js Sandbox Client |
+| `npm run test:security` | 15 | **100% (15/15)** | SSRF, Traversal, Bombs, Ast Injection |
+| `npm run test:http` | 10 | **100% (10/10)** | JSON-RPC 2.0 HTTP (`/api/mcp`) |
+| `npm run test:unit` | 7 | **100% (7/7)** | Core Engine Modules |
+| `npm run test:mission` | 4 | **100% (4/4)** | 10-Step Autonomous Mission Loop |
