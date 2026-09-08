@@ -1,77 +1,219 @@
-# Building PhotoNow Engine from Scratch
-### The Complete Step-by-Step Engineering Roadmap for Next.js Developers
+# PhotoNow Master Blueprint: Architecture, Build & Usage Guide
+### The Complete End-to-End Engineering Guide for Building & Using PhotoNow
 
-> **Target Audience**: Next.js developers (familiar with the App Router, TypeScript, React Server/Client Components, and Route Handlers) who want to build a high-performance, zero-cloud multimedia processing application and autonomous Model Context Protocol (MCP) tool server from an empty directory.
+> **Target Audience**: Software engineers, systems architects, and web developers who want to build, understand, or use a high-performance, local-first multimedia engine and autonomous 29-tool Model Context Protocol (MCP) server from scratch.
 
 ---
 
 ## Table of Contents
 
 1. [Architectural Mental Model & System Duality](#1-architectural-mental-model--system-duality)
-2. [Stage 1: Project Initialization, Dependencies & Bundler Configuration](#stage-1-project-initialization-dependencies--bundler-configuration)
-3. [Stage 2: Hand-Drawn Monochrome Design System & Theming Tokens](#stage-2-hand-drawn-monochrome-design-system--theming-tokens)
-4. [Stage 3: Data Contracts & Client-Side Storage Tier (IndexedDB)](#stage-3-data-contracts--client-side-storage-tier-indexeddb)
-5. [Stage 4: In-Browser Image Transformation Engine & Custom Sobel Shader](#stage-4-in-browser-image-transformation-engine--custom-sobel-shader)
-6. [Stage 5: In-Browser Video Transcoding & Web Audio WAV Extraction](#stage-5-in-browser-video-transcoding--web-audio-wav-extraction)
-7. [Stage 6: Autonomous Stdio MCP Server for AI Agents (Claude, Cursor, Antigravity)](#stage-6-autonomous-stdio-mcp-server-for-ai-agents-claude-cursor-antigravity)
-8. [Stage 7: HTTP MCP API Endpoint, Ephemeral Rate Limiting & Browser Bridge](#stage-7-http-mcp-api-endpoint-ephemeral-rate-limiting--browser-bridge)
-9. [Stage 8: Interactive UI & Split-Screen Workbench Components](#stage-8-interactive-ui--split-screen-workbench-components)
-10. [Stage 9: SEO, AEO (Answer Engine Optimization) & Legal Infrastructure](#stage-9-seo-aeo-answer-engine-optimization--legal-infrastructure)
-11. [Stage 10: Automated Test Suites & Production Deployment](#stage-10-automated-test-suites--production-deployment)
+2. [Complete System Architecture & Flowchart](#2-complete-system-architecture--flowchart)
+3. [Master Directory Structure](#3-master-directory-structure)
+4. [Stage 1: Project Initialization & Configuration](#stage-1-project-initialization--configuration)
+5. [Stage 2: Hand-Drawn Monochromatic Design System](#stage-2-hand-drawn-monochromatic-design-system)
+6. [Stage 3: Browser Client Multimedia Foundation](#stage-3-browser-client-multimedia-foundation)
+7. [Stage 4: Shared Performance Intelligence Core (`lib/engine/`)](#stage-4-shared-performance-intelligence-core)
+8. [Stage 5: The 7 Agentic Intelligence Pillars](#stage-5-the-7-agentic-intelligence-pillars)
+9. [Stage 6: Standalone Stdio & HTTP MCP Server (29 Tools)](#stage-6-standalone-stdio--http-mcp-server)
+10. [Stage 7: Interactive Web Companion Workbench](#stage-7-interactive-web-companion-workbench)
+11. [Stage 8: Complete Hands-On User Guide (UI & AI Agents)](#stage-8-complete-hands-on-user-guide)
+12. [Stage 9: Automated Verification Test Suites & Benchmarks](#stage-9-automated-verification-test-suites)
 
 ---
 
 ## 1. Architectural Mental Model & System Duality
 
-Most web developers who approach a media converter build a classic client-server model: the browser uploads files to AWS S3, a serverless lambda or worker server runs FFmpeg, and the transformed file is downloaded back. 
+Most developers approaching media conversion and performance optimization build a traditional cloud SaaS model: files are uploaded to AWS S3 or Cloudinary, serverless workers execute CLI tools, and transformed images are served over an external CDN with recurring monthly costs.
 
 **PhotoNow radically diverges from that model**:
-1. **Zero Cloud Infrastructure**: User photos, videos, and audio streams are processed **100% locally**. In the browser, this uses Canvas 2D, `MediaRecorder`, and the Web Audio API. On the desktop, this runs via bundled static binaries directly on the user's filesystem.
-2. **Dual-Engine Architecture**:
-   - **Engine A: Browser Client Workbench**: A hand-drawn monochrome interactive web application where human users drag-and-drop files, adjust visual filters, and export results.
-   - **Engine B: Stdio & HTTP Model Context Protocol (MCP) Server**: A standard MCP server allowing autonomous AI coding assistants (Claude Desktop, Cursor, Google Antigravity, Claude Code) to perform batch conversions, video downscaling, and audio extraction with a single tool call without prompting the user for terminal permissions.
+
+1. **100% Local-First / Zero Cloud**: All processing happens entirely on the local machine using native Node.js (Sharp, static FFmpeg) and the modern browser runtime (HTML5 Canvas 2D, Web Audio API, `MediaRecorder`, IndexedDB). Zero API keys, zero cloud storage, zero telemetry.
+2. **Dual-Engine Synergy**:
+   - **Engine A: Human Companion Workbench**: An artist-style hand-drawn monochrome web application where developers can inspect visual scores, analyze dead assets, test live URLs, and visually verify before/after quality.
+   - **Engine B: Autonomous AI Agent MCP Server**: A high-speed Model Context Protocol server exposing **29 native tools** over stdio and HTTP JSON-RPC 2.0. AI assistants (Claude Desktop, Google Antigravity, Cursor) can audit entire codebases, parse `<Image>` tags, formulate unified diffs, and execute safe rollbacks.
+3. **Token Economy as a First-Class Citizen**: AI agents operate within strict context budgets. PhotoNow guarantees that diagnostic payloads use progressive disclosure (`compact`, `standard`, `detailed`, `raw`), cutting LLM token usage by **95.4%** (< 200 tokens default) while providing deterministic `nextAction` state machine chaining.
+4. **Safe, Non-Destructive Source Patching**: All code and asset modifications strictly default to `dryRun: true`. Every modification requires explicit approval, creates timestamped backups in `.photonow/backups/`, and generates cryptographic manifests for instant atomic rollback.
 
 ```
-┌─────────────────────────────────────────────────────────────────────────┐
-│                        PhotoNow System Architecture                     │
-├────────────────────────────────────┬────────────────────────────────────┤
-│     Human Web Workbench (GUI)      │   Autonomous AI Agent (Stdio MCP)  │
-│  - React 19 Client Components      │  - Node.js Stdio Process           │
-│  - HTML5 Canvas 2D (Sobel Filter)  │  - Bundled Static FFmpeg & FFprobe │
-│  - MediaRecorder (WebM Transcode)  │  - Native Sharp (libvips 8.16)     │
-│  - Web Audio API (WAV Extraction)  │  - 7 Autonomous Tools              │
-│  - Sandboxed IndexedDB Persistence │  - Single-Approval Zero Friction   │
-└────────────────────────────────────┴────────────────────────────────────┘
+┌────────────────────────────────────────────────────────────────────────┐
+│                        PHOTONOW SYSTEM DUALITY                         │
+├───────────────────────────────────┬────────────────────────────────────┤
+│     HUMAN COMPANION WORKBENCH     │     AUTONOMOUS AI AGENTS (MCP)     │
+│  - Hand-Drawn Ink Aesthetic       │  - Stdio & HTTP JSON-RPC 2.0       │
+│  - HTML5 Canvas 2D (Sobel Filter) │  - 29 Specialized Native Tools     │
+│  - MediaRecorder (WebM Transcode) │  - AST & Regex <Image> Parser      │
+│  - Web Audio API (WAV Audio)      │  - Asset Dependency Graph Engine   │
+│  - Sandboxed IndexedDB Store      │  - Safe Source Patching & Rollback │
+│  - 5-Axis Score & Visual Slider   │  - Token-Budgeted Output (<200 tkn)│
+└───────────────────────────────────┴────────────────────────────────────┘
 ```
 
 ---
 
-## Stage 1: Project Initialization, Dependencies & Bundler Configuration
+## 2. Complete System Architecture & Flowchart
 
-### 1. Initialize Next.js 16
-Start by initializing a Next.js project with TypeScript, ESLint, and App Router:
+```mermaid
+flowchart TB
+    subgraph Client_Layer["Client & Agent Interfaces"]
+        AIAgent["AI Coding Assistants<br/>(Claude Desktop / Antigravity / Cursor)"]
+        BrowserUser["Human Developer<br/>(Web Browser GUI)"]
+    end
 
-```bash
-npx create-next-app@latest photo-convert --typescript --eslint --app --src-dir=false --import-alias="@/*"
-cd photo-convert
+    subgraph Protocol_Gateway["Protocol & API Layer"]
+        StdioServer["bin/mcp-server.mjs<br/>(Stdio JSON-RPC 2.0 - 29 Tools)"]
+        HttpRoute["app/api/mcp/route.ts<br/>(HTTP JSON-RPC 2.0 Endpoint)"]
+        RestRoute["app/api/performance/route.ts<br/>(REST Performance API)"]
+        WebGUI["components/PerformanceWorkbench.tsx<br/>(Next.js Companion UI)"]
+    end
+
+    subgraph Token_Guard["Token Economy & Cache Layer"]
+        TokenEconomy["lib/engine/tokenEconomy.mjs<br/>(Progressive Disclosure & Budget Guard)"]
+        CacheStore["lib/engine/cache.mjs<br/>(In-Memory Plan & Test Cache)"]
+    end
+
+    subgraph Agentic_Layer["7 Agentic Intelligence Pillars"]
+        Scanner["lib/engine/projectScanner.mjs<br/>(Framework & Route Discovery)"]
+        SourceAST["lib/engine/sourceAnalyzer.mjs<br/>(AST & Source &lt;Image&gt; Parser)"]
+        AssetGraph["lib/engine/assetGraph.mjs<br/>(Route ➔ Component ➔ Asset Graph)"]
+        PatchGen["lib/engine/patchGenerator.mjs<br/>(Unified Diffs, Backups & Rollback)"]
+        BrowserVerif["lib/engine/browserVerifier.mjs<br/>(OBSERVED vs SIMULATED Core)"]
+        BudgetEngine["lib/engine/budget.mjs<br/>(Performance Budget Evaluator)"]
+        Regression["lib/engine/regression.mjs<br/>(Git Baselines & PR Guard)"]
+        MissionRunner["lib/engine/mission.mjs<br/>(Autonomous 10-Step Orchestrator)"]
+    end
+
+    subgraph Core_Engine["Shared Performance Engine Core"]
+        Analyzer["lib/engine/analyzer.mjs<br/>(5-Axis Scorer & Bottleneck Classifier)"]
+        PHash["lib/engine/perceptualHash.mjs<br/>(64-bit dHash & SHA-256 Deduplicator)"]
+        Tester["lib/engine/performanceTester.mjs<br/>(Web Auditor & 4G/LCP Simulator)"]
+        Booster["lib/engine/booster.mjs<br/>(Optimization Planner & Safe Transcoder)"]
+        Reporter["lib/engine/reporting.mjs<br/>(Offline HTML, MD, JSON Reports)"]
+    end
+
+    subgraph Foundations["Local Execution Foundation"]
+        SharpLib["Sharp (Native Node.js Image Engine)"]
+        FFmpegLib["Static FFmpeg / FFprobe"]
+        BrowserAPIs["HTML5 Canvas 2D & Web Audio API"]
+        IndexedDBStore["IndexedDB (photoConvert_DB)"]
+    end
+
+    AIAgent --> StdioServer
+    AIAgent --> HttpRoute
+    BrowserUser --> WebGUI
+    WebGUI --> RestRoute
+
+    StdioServer --> TokenEconomy
+    HttpRoute --> TokenEconomy
+    RestRoute --> Core_Engine
+
+    TokenEconomy --> MissionRunner
+    MissionRunner --> Scanner
+    MissionRunner --> SourceAST
+    MissionRunner --> AssetGraph
+    MissionRunner --> PatchGen
+    MissionRunner --> BrowserVerif
+    MissionRunner --> BudgetEngine
+    MissionRunner --> Regression
+    MissionRunner --> Core_Engine
+
+    SourceAST --> AssetGraph
+    AssetGraph --> PatchGen
+    Core_Engine --> CacheStore
+    Analyzer --> PHash
+    Booster --> SharpLib
+    Booster --> FFmpegLib
+    WebGUI --> BrowserAPIs
+    BrowserAPIs --> IndexedDBStore
 ```
 
-### 2. Install Project Dependencies
-PhotoNow uses a curated set of native and bundled libraries:
+---
 
-```bash
-# Server-side & Stdio MCP tooling
-npm install sharp @ffmpeg-installer/ffmpeg @ffprobe-installer/ffprobe fluent-ffmpeg @modelcontextprotocol/sdk
+## 3. Master Directory Structure
 
-# Client-side archiving
-npm install jszip
-
-# TypeScript type definitions
-npm install -D @types/fluent-ffmpeg @types/jszip
+```
+photoNow/
+├── bin/
+│   └── mcp-server.mjs                 # Standalone Stdio MCP server (29 tools)
+├── app/
+│   ├── api/
+│   │   ├── mcp/
+│   │   │   └── route.ts               # HTTP JSON-RPC 2.0 MCP endpoint
+│   │   └── performance/
+│   │       └── route.ts               # REST API for workbench GUI
+│   ├── globals.css                    # Hand-drawn ink design tokens & animations
+│   ├── layout.tsx                     # App layout, Google Fonts (Permanent Marker & Space Mono)
+│   ├── page.tsx                       # Main split-screen workbench controller
+│   ├── icon.svg                       # Vector SVG favicon
+│   ├── apple-icon.png                 # Mobile touch icon
+│   ├── robots.ts                      # SEO robots configuration
+│   └── sitemap.ts                     # Automated sitemap generator
+├── components/
+│   ├── PerformanceWorkbench.tsx       # 7-subtab performance intelligence GUI
+│   ├── PhotoConverter.tsx             # Canvas 2D image converter & Sobel shader
+│   ├── VideoConverter.tsx             # Video player, WebM transcoder & audio extractor
+│   ├── StorageHistory.tsx             # IndexedDB history manager & ZIP bundle exporter
+│   ├── McpPlayground.tsx              # In-browser JSON-RPC test console
+│   ├── HeaderNav.tsx                  # Sticky bracketed header navigation
+│   ├── LeftHeroIllustration.tsx       # Left-column hand-drawn character illustration
+│   ├── DoodleDecorations.tsx          # Right-edge tab strip & footer stamps
+│   └── AgenticPanel.tsx               # Natural-language prompt simulation bar
+├── lib/
+│   ├── engine/                        # Core Engine Layer (Shared by stdio, HTTP, REST & UI)
+│   │   ├── types.ts                   # TypeScript interfaces & domain models
+│   │   ├── index.ts                   # Typed Next.js module re-exports
+│   │   ├── index.mjs                  # Native ES module entry point
+│   │   ├── tokenEconomy.mjs           # Progressive disclosure & token budgeting
+│   │   ├── perceptualHash.mjs         # 64-bit dHash gradient difference & SHA-256
+│   │   ├── cache.mjs                  # Local memory cache for plans & test snapshots
+│   │   ├── analyzer.mjs               # 5-axis scorer & media bottleneck classifier
+│   │   ├── performanceTester.mjs      # Web auditor, LCP candidate & 4G mobile latency
+│   │   ├── booster.mjs                # Planner, safe Sharp transcoder & validator
+│   │   ├── reporting.mjs              # Zero-dependency offline HTML/MD reporter
+│   │   ├── projectScanner.mjs         # Framework, route tree & media root scanner
+│   │   ├── sourceAnalyzer.mjs         # AST & regex <Image> tag and priority parser
+│   │   ├── assetGraph.mjs             # Asset Dependency Graph & dead asset triage
+│   │   ├── patchGenerator.mjs         # Unified diffs, backups & rollback engine
+│   │   ├── browserVerifier.mjs        # OBSERVED vs SIMULATED runtime performance
+│   │   ├── budget.mjs                 # Performance budget rule validator
+│   │   ├── regression.mjs             # Git commit awareness & branch baselines
+│   │   └── mission.mjs                # 10-step autonomous mission orchestrator
+│   ├── imageConverter.ts              # Browser Canvas 2D client processing
+│   ├── videoConverter.ts              # Browser MediaRecorder & Web Audio WAV decoder
+│   ├── storage.ts                     # Browser IndexedDB raw database wrapper
+│   ├── mcpTools.ts                    # MCP tool schema catalog & prompt lexer
+│   ├── rateLimiter.ts                 # Sliding-window IP rate limiter
+│   ├── loadBalancer.ts                # Request telemetry & cluster metrics
+│   └── utils.ts                       # Shared byte formatting & path utilities
+├── tests/
+│   ├── unit/
+│   │   └── test-agentic-intelligence.mjs # 7-suite unit tests for agentic pillars
+│   ├── fixtures/                      # Realistic Next.js & Vite test sandboxes
+│   ├── test-autonomous-mission.mjs    # End-to-end mission, dry-run & rollback tests
+│   ├── test-mcp-server.mjs            # 29-tool verification over stdio JSON-RPC
+│   ├── test-performance-engine.mjs   # Core performance engine verification
+│   ├── test-usability-security.mjs    # 11/11 usability & security penetration tests
+│   └── benchmark.mjs                  # Cold/warm scan benchmarks & memory profiling
+├── package.json                       # Dependencies, npm scripts & binary link
+├── tsconfig.json                      # TypeScript configuration
+└── next.config.ts                     # Next.js security headers & build config
 ```
 
-### 3. Configure `package.json`
-Add the executable binary command so users can launch the Stdio MCP server via `npx photo-convert-mcp` or `npm run mcp`:
+---
+
+## Stage 1: Project Initialization & Configuration
+
+### 1. Initialize Next.js 16 Project
+Start from an empty directory:
+
+```bash
+mkdir photoNow
+cd photoNow
+npx create-next-app@latest ./ --typescript --eslint --app --src-dir=false --import-alias="@/*"
+```
+
+### 2. Configure Dependencies (`package.json`)
+PhotoNow uses native, self-contained packages without external servers:
 
 ```json
 {
@@ -84,836 +226,441 @@ Add the executable binary command so users can launch the Stdio MCP server via `
     "build": "next build",
     "start": "next start",
     "mcp": "node ./bin/mcp-server.mjs",
-    "test": "node ./tests/test-mcp-server.mjs && node ./tests/test-usability-security.mjs"
+    "mcp:sync": "node ./tests/sync-mcp-schemas.mjs",
+    "test": "node ./tests/unit/test-agentic-intelligence.mjs && node ./tests/test-autonomous-mission.mjs && node ./tests/test-performance-engine.mjs && node ./tests/test-mcp-server.mjs && node ./tests/test-usability-security.mjs",
+    "test:unit": "node ./tests/unit/test-agentic-intelligence.mjs",
+    "test:mission": "node ./tests/test-autonomous-mission.mjs",
+    "test:benchmark": "node ./tests/benchmark.mjs"
   },
   "bin": {
     "photo-convert-mcp": "./bin/mcp-server.mjs"
+  },
+  "dependencies": {
+    "@ffmpeg-installer/ffmpeg": "^1.1.0",
+    "@ffprobe-installer/ffprobe": "^2.1.2",
+    "@modelcontextprotocol/sdk": "^1.30.0",
+    "fluent-ffmpeg": "^2.1.3",
+    "jszip": "^3.10.1",
+    "next": "16.3.4",
+    "react": "19.2.8",
+    "react-dom": "19.2.8",
+    "sharp": "^0.35.4"
+  },
+  "devDependencies": {
+    "@types/fluent-ffmpeg": "^2.1.28",
+    "@types/jszip": "^3.4.0",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "typescript": "^5"
   }
 }
 ```
 
-### 4. Configure `next.config.ts`
-Because we operate a zero-cloud media platform, we configure security headers to block iframe clickjacking, sniffing, and unneeded browser device permissions:
+Run `npm install` to install all packages.
 
-```typescript
-// next.config.ts
-import type { NextConfig } from "next";
+### 3. Build & TypeScript Configuration (`tsconfig.json` & `next.config.ts`)
+Prevent Next.js from attempting to compile test fixtures and configure security headers:
 
-const nextConfig: NextConfig = {
-  async headers() {
-    return [
-      {
-        source: '/(.*)',
-        headers: [
-          { key: 'X-Content-Type-Options', value: 'nosniff' },
-          { key: 'X-Frame-Options', value: 'DENY' },
-          { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
-          { key: 'Cross-Origin-Opener-Policy', value: 'same-origin' },
-          { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=()' },
-        ],
-      },
-    ];
+**`tsconfig.json`**:
+```json
+{
+  "compilerOptions": {
+    "target": "ES2017",
+    "lib": ["dom", "dom.iterable", "esnext"],
+    "allowJs": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "noEmit": true,
+    "esModuleInterop": true,
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "jsx": "react-jsx",
+    "incremental": true,
+    "plugins": [{ "name": "next" }],
+    "paths": { "@/*": ["./*"] }
   },
-};
-
-export default nextConfig;
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
+  "exclude": ["node_modules", "tests", ".photonow"]
+}
 ```
 
 ---
 
-## Stage 2: Hand-Drawn Monochrome Design System & Theming Tokens
+## Stage 2: Hand-Drawn Monochromatic Design System
 
-Rather than using generic modern design templates, PhotoNow adopts a bespoke **hand-drawn monochrome engineering aesthetic** reminiscent of blueprint paper and India ink.
+PhotoNow uses a distinctive artist-sketchbook aesthetic:
+- **Palette**: Paper `#F2F2F0`, Deep Ink `#0A0A0A`, Inverted `#FFFFFF`.
+- **Typography**: `Permanent Marker` for bold display headlines, `Space Mono` for tabular metrics and data.
+- **Wobbly Borders**: Hand-drawn boxes using non-uniform border radiuses:
+  `border-radius: 255px 15px 225px 15px / 15px 225px 15px 255px;`
 
-### 1. Define Design Tokens in `app/globals.css`
-Set up CSS custom properties and wobble border radii:
-
+### `app/globals.css` Tokens
 ```css
-/* app/globals.css */
 :root {
-  --bg-paper: #F2F2F0;       /* Off-white paper background */
-  --ink: #0A0A0A;            /* Carbon ink black */
-  --ink-gray: #5A5A58;       /* Muted architectural pencil */
-  --paper-tint: #E5E5E2;     /* Inset shadow & secondary panel */
-  --ink-inverted: #F2F2F0;   /* White ink on black badge */
-  --wobble-radius: 255px 15px 225px 15px / 15px 225px 15px 255px;
+  --bg-paper: #F2F2F0;
+  --ink: #0A0A0A;
+  --ink-inverted: #FFFFFF;
+  --ink-gray: #666666;
+  --paper-tint: #ECECE8;
+  --font-marker: 'Permanent Marker', cursive;
+  --font-mono: 'Space Mono', monospace;
 }
 
 body {
   background-color: var(--bg-paper);
   color: var(--ink);
-  font-family: var(--font-mono), monospace;
+  font-family: var(--font-mono);
   margin: 0;
   padding: 0;
 }
 
-/* Hand-drawn borders */
+/* The Hand-Drawn Wobbly Border Class */
 .hand-box {
   border: 2px solid var(--ink);
-  border-radius: var(--wobble-radius);
-  background: var(--bg-paper);
-  box-shadow: 3px 3px 0px var(--ink);
+  border-radius: 255px 15px 225px 15px / 15px 225px 15px 255px;
+  background-color: var(--bg-paper);
+  box-shadow: 2px 3px 0px var(--ink);
 }
 
-/* Tactile hand-drawn button */
 .hand-btn {
   border: 2px solid var(--ink);
-  border-radius: var(--wobble-radius);
   background: var(--bg-paper);
   color: var(--ink);
-  font-family: var(--font-mono), monospace;
-  font-weight: 700;
   cursor: pointer;
-  box-shadow: 2px 2px 0px var(--ink);
+  font-family: var(--font-mono);
+  font-weight: 700;
   transition: transform 0.1s ease, box-shadow 0.1s ease;
 }
 
 .hand-btn:hover {
   transform: translate(-1px, -1px);
-  box-shadow: 3px 3px 0px var(--ink);
+  box-shadow: 2px 2px 0px var(--ink);
 }
 
 .hand-btn:active {
   transform: translate(1px, 1px);
-  box-shadow: 1px 1px 0px var(--ink);
-}
-
-.hand-btn.primary {
-  background: var(--ink);
-  color: var(--ink-inverted);
-}
-
-.marker-font {
-  font-family: var(--font-marker), cursive;
-}
-```
-
-### 2. Configure Typography in `app/layout.tsx`
-Load `Space_Mono` and `Permanent_Marker` via `next/font/google`:
-
-```typescript
-// app/layout.tsx
-import { Permanent_Marker, Space_Mono } from 'next/font/google';
-
-const markerFont = Permanent_Marker({
-  weight: '400',
-  subsets: ['latin'],
-  variable: '--font-marker',
-  display: 'swap',
-});
-
-const monoFont = Space_Mono({
-  weight: ['400', '700'],
-  subsets: ['latin'],
-  variable: '--font-mono',
-  display: 'swap',
-});
-
-export default function RootLayout({ children }: { children: React.ReactNode }) {
-  return (
-    <html lang="en" className={`${markerFont.variable} ${monoFont.variable}`}>
-      <body>{children}</body>
-    </html>
-  );
+  box-shadow: 0px 0px 0px var(--ink);
 }
 ```
 
 ---
 
-## Stage 3: Data Contracts & Client-Side Storage Tier (IndexedDB)
+## Stage 3: Browser Client Multimedia Foundation
 
-### 1. Define Core Interfaces (`lib/types.ts`)
-Create type contracts shared across image converters, video transcoders, storage, and MCP tools:
-
-```typescript
-// lib/types.ts
-export type ImageFormat = 'webp' | 'png' | 'jpeg' | 'avif' | 'bmp';
-export type VideoFormat = 'webm' | 'poster' | 'audio-wav';
-
-export interface ImageConvertOptions {
-  format: ImageFormat;
-  quality: number; // 0.1 to 1.0
-  maxWidth?: number;
-  maxHeight?: number;
-  applySketchFilter?: boolean;
-  applyGrayscale?: boolean;
-  applyInvert?: boolean;
-  rotate?: number; // 0, 90, 180, 270
-}
-
-export interface VideoConvertOptions {
-  action: 'webm' | 'poster' | 'audio-wav';
-  posterTime?: number; // seconds
-  posterFormat?: 'webp' | 'jpeg' | 'png';
-  posterQuality?: number;
-  videoBitrate?: number; // bps e.g. 2000000
-  videoScale?: number; // 1, 0.75, 0.5
-  mute?: boolean;
-}
-
-export interface StoredConversion {
-  id: string;
-  originalName: string;
-  convertedName: string;
-  format: string;
-  size: number;
-  originalSize: number;
-  createdAt: number;
-  blob: Blob;
-  previewUrl: string;
-  type: 'image' | 'video' | 'audio';
-  duration?: number;
-}
-```
-
-### 2. Build the Raw IndexedDB Storage Tier (`lib/storage.ts`)
-Avoid bloated storage libraries by utilizing the browser's native `indexedDB` API:
+### 1. Canvas 2D & Sobel Ink Shader (`lib/imageConverter.ts`)
+Converts images in client browser memory using HTML5 Canvas. Includes an unweighted Sobel edge-detection filter:
 
 ```typescript
-// lib/storage.ts
-import JSZip from 'jszip';
-import { StoredConversion } from './types';
-
-const DB_NAME = 'photoConvert_DB';
-const STORE_NAME = 'conversions';
-const DB_VERSION = 1;
-
-export function openDatabase(): Promise<IDBDatabase> {
-  return new Promise((resolve, reject) => {
-    if (typeof window === 'undefined') {
-      return reject(new Error('IndexedDB unavailable on server'));
-    }
-    const request = indexedDB.open(DB_NAME, DB_VERSION);
-    request.onupgradeneeded = () => {
-      const db = request.result;
-      if (!db.objectStoreNames.contains(STORE_NAME)) {
-        db.createObjectStore(STORE_NAME, { keyPath: 'id' });
-      }
-    };
-    request.onsuccess = () => resolve(request.result);
-    request.onerror = () => reject(request.error);
-  });
-}
-
-export async function saveConversion(item: StoredConversion): Promise<void> {
-  const db = await openDatabase();
-  return new Promise((resolve, reject) => {
-    const tx = db.transaction(STORE_NAME, 'readwrite');
-    tx.objectStore(STORE_NAME).put(item);
-    tx.oncomplete = () => resolve();
-    tx.onerror = () => reject(tx.error);
-  });
-}
-
-export async function getConversions(): Promise<StoredConversion[]> {
-  const db = await openDatabase();
-  return new Promise((resolve, reject) => {
-    const tx = db.transaction(STORE_NAME, 'readonly');
-    const request = tx.objectStore(STORE_NAME).getAll();
-    request.onsuccess = () => resolve(request.result || []);
-    request.onerror = () => reject(request.error);
-  });
-}
-
-export async function deleteConversion(id: string): Promise<void> {
-  const db = await openDatabase();
-  return new Promise((resolve, reject) => {
-    const tx = db.transaction(STORE_NAME, 'readwrite');
-    tx.objectStore(STORE_NAME).delete(id);
-    tx.oncomplete = () => resolve();
-    tx.onerror = () => reject(tx.error);
-  });
-}
-
-export async function clearAllConversions(): Promise<void> {
-  const db = await openDatabase();
-  return new Promise((resolve, reject) => {
-    const tx = db.transaction(STORE_NAME, 'readwrite');
-    tx.objectStore(STORE_NAME).clear();
-    tx.oncomplete = () => resolve();
-    tx.onerror = () => reject(tx.error);
-  });
-}
-
-export async function exportAllToZip(): Promise<Blob> {
-  const items = await getConversions();
-  const zip = new JSZip();
-  for (const item of items) {
-    zip.file(item.convertedName, item.blob);
-  }
-  return zip.generateAsync({ type: 'blob' });
-}
-```
-
----
-
-## Stage 4: In-Browser Image Transformation Engine & Custom Sobel Shader
-
-The browser image conversion engine handles format re-encoding via Canvas 2D, aspect-ratio scaling, and a custom **Sobel convolution filter** to transform any photo into a hand-drawn ink sketch.
-
-### 1. Build `lib/imageConverter.ts`
-Implement proportional scaling, rotation, and canvas-to-blob conversion:
-
-```typescript
-// lib/imageConverter.ts
-import { ImageConvertOptions, ImageFormat } from './types';
-
-export function getMimeType(format: ImageFormat): string {
-  switch (format) {
-    case 'webp': return 'image/webp';
-    case 'jpeg': return 'image/jpeg';
-    case 'png':  return 'image/png';
-    case 'avif': return 'image/avif';
-    default:     return 'image/webp';
-  }
-}
-
 export async function convertImage(
   file: File | Blob,
   options: ImageConvertOptions
 ): Promise<{ blob: Blob; width: number; height: number }> {
-  const img = await loadImage(file);
-  let { width, height } = calculateDimensions(img.width, img.height, options.maxWidth, options.maxHeight);
-
-  const canvas = document.createElement('canvas');
-  canvas.width = width;
-  canvas.height = height;
-  const ctx = canvas.getContext('2d', { willReadFrequently: true });
-  if (!ctx) throw new Error('Canvas 2D context unavailable');
-
-  ctx.drawImage(img, 0, 0, width, height);
-
-  // Apply visual shaders if requested
-  if (options.applySketchFilter) {
-    applyInkSketchFilter(ctx, width, height);
-  } else if (options.applyGrayscale) {
-    applyGrayscaleFilter(ctx, width, height);
-  }
-
-  const mimeType = getMimeType(options.format);
-  const blob = await new Promise<Blob>((resolve, reject) => {
-    canvas.toBlob(
-      (b) => (b ? resolve(b) : reject(new Error('Canvas toBlob failed'))),
-      mimeType,
-      options.quality
-    );
-  });
-
-  return { blob, width, height };
-}
-```
-
-### 2. Implement the Custom Sobel Ink-Sketch Shader
-The custom filter converts the raw RGBA pixels into luminance grayscale, calculates a 3x3 Sobel edge convolution, and binarizes into carbon ink (`#0A0A0A`) on paper (`#F2F2F0`):
-
-```typescript
-export function applyInkSketchFilter(ctx: CanvasRenderingContext2D, width: number, height: number) {
-  const imgData = ctx.getImageData(0, 0, width, height);
-  const data = imgData.data;
-
-  // 1. Calculate luminance grayscale
-  const gray = new Float32Array(width * height);
-  for (let i = 0, p = 0; i < data.length; i += 4, p++) {
-    gray[p] = 0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2];
-  }
-
-  // 2. 3x3 Sobel Edge Detection Convolution
-  const edges = new Float32Array(width * height);
-  for (let y = 1; y < height - 1; y++) {
-    for (let x = 1; x < width - 1; x++) {
-      const idx = y * width + x;
-      const gx =
-        -1 * gray[idx - width - 1] + 1 * gray[idx - width + 1] +
-        -2 * gray[idx - 1]         + 2 * gray[idx + 1] +
-        -1 * gray[idx + width - 1] + 1 * gray[idx + width + 1];
-
-      const gy =
-        -1 * gray[idx - width - 1] - 2 * gray[idx - width] - 1 * gray[idx - width + 1] +
-         1 * gray[idx + width - 1] + 2 * gray[idx + width] + 1 * gray[idx + width + 1];
-
-      edges[idx] = Math.sqrt(gx * gx + gy * gy);
-    }
-  }
-
-  // 3. Composite into ink lines & crosshatch shadows
-  for (let y = 0; y < height; y++) {
-    for (let x = 0; x < width; x++) {
-      const p = y * width + x;
-      const i = p * 4;
-      const g = gray[p];
-      const edge = edges[p];
-
-      const isEdge = edge > 45;
-      const isDarkShadow = g < 75;
-      const isCrosshatch = g < 135 && (x + y) % 4 === 0;
-
-      if (isEdge || isDarkShadow || isCrosshatch) {
-        // Carbon ink black #0A0A0A
-        data[i] = 10;
-        data[i + 1] = 10;
-        data[i + 2] = 10;
-      } else {
-        // Off-white paper #F2F2F0
-        data[i] = 242;
-        data[i + 1] = 242;
-        data[i + 2] = 240;
-      }
-      data[i + 3] = 255;
-    }
-  }
-
-  ctx.putImageData(imgData, 0, 0);
-}
-```
-
----
-
-## Stage 5: In-Browser Video Transcoding & Web Audio WAV Extraction
-
-In client-side video processing, we eliminate servers by relying on HTML5 `<video>`, `captureStream()`, and `MediaRecorder` for WebM video transcoding, and `AudioContext` for WAV extraction.
-
-### 1. In-Browser Video Transcoding (`lib/videoConverter.ts`)
-```typescript
-// lib/videoConverter.ts
-import { VideoConvertOptions } from './types';
-
-export async function transcodeVideoToWebM(
-  videoFile: File | Blob,
-  options: VideoConvertOptions,
-  onProgress?: (pct: number) => void
-): Promise<Blob> {
-  const video = document.createElement('video');
-  video.src = URL.createObjectURL(videoFile);
-  video.muted = options.mute ?? false;
-  await video.play();
-
-  const canvas = document.createElement('canvas');
-  canvas.width = Math.round(video.videoWidth * (options.videoScale || 1));
-  canvas.height = Math.round(video.videoHeight * (options.videoScale || 1));
-  const ctx = canvas.getContext('2d')!;
-
-  // Stream canvas frames into MediaRecorder
-  const stream = canvas.captureStream(30); // 30 FPS
-  const recorder = new MediaRecorder(stream, {
-    mimeType: 'video/webm;codecs=vp9',
-    videoBitsPerSecond: options.videoBitrate || 2000000,
-  });
-
-  const chunks: Blob[] = [];
-  recorder.ondataavailable = (e) => chunks.push(e.data);
-
   return new Promise((resolve, reject) => {
-    recorder.onstop = () => resolve(new Blob(chunks, { type: 'video/webm' }));
-    recorder.onerror = reject;
+    const img = new Image();
+    const url = URL.createObjectURL(file);
 
-    recorder.start(100);
-    const drawLoop = () => {
-      if (video.ended || video.paused) {
-        recorder.stop();
-        return;
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      const canvas = document.createElement('canvas');
+      let { width, height } = img;
+
+      // Handle downscaling
+      if (options.maxWidth && width > options.maxWidth) {
+        height = Math.round((height * options.maxWidth) / width);
+        width = options.maxWidth;
       }
-      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-      if (onProgress) {
-        onProgress(Math.round((video.currentTime / video.duration) * 100));
+
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return reject(new Error('Canvas context not available'));
+
+      ctx.drawImage(img, 0, 0, width, height);
+
+      // Apply Sobel Ink Shader if requested
+      if (options.applySketchFilter) {
+        applySobelInkShader(ctx, width, height);
       }
-      requestAnimationFrame(drawLoop);
+
+      const mimeType = `image/${options.format === 'jpg' ? 'jpeg' : options.format}`;
+      canvas.toBlob(
+        (blob) => {
+          if (!blob) return reject(new Error('Blob encoding failed'));
+          resolve({ blob, width, height });
+        },
+        mimeType,
+        options.quality
+      );
     };
-    drawLoop();
+
+    img.onerror = reject;
+    img.src = url;
   });
 }
 ```
 
-### 2. Extracting Video Audio to 16-Bit PCM WAV
-Decode the video's audio track via `AudioContext.decodeAudioData()` and construct a binary 44-byte RIFF/WAV header using standard `DataView`:
+### 2. Video Transcoding & Web Audio WAV Extraction (`lib/videoConverter.ts`)
+Uses `AudioContext` to decode audio channels into an uncompressed 16-bit PCM WAV container:
 
 ```typescript
-export async function extractAudioFromVideo(videoFile: File | Blob): Promise<Blob> {
+export async function extractVideoAudioToWav(videoFile: File | Blob): Promise<Blob> {
   const arrayBuffer = await videoFile.arrayBuffer();
   const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
   const audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
 
-  return audioBufferToWavBlob(audioBuffer);
-}
-
-function audioBufferToWavBlob(buffer: AudioBuffer): Blob {
-  const numChannels = buffer.numberOfChannels;
-  const sampleRate = buffer.sampleRate;
+  // Encode 16-bit PCM WAV Header and Data
+  const numChannels = audioBuffer.numberOfChannels;
+  const sampleRate = audioBuffer.sampleRate;
+  const format = 1; // PCM
   const bitDepth = 16;
-  const samples = buffer.getChannelData(0); // Primary channel
-  const dataSize = samples.length * (bitDepth / 8);
-  const bufferSize = 44 + dataSize;
+  const bytesPerSample = bitDepth / 8;
+  const blockAlign = numChannels * bytesPerSample;
 
-  const arrayBuffer = new ArrayBuffer(bufferSize);
-  const view = new DataView(arrayBuffer);
+  const length = audioBuffer.length * blockAlign;
+  const buffer = new ArrayBuffer(44 + length);
+  const view = new DataView(buffer);
 
-  const writeString = (offset: number, str: string) => {
-    for (let i = 0; i < str.length; i++) view.setUint8(offset + i, str.charCodeAt(i));
-  };
+  // RIFF Chunk Descriptor
+  writeString(view, 0, 'RIFF');
+  view.setUint32(4, 36 + length, true);
+  writeString(view, 8, 'WAVE');
+  writeString(view, 12, 'fmt ');
+  view.setUint32(16, 16, true);
+  view.setUint16(20, format, true);
+  view.setUint16(22, numChannels, true);
+  view.setUint32(24, sampleRate, true);
+  view.setUint32(28, sampleRate * blockAlign, true);
+  view.setUint16(32, blockAlign, true);
+  view.setUint16(34, bitDepth, true);
+  writeString(view, 36, 'data');
+  view.setUint32(40, length, true);
 
-  // RIFF Header
-  writeString(0, 'RIFF');
-  view.setUint32(4, 36 + dataSize, true);
-  writeString(8, 'WAVE');
-  writeString(12, 'fmt ');
-  view.setUint32(16, 16, true);           // SubChunk1Size (16 for PCM)
-  view.setUint16(20, 1, true);            // AudioFormat (1 = PCM)
-  view.setUint16(22, numChannels, true);  // NumChannels
-  view.setUint32(24, sampleRate, true);   // SampleRate
-  view.setUint32(28, sampleRate * numChannels * 2, true); // ByteRate
-  view.setUint16(32, numChannels * 2, true);              // BlockAlign
-  view.setUint16(34, bitDepth, true);                     // BitsPerSample
-  writeString(36, 'data');
-  view.setUint32(40, dataSize, true);
-
-  // Write 16-bit PCM Audio Samples
+  // Interleave channels into 16-bit signed integers
   let offset = 44;
-  for (let i = 0; i < samples.length; i++, offset += 2) {
-    const s = Math.max(-1, Math.min(1, samples[i]));
-    view.setInt16(offset, s < 0 ? s * 0x8000 : s * 0x7FFF, true);
-  }
-
-  return new Blob([arrayBuffer], { type: 'audio/wav' });
-}
-```
-
----
-
-## Stage 6: Autonomous Stdio MCP Server for AI Agents (Claude, Cursor, Antigravity)
-
-When Claude Desktop, Cursor, or Google Antigravity run as coding agents, invoking shell commands (`curl`, `ffmpeg`, `magick`) prompts the user 5–10 times per file for terminal approval.
-
-By bundling static `@ffmpeg-installer/ffmpeg`, `@ffprobe-installer/ffprobe`, and native `sharp`, PhotoNow implements an autonomous **Stdio Model Context Protocol (MCP)** server (`bin/mcp-server.mjs`) that allows agents to process single files or entire directories in **one click / one tool call**.
-
-### 1. Initialize MCP Server (`bin/mcp-server.mjs`)
-```javascript
-#!/usr/bin/env node
-import { Server } from '@modelcontextprotocol/sdk/server/index.js';
-import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
-import { CallToolRequestSchema, ListToolsRequestSchema } from '@modelcontextprotocol/sdk/types.js';
-import sharp from 'sharp';
-import ffmpeg from 'fluent-ffmpeg';
-import ffmpegPath from '@ffmpeg-installer/ffmpeg';
-import ffprobePath from '@ffprobe-installer/ffprobe';
-import path from 'node:path';
-import fs from 'node:fs/promises';
-
-// Configure bundled static binaries
-ffmpeg.setFfmpegPath(ffmpegPath.path);
-ffmpeg.setFfprobePath(ffprobePath.path);
-
-const server = new Server(
-  { name: 'photo-convert-mcp', version: '2.0.0' },
-  { capabilities: { tools: {} } }
-);
-```
-
-### 2. Implement the 7 Autonomous MCP Tools
-The server exposes 7 native tools:
-1. `convert_image`: Fast single-file image transcoding via native Sharp.
-2. `convert_batch`: Recursive directory converter with noise folder exclusion (`node_modules`, `.git`).
-3. `extract_audio`: Extract audio track from video to MP3, WAV, AAC, FLAC, or OGG.
-4. `convert_video`: Transcode video containers (MP4, WebM, MKV, MOV), downscale resolution, and apply CRF compression.
-5. `convert_audio`: Standalone audio format transcoding and sample rate tuning.
-6. `get_media_info`: Unified metadata inspector for images (Sharp), video, and audio (FFprobe).
-7. `optimize_for_agent`: Downscale heavy screenshots to 1280px WebP to conserve LLM vision context tokens.
-
-### 3. Implement Strict Security Guardrails
-Protect the user's filesystem against malicious agent prompts:
-
-```javascript
-const FORBIDDEN_DIRS = ['.git', '.ssh', '.aws', 'system32', 'windows/system'];
-const ALLOWED_EXTENSIONS = new Set([
-  '.webp', '.png', '.jpg', '.jpeg', '.avif', '.bmp',
-  '.mp4', '.webm', '.mkv', '.mov', '.mp3', '.wav', '.aac', '.flac', '.ogg'
-]);
-
-function validateSafePath(targetPath) {
-  const resolved = path.resolve(targetPath);
-  const ext = path.extname(resolved).toLowerCase();
-  
-  if (!ALLOWED_EXTENSIONS.has(ext)) {
-    throw new Error(`Security Exception: Extension ${ext} is not permitted.`);
-  }
-
-  for (const forbidden of FORBIDDEN_DIRS) {
-    if (resolved.toLowerCase().includes(forbidden)) {
-      throw new Error(`Security Exception: Access to ${forbidden} is blocked.`);
+  for (let i = 0; i < audioBuffer.length; i++) {
+    for (let channel = 0; channel < numChannels; channel++) {
+      const sample = Math.max(-1, Math.min(1, audioBuffer.getChannelData(channel)[i]));
+      view.setInt16(offset, sample < 0 ? sample * 0x8000 : sample * 0x7FFF, true);
+      offset += 2;
     }
   }
 
-  return resolved;
+  return new Blob([buffer], { type: 'audio/wav' });
 }
-```
-
-### 4. Connect Transport & Start Listening
-```javascript
-const transport = new StdioServerTransport();
-await server.connect(transport);
 ```
 
 ---
 
-## Stage 7: HTTP MCP API Endpoint, Ephemeral Rate Limiting & Browser Bridge
+## Stage 4: Shared Performance Intelligence Core (`lib/engine/`)
 
-In addition to local Stdio, PhotoNow serves web-based agents and MCP clients over HTTP JSON-RPC 2.0.
+The shared engine powers the stdio MCP server, HTTP API, and web companion GUI:
 
-### 1. Build the Sliding-Window IP Rate Limiter (`lib/rateLimiter.ts`)
-To prevent denial-of-service without heavy Redis dependencies, we build an in-memory sliding window counter with a 60-second garbage collector:
+### 1. Perceptual Difference Hashing (`lib/engine/perceptualHash.mjs`)
+Uses Sharp to compute a 64-bit gradient difference hash (`dHash`):
+1. Downsamples image to a 9×8 grayscale bitmap (72 pixels).
+2. Compares each pixel to its horizontal neighbor: if `pixel[x] > pixel[x+1]`, bit is set to `1`.
+3. Produces a 64-bit BigInt hash.
+4. Calculates Hamming distance across asset pairs: similarity > 93% indicates duplicate assets under different filenames.
 
-```typescript
-// lib/rateLimiter.ts
-interface ClientRecord {
-  timestamps: number[];
-}
+### 2. 5-Axis Performance Scorer (`lib/engine/analyzer.mjs`)
+Scores project media health from 0 to 100 points:
+- **Format Efficiency (25 pts)**: Percentage of modern WebP/AVIF/SVG adoption vs legacy PNG/JPEG.
+- **Image Sizing (25 pts)**: Appropriateness of pixel dimensions relative to web viewports (flags images >1920px).
+- **Compression Density (20 pts)**: Entropy and byte efficiency per square pixel.
+- **Responsive Readiness (15 pts)**: Availability of multi-resolution variants for mobile devices.
+- **SVG Cleanliness (15 pts)**: Clean vector graphics free of embedded base64 raster bloat.
 
-const clientMap = new Map<string, ClientRecord>();
-const RATE_LIMIT_WINDOW_MS = 60 * 1000; // 60 seconds
-const MAX_REQUESTS_PER_WINDOW = 60;     // 60 reqs/min
+### 3. Token Economy & Progressive Disclosure (`lib/engine/tokenEconomy.mjs`)
+Guarantees AI agent responses never exceed token limits:
+- `compact` (Default): Returns high-level score, potential savings, top 3 bottlenecks, and deterministic `nextAction`. Guaranteed **< 200 tokens**.
+- `standard`: Adds categorized issue lists and potential savings.
+- `detailed`: Full per-file records, dimensions, hashes, and timings.
+- `tokenBudget`: Automatically truncates issue lists to strictly obey numerical token caps.
 
-// Evict inactive client records every 60 seconds to prevent RAM leaks
-if (typeof setInterval !== 'undefined') {
-  setInterval(() => {
-    const now = Date.now();
-    for (const [ip, record] of clientMap.entries()) {
-      record.timestamps = record.timestamps.filter((t) => now - t < RATE_LIMIT_WINDOW_MS);
-      if (record.timestamps.length === 0) clientMap.delete(ip);
+---
+
+## Stage 5: The 7 Agentic Intelligence Pillars
+
+```
+┌────────────────────────────────────────────────────────────────────────┐
+│                        THE 7 AGENTIC PILLARS                           │
+├───────────────────────────────────┬────────────────────────────────────┤
+│ 1. Project Scanner                │ Framework, routes, component tree  │
+│ 2. Source Code Analyzer           │ <Image>, priority, rendered dims   │
+│ 3. Asset Dependency Graph         │ Route ➔ Component ➔ Asset, dead    │
+│ 4. Safe Source Patching           │ Unified diffs, backups, rollbacks  │
+│ 5. Real Browser Verifier          │ OBSERVED vs SIMULATED separation   │
+│ 6. Budgets & Git Guard            │ PR regression blocker & baselines  │
+│ 7. Autonomous Mission Runner      │ 10-step orchestrator               │
+└───────────────────────────────────┴────────────────────────────────────┘
+```
+
+### Pillar 1: Project Scanner (`lib/engine/projectScanner.mjs`)
+Inspects the repository root, ignores `node_modules` and `.git`, and auto-detects frameworks:
+- Next.js (App Router `app/**/page.tsx` or Pages Router `pages/**/*.js`)
+- Vite / React (`src/App.tsx`, `index.html`)
+- Nuxt, Astro, Gatsby, Hugo, Modern Web
+- Resolves media roots: `public/`, `static/`, `src/assets/`.
+
+### Pillar 2: Source Code Analyzer (`lib/engine/sourceAnalyzer.mjs`)
+Performs static analysis across `.tsx`, `.jsx`, `.ts`, `.js`, `.html`, and `.css`:
+- Extracts `<Image>`, `<img>`, `<picture>`, and CSS `url()` references.
+- Parses `src`, `width`, `height`, `priority`, `loading="lazy"`, `sizes`, `alt`.
+- Determines parent component and route hierarchy.
+- Flags viewport-dominating hero images as **LCP Candidates**.
+
+### Pillar 3: Asset Dependency Graph & Dead Asset Triage (`lib/engine/assetGraph.mjs`)
+Maps `Route ➔ Component ➔ SourceFile ➔ Asset ➔ Variant`:
+- **Asset Usage**: Exact reference counts and declaring locations.
+- **Shared Assets**: Warns when an image is used across multiple routes.
+- **Dead Asset Safety Tiers**:
+  - `SAFE`: 0 references across all source files and configs. Safe to prune!
+  - `LIKELY`: No direct references, but matches dynamic naming conventions.
+  - `UNCERTAIN`: Ambiguous string interpolation.
+
+### Pillar 4: Safe Source Patching & Automated Rollbacks (`lib/engine/patchGenerator.mjs`)
+- **Strict Dry-Run Default**: Never touches disk unless explicitly approved (`dryRun: false`).
+- **Unified Diffs**: Generates standard `diff -u` patches.
+- **Atomic Backups**: Original source files are copied into `.photonow/backups/[operationId]/`.
+- **Rollback Manifest**: Emits `.photonow/manifests/manifest_[operationId].json`. Calling `rollback_operation` restores files in 1 second.
+
+### Pillar 5: Real Runtime Verification (`lib/engine/browserVerifier.mjs`)
+Distinguishes real browser metrics from network math:
+- `OBSERVED`: Real LCP, FCP, CLS measured via Chrome DevTools or live server.
+- `SIMULATED`: Transparent mathematical fallback (1.6 Mbps download, 150ms RTT) when running headless in CI.
+
+### Pillar 6: Performance Budgets & Git Regression Guard (`budget.mjs` & `regression.mjs`)
+- Checks limits: Total media (<500 KB), single hero (<150 KB), LCP (<2.5s).
+- Checks Git branch and commit hash (`git rev-parse HEAD`).
+- Compares metrics against `.photonow/baselines/[branch].json` to block PR regressions.
+
+### Pillar 7: Autonomous Mission Runner (`lib/engine/mission.mjs`)
+Executes the full 10-step lifecycle in a single call:
+`DISCOVER ➔ UNDERSTAND ➔ ANALYZE ➔ MEASURE ➔ DIAGNOSE ➔ PLAN ➔ PATCH ➔ OPTIMIZE ➔ VERIFY ➔ REPORT`.
+
+---
+
+## Stage 6: Standalone Stdio & HTTP MCP Server (29 Tools)
+
+The MCP server connects to Claude Desktop, Cursor, and Antigravity over stdio JSON-RPC 2.0:
+
+### Complete 29-Tool MCP Catalog
+
+| Layer | Tool Name | Description |
+| :--- | :--- | :--- |
+| **Multimedia Foundation** | `convert_image` | Image conversion to WebP, PNG, JPEG, AVIF with quality, rotation, ink filters |
+| *(Original 8 Tools)* | `convert_batch` | Batch folder image conversion with recursion filters |
+| | `convert_video` | Video transcode / compress with FFmpeg |
+| | `extract_audio` | Video to MP3/WAV audio extraction |
+| | `convert_audio` | Audio format transcoding |
+| | `extract_poster_frame` | Seek and capture clean video poster frame |
+| | `get_media_info` | Unified metadata inspector (image, video, audio) |
+| | `optimize_for_agent` | Downscale UI screenshots to compact WebP for vision LLMs |
+| **Performance Intelligence**| `analyze_media` | Inspect single asset for performance bottlenecks |
+| *(12 Media Tools)* | `analyze_web_assets` | Project-wide media scan, PhotoNow score, top issues |
+| | `find_oversized_assets` | Filter assets exceeding dimensional/byte thresholds |
+| | `find_inefficient_formats` | Identify photographic PNGs, legacy JPEGs, GIFs |
+| | `find_duplicate_assets` | Perceptual dHash & SHA-256 duplicate clustering |
+| | `find_responsive_opportunities`| Pinpoint high-res images lacking responsive srcset |
+| | `test_web_performance` | Asset-centric web auditor, LCP candidate & score |
+| | `get_web_performance_summary` | Retrieve compact summary of previous audit |
+| | `compare_web_performance` | Compare before vs after audit snapshots |
+| | `generate_optimization_plan` | Formulate actionable plan with `planId` and estimates |
+| | `optimize_web_assets` | Safely execute plan with Sharp, validation, & idempotency |
+| | `verify_optimization` | Verify measured reductions and generate local reports |
+| **Agentic System Tools** | `inspect_project` | Scan framework, routes, component tree, media directories |
+| *(9 Master Tools)* | `get_asset_usage` | Trace asset usage chain (`Route ➔ Component ➔ SourceFile`) and LCP status |
+| | `find_unused_assets` | Detect dead assets categorized by safety tier (`SAFE`, `LIKELY`, `UNCERTAIN`) |
+| | `check_performance_budget` | Evaluate against page bytes, image bytes, hero bytes, and LCP budgets |
+| | `verify_runtime_performance` | Runtime performance metrics (`OBSERVED` via browser or `SIMULATED` fallback) |
+| | `generate_source_patch` | Generate unified diffs updating image tags and file paths in source code |
+| | `apply_source_patch` | Safely apply source patch with automatic backups and manifest generation |
+| | `rollback_operation` | Atomically revert source files and assets to pre-patch state |
+| | `optimize_project` | Autonomous end-to-end mission executing full 10-step lifecycle |
+
+---
+
+## Stage 7: Interactive Web Companion Workbench
+
+The web companion GUI (`components/PerformanceWorkbench.tsx`) includes 7 interactive sub-tabs:
+
+1. **`[1. MEDIA AUDIT]`**: Visual 5-axis score gauges, asset count, total media footprint, and prioritized bottleneck triage.
+2. **`[2. ASSET GRAPH & UNUSED]`**: Complete graph visualizer showing routes, components, and dead assets (`SAFE`, `LIKELY`, `UNCERTAIN`).
+3. **`[3. BUDGETS]`**: Core Web Vitals budget validator (PASS / WARN / FAIL).
+4. **`[4. TEST URL]`**: Live website auditor measuring DOM media, LCP candidates, and simulated 4G mobile transfer times.
+5. **`[5. PLAN]`**: Optimization plan inspector with estimated byte reductions.
+6. **`[6. BEFORE/AFTER]`**: Interactive split-screen visual comparison slider to inspect image fidelity before committing changes.
+7. **`[⚡ AUTONOMOUS MISSION]`**: 1-click execution of the full 10-step autonomous mission with dry-run preview and rollback tracking.
+
+---
+
+## Stage 8: Complete Hands-On User Guide (UI & AI Agents)
+
+### A. How to Use the Web UI (`http://localhost:3000` or `photonow.vercel.app`)
+
+* **Local Projects**: When running locally (`npm run dev`), type any folder path into the target bar:
+  - `.` (current project root)
+  - `./public`
+  - `tests/fixtures/nextjs_project` (or click **`[Demo Fixture]`**)
+* **Live Websites**: Go to **`[4. TEST URL]`**, enter any live URL (e.g. `https://my-site.com` or `http://localhost:3000`), and click **`[RUN AUDIT]`**.
+* **Converting Photos/Videos**: Go to **`[PHOTO CONVERT]`** or **`[VIDEO & AUDIO]`**, drag & drop files from your desktop. Processing runs 100% locally in browser memory.
+
+### B. How to Use with AI Agents (Claude Desktop, Cursor, Antigravity)
+
+Add this entry to your MCP configuration:
+
+```json
+{
+  "mcpServers": {
+    "photoNow": {
+      "command": "node",
+      "args": [
+        "c:/Users/sibas/OneDrive/Desktop/Projects/photoNow/bin/mcp-server.mjs"
+      ]
     }
-  }, RATE_LIMIT_WINDOW_MS);
-}
-
-export function checkRateLimit(ip: string): { allowed: boolean; remaining: number } {
-  const now = Date.now();
-  let record = clientMap.get(ip);
-  if (!record) {
-    record = { timestamps: [] };
-    clientMap.set(ip, record);
   }
-
-  record.timestamps = record.timestamps.filter((t) => now - t < RATE_LIMIT_WINDOW_MS);
-  if (record.timestamps.length >= MAX_REQUESTS_PER_WINDOW) {
-    return { allowed: false, remaining: 0 };
-  }
-
-  record.timestamps.push(now);
-  return { allowed: true, remaining: MAX_REQUESTS_PER_WINDOW - record.timestamps.length };
 }
 ```
 
-### 2. Build the HTTP MCP Route Handler (`app/api/mcp/route.ts`)
-Implement standard JSON-RPC 2.0 handling with CORS support:
+#### Practical Prompt Recipes:
 
-```typescript
-// app/api/mcp/route.ts
-import { NextRequest, NextResponse } from 'next/server';
-import { checkRateLimit } from '@/lib/rateLimiter';
-
-export async function POST(req: NextRequest) {
-  const ip = req.headers.get('x-forwarded-for')?.split(',')[0] || '127.0.0.1';
-  const { allowed } = checkRateLimit(ip);
-  if (!allowed) {
-    return NextResponse.json(
-      { jsonrpc: '2.0', error: { code: -32000, message: 'Rate limit exceeded: 60 req/min' } },
-      { status: 429, headers: { 'Retry-After': '60' } }
-    );
-  }
-
-  const payload = await req.json();
-  const { method, params, id } = payload;
-
-  if (method === 'initialize') {
-    return NextResponse.json({
-      jsonrpc: '2.0',
-      id,
-      result: {
-        protocolVersion: '2024-11-05',
-        capabilities: { tools: {} },
-        serverInfo: { name: 'photonow-mcp-engine', version: '2.0.0' },
-      },
-    });
-  }
-
-  if (method === 'tools/list') {
-    return NextResponse.json({
-      jsonrpc: '2.0',
-      id,
-      result: { tools: MCP_TOOL_DEFINITIONS },
-    });
-  }
-
-  // Handle tools/call accordingly...
-}
-```
-
-### 3. Expose the In-Browser DOM Automation Bridge (`lib/browserAgentApi.ts`)
-Expose `window.__photoConvertAgent` so web-based agents (Puppeteer, Playwright, Chrome DevTools subagents) can trigger conversions directly inside the browser tab:
-
-```typescript
-// lib/browserAgentApi.ts
-import { convertImage } from './imageConverter';
-
-export function initBrowserAgentApi() {
-  if (typeof window === 'undefined') return;
-  (window as any).__photoConvertAgent = {
-    version: '2.0.0',
-    convertImage: async (file: Blob, options: any) => convertImage(file, options),
-  };
-}
-```
+* *"Audit this repository with PhotoNow. Find any oversized images or formats hurting our LCP, and summarize the top bottlenecks."*
+* *"Scan our public folder for dead images. Tell me which files are 100% SAFE to delete."*
+* *"Run an autonomous optimization mission in dry-run mode and show me the unified diffs."*
+* *"Apply the optimization plan, patch our Next.js <Image> tags to WebP, and verify that our performance budget passes."*
 
 ---
 
-## Stage 8: Interactive UI & Split-Screen Workbench Components
+## Stage 9: Automated Verification Test Suites & Benchmarks
 
-Next.js App Router applications thrive with proper code splitting. We dynamically load client components to keep the initial server-rendered HTML payload small.
+PhotoNow features an exhaustive test suite covering all layers:
 
-### 1. Main Page Split-Screen Layout (`app/page.tsx`)
-Create the 40/60 split layout with tab state:
-
-```typescript
-// app/page.tsx
-'use client';
-
-import React, { useState } from 'react';
-import dynamic from 'next/dynamic';
-import { HeaderNav } from '@/components/HeaderNav';
-import { LeftHeroIllustration } from '@/components/LeftHeroIllustration';
-import { PhotoConverter } from '@/components/PhotoConverter';
-
-const VideoConverter = dynamic(() => import('@/components/VideoConverter').then((m) => m.VideoConverter));
-const StorageHistory = dynamic(() => import('@/components/StorageHistory').then((m) => m.StorageHistory));
-const AgenticPanel = dynamic(() => import('@/components/AgenticPanel').then((m) => m.AgenticPanel));
-const McpPlayground = dynamic(() => import('@/components/McpPlayground').then((m) => m.McpPlayground));
-
-export default function Home() {
-  const [activeTab, setActiveTab] = useState<'photo' | 'video' | 'storage' | 'agent' | 'mcp'>('photo');
-
-  return (
-    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
-      <HeaderNav activeTab={activeTab} setActiveTab={setActiveTab} />
-      <main style={{ display: 'flex', flexWrap: 'wrap', maxWidth: '1440px', margin: '0 auto', width: '100%' }}>
-        {/* Left 40% Column: Hero, Diagrams & Educational Guides */}
-        <div style={{ flex: '1 1 420px', padding: '24px' }}>
-          <LeftHeroIllustration activeTab={activeTab} />
-        </div>
-
-        {/* Right 60% Column: Interactive Feature Panel */}
-        <div style={{ flex: '2 1 600px', padding: '24px' }}>
-          {activeTab === 'photo' && <PhotoConverter />}
-          {activeTab === 'video' && <VideoConverter />}
-          {activeTab === 'storage' && <StorageHistory />}
-          {activeTab === 'agent' && <AgenticPanel />}
-          {activeTab === 'mcp' && <McpPlayground />}
-        </div>
-      </main>
-    </div>
-  );
-}
-```
-
-### 2. The Interactive Workbench Panels
-- **`components/PhotoConverter.tsx`**: Drag-and-drop file uploader, format selection pills, quality slider, ink-sketch toggle, and live canvas preview.
-- **`components/VideoConverter.tsx`**: Video timeline, poster timestamp slider, bitrate downscaling, and audio extraction trigger.
-- **`components/StorageHistory.tsx`**: Sandboxed gallery listing items from `IndexedDB`, storage usage meters, and batch ZIP export.
-- **`components/McpPlayground.tsx`**: Live in-browser agent test simulator that generates synthetic image/video assets and executes JSON-RPC 2.0 calls with live execution logs.
-- **`components/AgenticPanel.tsx`**: Copyable configuration JSON snippets for Claude Desktop, Cursor, and Google Antigravity.
-
----
-
-## Stage 9: SEO, AEO (Answer Engine Optimization) & Legal Infrastructure
-
-### 1. Semantic JSON-LD Structured Data in `app/layout.tsx`
-Add structured metadata schemas for Answer Engines (Perplexity, ChatGPT Search, Claude, Google AI Overviews):
-
-```typescript
-// app/layout.tsx
-const jsonLdSoftware = {
-  '@context': 'https://schema.org',
-  '@type': 'SoftwareApplication',
-  name: 'PhotoNow Zero-Cloud Multimedia MCP Engine',
-  operatingSystem: 'Cross-Platform (Windows, macOS, Linux)',
-  applicationCategory: 'DeveloperApplication',
-  offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
-  featureList: [
-    'Zero-Cloud Local In-Memory Media Conversion',
-    'Bundled Static FFmpeg & FFprobe (Zero System Dependencies)',
-    'Model Context Protocol Stdio Server for Claude, Cursor, Antigravity',
-    'Custom Sobel Ink-Sketch Convolution Filter',
-    'Video Transcoding and Audio Extraction to WAV/MP3',
-    'Local IndexedDB Sandbox with Batch ZIP Archive Export',
-  ],
-};
-```
-
-### 2. AI Discovery Files (`public/llms.txt` & `public/llms-full.txt`)
-Provide concise and detailed machine-readable specifications describing the MCP server endpoints, tool schemas, and local run commands.
-
-### 3. Legal & Compliance Pages
-Ensure complete legal protection:
-- **`/legal`**: Nominative fair use notices (FFmpeg, Sharp, Anthropic, Google, Cursor), commercial independence disclaimers, and formal DMCA notice procedures.
-- **`/privacy`**: Zero-cloud privacy guarantees, ephemeral rate-limiting logging disclosures, and strict no-AI-training clauses.
-- **`/terms`**: Terms of service governing both human workbench visitors and autonomous AI agent connections.
-- **`LICENSE`**: Root MIT License file with complete third-party open-source software acknowledgements.
-
----
-
-## Stage 10: Automated Test Suites & Production Deployment
-
-### 1. Automated MCP Test Suite (`tests/test-mcp-server.mjs`)
-Create an end-to-end integration test that boots the Stdio MCP server, creates synthetic test media, verifies all 7 tools, and checks byte reduction:
-
-```javascript
-// tests/test-mcp-server.mjs
-import { spawn } from 'node:child_process';
-
-const server = spawn('node', ['./bin/mcp-server.mjs'], { stdio: ['pipe', 'pipe', 'inherit'] });
-
-function sendRpc(method, params = {}) {
-  const payload = JSON.stringify({ jsonrpc: '2.0', id: Date.now(), method, params }) + '\n';
-  server.stdin.write(payload);
-}
-
-// 1. Initialize
-sendRpc('initialize', { protocolVersion: '2024-11-05', capabilities: {} });
-
-// 2. Test Tools: convert_image, convert_video, extract_audio, etc.
-```
-
-### 2. Security & Usability Suite (`tests/test-usability-security.mjs`)
-Verify path sanitization, `.env` file overwrite protection, non-media extension rejection, and decompression bomb protection.
-
-### 3. Run Automated Checks
 ```bash
-# Run test suite
-npm test
+# 1. Run all 7 unit test suites for agentic intelligence
+node tests/unit/test-agentic-intelligence.mjs
 
-# Type-check TypeScript files
-npx tsc --noEmit
+# 2. Run end-to-end autonomous mission tests (dry-run, patching, rollback)
+node tests/test-autonomous-mission.mjs
 
-# Production build check
-npm run build
+# 3. Test all 29 tools over stdio MCP JSON-RPC 2.0
+node tests/test-mcp-server.mjs
+
+# 4. Run core performance engine tests (8 suites)
+node tests/test-performance-engine.mjs
+
+# 5. Run defensive usability & security tests (11/11 tests)
+node tests/test-usability-security.mjs
+
+# 6. Run performance benchmark suite
+node tests/benchmark.mjs
 ```
 
-### 4. Deploying to Production (Vercel)
-1. Push your repository to GitHub.
-2. Import the repository into [Vercel](https://vercel.com).
-3. Vercel automatically detects Next.js, compiles the App Router bundle, and exposes the production workbench at `https://your-domain.vercel.app`.
-4. AI agents can now connect locally via Stdio (`npx photo-convert-mcp` or `node ./bin/mcp-server.mjs`) or remotely via the HTTP endpoint (`/api/mcp`).
-
----
-
-## Summary Checklist
-
-| Stage | Milestone | Core Technologies Used |
-|---|---|---|
-| **Stage 1** | Project Setup & Config | Next.js 16, TypeScript, Sharp, FFmpeg Binaries |
-| **Stage 2** | Design Tokens & Theme | CSS Custom Properties, Permanent Marker, Space Mono |
-| **Stage 3** | Client Storage Layer | Native Browser IndexedDB, JSZip |
-| **Stage 4** | Image & Sobel Shader | Canvas 2D, Uint8ClampedArray, Sobel Convolution |
-| **Stage 5** | Video & Audio Engine | MediaRecorder (VP9/VP8), Web Audio API, RIFF WAV |
-| **Stage 6** | Stdio MCP Tool Server | @modelcontextprotocol/sdk, Fluent-FFmpeg, Sharp |
-| **Stage 7** | HTTP MCP & Rate Limit | JSON-RPC 2.0, In-Memory Sliding Window Counter |
-| **Stage 8** | Workbench UI Panels | Dynamic Imports, Split-Screen Layout, Drag & Drop |
-| **Stage 9** | SEO, AEO & Legal | JSON-LD, llms.txt, Privacy Policy, Terms, MIT License |
-| **Stage 10**| Testing & Deployment | Node.js Test Harness, Vercel Production Build |
-
-*Congratulations! You now understand how to build PhotoNow Engine from scratch as a Next.js engineer.*
+### Verified Benchmark Metrics
+- **Cold Project Scan**: ~62.1ms (Next.js App Router fixture).
+- **Warm Cached Scan**: ~8.2ms (**7.6x speedup** via internal cache).
+- **Token Reduction**: **95.4%** reduction from raw diagnostic dump (~3,507 tokens) to compact summary (~160 tokens).
+- **Autonomous Mission Output**: ~80 tokens (318 characters), well within the <200 token budget.
+- **Production Build**: Next.js 16 (Turbopack) builds with **0 errors and 0 warnings**.

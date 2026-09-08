@@ -324,3 +324,12 @@ node tests/benchmark.mjs
 ```
 
 All 5 test suites will output **100% PASSING** with 0 errors!
+
+---
+
+## Part 5: Deep-Dive Documentation & Guides
+
+- **Step-by-Step Build & Implementation Blueprint**: [`BUILD_FROM_SCRATCH_GUIDE.md`](file:///c:/Users/sibas/OneDrive/Desktop/Projects/photoNow/BUILD_FROM_SCRATCH_GUIDE.md)
+- **System Architecture & Technical Specifications**: [`ARCHITECTURE.md`](file:///c:/Users/sibas/OneDrive/Desktop/Projects/photoNow/ARCHITECTURE.md)
+- **Performance Engine Benchmarks**: [`PHOTONOW_PERFORMANCE_ENGINE.md`](file:///c:/Users/sibas/OneDrive/Desktop/Projects/photoNow/PHOTONOW_PERFORMANCE_ENGINE.md)
+- **Codebase Cleanup & Technical Debt Analysis**: [`CODEBASE_CLEANUP_AND_TECHNICAL_DEBT_ANALYSIS.md`](file:///c:/Users/sibas/OneDrive/Desktop/Projects/photoNow/CODEBASE_CLEANUP_AND_TECHNICAL_DEBT_ANALYSIS.md)
