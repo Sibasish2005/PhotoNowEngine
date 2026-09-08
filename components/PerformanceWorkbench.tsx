@@ -262,145 +262,110 @@ export const PerformanceWorkbench: React.FC = () => {
   const scoreBreakdown = analysisResult?.score?.breakdown ?? testResult?.score?.breakdown;
 
   return (
-    <div className="hand-box" style={{ padding: 'clamp(14px, 2.5vw, 24px)', maxWidth: '940px', margin: '0 auto' }}>
-      {/* HEADER TITLE */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '10px', marginBottom: '16px' }}>
-        <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span style={{ background: 'var(--ink)', color: 'var(--ink-inverted)', padding: '2px 8px', fontSize: '11px', fontWeight: 700 }}>
-              [ENGINE:AGENTIC-PERF]
-            </span>
-            <h2 style={{ fontSize: '18px', margin: 0, letterSpacing: '-0.5px' }}>
-              WEBSITE PERFORMANCE INTELLIGENCE WORKBENCH
-            </h2>
-          </div>
-          <p style={{ margin: '4px 0 0 0', fontSize: '12px', color: 'var(--text-dim, #666)' }}>
-            Project understanding, asset graph, dead asset triage, source patching, and autonomous missions.
-          </p>
+    <div className="hand-box" style={{ padding: 'clamp(12px, 2vw, 20px)', maxWidth: '940px', margin: '0 auto' }}>
+      {/* COMPACT CLEAN HEADER */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px', marginBottom: '12px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <span style={{ background: 'var(--ink)', color: 'var(--ink-inverted)', padding: '2px 6px', fontSize: '10px', fontWeight: 700 }}>
+            {isHosted ? 'CLOUD PREVIEW' : 'LOCAL ENGINE'}
+          </span>
+          <h2 style={{ fontSize: '16px', margin: 0, fontWeight: 800, letterSpacing: '-0.3px' }}>
+            Website Performance Intelligence
+          </h2>
         </div>
 
         {currentScore !== undefined && (
           <div style={{
-            border: '2px solid var(--ink)',
-            padding: '6px 14px',
-            textAlign: 'center',
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '6px',
+            border: '1.5px solid var(--ink)',
+            padding: '3px 10px',
             background: 'var(--bg-paper)',
           }}>
-            <div style={{ fontSize: '10px', textTransform: 'uppercase', fontWeight: 700 }}>PhotoNow Score</div>
-            <div style={{ fontSize: '24px', fontWeight: 900 }}>{currentScore}<span style={{ fontSize: '12px' }}>/100</span></div>
+            <span style={{ fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', color: '#666' }}>Score:</span>
+            <span style={{ fontSize: '16px', fontWeight: 900 }}>{currentScore}</span>
+            <span style={{ fontSize: '10px', color: '#888' }}>/100</span>
           </div>
         )}
       </div>
 
-      {/* SUB TABS NAVIGATION WITH ENVIRONMENT BADGES */}
-      <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', borderBottom: '2px solid var(--ink)', paddingBottom: '10px', marginBottom: '14px' }}>
+      {/* SLEEK SUB-TABS STRIP */}
+      <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap', borderBottom: '1.5px solid var(--ink)', paddingBottom: '8px', marginBottom: '10px' }}>
         <button
           onClick={() => setSubTab('analyze')}
           className={`hand-btn ${subTab === 'analyze' ? 'active' : ''}`}
-          style={{ padding: '6px 12px', fontSize: '11px' }}
+          style={{ padding: '5px 10px', fontSize: '11px' }}
         >
-          [1. AUDIT]
+          [Audit]
         </button>
         <button
           onClick={() => { setSubTab('graph'); runLoadGraph(); }}
           className={`hand-btn ${subTab === 'graph' ? 'active' : ''}`}
-          style={{ padding: '6px 12px', fontSize: '11px' }}
+          style={{ padding: '5px 10px', fontSize: '11px' }}
         >
-          [2. GRAPH & UNUSED]
+          [Graph & Unused]
         </button>
         <button
           onClick={() => { setSubTab('budget'); runCheckBudget(); }}
           className={`hand-btn ${subTab === 'budget' ? 'active' : ''}`}
-          style={{ padding: '6px 12px', fontSize: '11px' }}
+          style={{ padding: '5px 10px', fontSize: '11px' }}
         >
-          [3. BUDGETS]
+          [Budgets]
         </button>
         <button
           onClick={() => setSubTab('test')}
           className={`hand-btn ${subTab === 'test' ? 'active' : ''}`}
-          style={{ padding: '6px 12px', fontSize: '11px' }}
+          style={{ padding: '5px 10px', fontSize: '11px' }}
         >
-          [4. TEST URL] <span style={{ fontSize: '9px', background: '#dbeafe', color: '#1e40af', padding: '1px 4px', borderRadius: '2px' }}>🌐 CLOUD & LOCAL</span>
+          [Test URL]
         </button>
         <button
           onClick={() => { setSubTab('plan'); if (!planResult) runGeneratePlan(); }}
           className={`hand-btn ${subTab === 'plan' ? 'active' : ''}`}
-          style={{ padding: '6px 12px', fontSize: '11px' }}
+          style={{ padding: '5px 10px', fontSize: '11px' }}
         >
-          [5. PLAN {planResult ? `(${planResult.actionsCount})` : ''}]
+          [Plan {planResult ? `(${planResult.actionsCount})` : ''}]
         </button>
         <button
           onClick={() => { setSubTab('verify'); if (!verificationResult) runVerifyPlan(); }}
           className={`hand-btn ${subTab === 'verify' ? 'active' : ''}`}
-          style={{ padding: '6px 12px', fontSize: '11px' }}
+          style={{ padding: '5px 10px', fontSize: '11px' }}
         >
-          [6. RESULTS] <span style={{ fontSize: '9px', opacity: 0.8 }}>LOCAL</span>
+          [Results]
         </button>
         <button
           onClick={() => setSubTab('mission')}
           className={`hand-btn ${subTab === 'mission' ? 'active' : ''}`}
-          style={{ padding: '6px 12px', fontSize: '11px', background: subTab === 'mission' ? 'var(--ink)' : '#fef3c7' }}
+          style={{ padding: '5px 10px', fontSize: '11px', background: subTab === 'mission' ? 'var(--ink)' : '#fef3c7' }}
         >
-          [⚡ MISSION] <span style={{ fontSize: '9px', background: '#fef08a', color: '#854d0e', padding: '1px 4px', borderRadius: '2px' }}>LOCAL ONLY 💻</span>
+          [⚡ Full Mission]
         </button>
       </div>
 
-      {/* DEPLOYMENT CAPABILITY MATRIX BANNER */}
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-        gap: '8px',
-        marginBottom: '14px',
-        fontSize: '11px',
-        lineHeight: 1.4,
-      }}>
-        <div style={{
-          border: '1.5px solid #059669',
-          background: isHosted ? '#f8fafc' : '#f0fdf4',
-          padding: '8px 12px',
-          borderRadius: '2px',
-        }}>
-          <div style={{ fontWeight: 800, color: '#047857', display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}>
-            <span>💻 LOCAL DEPLOYMENT (localhost:3000)</span>
-            {!isHosted && <span style={{ background: '#059669', color: '#fff', fontSize: '9px', padding: '1px 5px', borderRadius: '2px' }}>ACTIVE</span>}
-          </div>
-          <div>&bull; <b>Full Disk Access:</b> Audit any project on your PC (e.g. <code>C:\...</code>)</div>
-          <div>&bull; <b>In-Place Optimization:</b> Save to <code>.photonow/</code> or swap files with automated backups</div>
-          <div>&bull; <b>Source Patches:</b> AST code patching & git regression tracking</div>
+      {/* CLOUD PREVIEW NOTICE (ONLY WHEN ON VERCEL) */}
+      {isHosted && (
+        <div style={{ fontSize: '11px', color: '#92400e', background: '#fef3c7', padding: '5px 10px', border: '1px solid #f59e0b', borderRadius: '2px', marginBottom: '10px' }}>
+          ⚠️ <strong>Cloud Preview:</strong> Cloud servers cannot read your personal PC drive. Use <b>[Demo]</b> or test live sites via <b>[Test URL]</b>.
         </div>
-
-        <div style={{
-          border: '1.5px solid #d97706',
-          background: isHosted ? '#fef3c7' : '#f8fafc',
-          padding: '8px 12px',
-          borderRadius: '2px',
-        }}>
-          <div style={{ fontWeight: 800, color: '#b45309', display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}>
-            <span>🌐 CLOUD PREVIEW (photonow.vercel.app)</span>
-            {isHosted && <span style={{ background: '#d97706', color: '#fff', fontSize: '9px', padding: '1px 5px', borderRadius: '2px' }}>ACTIVE</span>}
-          </div>
-          <div>&bull; <b>Live URL Audits:</b> Speed test any live site via <b>[4. TEST URL]</b></div>
-          <div>&bull; <b>Demo App Audit:</b> Test engine features via <b>[Demo Fixture]</b> or <b>[Root: .]</b></div>
-          <div>&bull; <b>Sandbox Limit:</b> Cloud servers cannot access your physical C:\ drive</div>
-        </div>
-      </div>
+      )}
 
       {/* STATUS & ERROR ALERTS */}
       {statusMessage && (
-        <div style={{ background: '#f4f4f5', border: '1px solid var(--ink)', padding: '8px 12px', fontSize: '12px', marginBottom: '14px', fontFamily: 'monospace' }}>
+        <div style={{ background: '#f4f4f5', borderLeft: '3px solid var(--ink)', padding: '5px 10px', fontSize: '11px', marginBottom: '10px', fontFamily: 'monospace', color: '#4b5563' }}>
           &bull; {statusMessage}
         </div>
       )}
       {errorMessage && (
-        <div style={{ background: '#fee2e2', border: '1px solid #dc2626', color: '#991b1b', padding: '8px 12px', fontSize: '12px', marginBottom: '14px' }}>
-          &times; Error: {errorMessage}
+        <div style={{ background: '#fee2e2', borderLeft: '3px solid #dc2626', color: '#991b1b', padding: '6px 10px', fontSize: '11px', marginBottom: '10px' }}>
+          &times; {errorMessage}
         </div>
       )}
 
-      {/* TARGET PROJECT PATH BAR (Visible on all project-centric tabs) */}
+      {/* COMPACT TARGET DIRECTORY BAR */}
       {subTab !== 'test' && (
-        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center', marginBottom: '16px', background: '#f8fafc', border: '1.5px solid var(--ink)', padding: '8px 12px' }}>
-          <label style={{ fontSize: '12px', fontWeight: 700 }}>Target Directory:</label>
+        <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', alignItems: 'center', marginBottom: '14px', background: '#f8fafc', border: '1px solid var(--ink)', padding: '6px 10px' }}>
+          <span style={{ fontSize: '11px', fontWeight: 700 }}>Target:</span>
           <input
             type="text"
             value={projectPath}
@@ -408,11 +373,11 @@ export const PerformanceWorkbench: React.FC = () => {
             placeholder="e.g. . or tests/fixtures/nextjs_project or C:\path\to\app"
             style={{
               flex: 1,
-              minWidth: '220px',
-              padding: '6px 10px',
+              minWidth: '200px',
+              padding: '5px 8px',
               border: '1px solid var(--ink)',
               fontFamily: 'monospace',
-              fontSize: '12px',
+              fontSize: '11px',
               background: 'var(--bg-paper)',
             }}
           />
@@ -420,19 +385,19 @@ export const PerformanceWorkbench: React.FC = () => {
             type="button"
             onClick={() => setProjectPath('tests/fixtures/nextjs_project')}
             className="hand-btn"
-            style={{ padding: '4px 10px', fontSize: '11px', background: '#fef3c7' }}
-            title="Load the bundled Next.js demo fixture"
+            style={{ padding: '3px 8px', fontSize: '10px', background: '#fef3c7' }}
+            title="Load bundled demo project"
           >
-            [Demo Fixture]
+            [Demo]
           </button>
           <button
             type="button"
             onClick={() => setProjectPath('.')}
             className="hand-btn"
-            style={{ padding: '4px 10px', fontSize: '11px' }}
-            title="Target the current root repository"
+            style={{ padding: '3px 8px', fontSize: '10px' }}
+            title="Current root directory"
           >
-            [Root: .]
+            [Root]
           </button>
         </div>
       )}
