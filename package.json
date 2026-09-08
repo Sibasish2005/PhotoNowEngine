@@ -10,13 +10,12 @@
     "mcp": "node ./bin/mcp-server.mjs",
     "mcp:sync": "node ./tests/sync-mcp-schemas.mjs",
     "test:unit": "node ./tests/unit/test-agentic-intelligence.mjs",
+    "test:security": "node ./tests/test-security-edge-cases.mjs",
+    "test:mcp": "node ./tests/test-mcp-catalog.mjs",
+    "test:http": "node ./tests/test-mcp-http.mjs",
     "test:mission": "node ./tests/test-autonomous-mission.mjs",
     "test:benchmark": "node ./tests/benchmark.mjs",
-    "test:mcp": "node ./tests/test-all-29-mcp-tools.mjs",
-    "test:mcp:http": "node ./tests/test-all-mcp-http.mjs",
-    "test:performance": "node ./tests/test-performance-engine.mjs",
-    "test:security": "node ./tests/test-usability-security.mjs",
-    "test": "node ./tests/unit/test-agentic-intelligence.mjs && node ./tests/test-autonomous-mission.mjs && node ./tests/test-performance-engine.mjs && node ./tests/test-mcp-server.mjs && node ./tests/test-usability-security.mjs"
+    "test": "node ./tests/unit/test-agentic-intelligence.mjs && node ./tests/test-security-edge-cases.mjs && node ./tests/test-mcp-catalog.mjs && node ./tests/test-autonomous-mission.mjs"
   },
   "bin": {
     "photo-convert-mcp": "./bin/mcp-server.mjs"

@@ -120,22 +120,25 @@ function validateOutputPathSecurity(destinationPath) {
   }
 
   // 2. Sensitive directory protection
-  const lower = resolved.toLowerCase();
+  const normalized = resolved.toLowerCase().replace(/\\/g, '/');
   const sensitivePatterns = [
-    `${path.sep}.git${path.sep}`,
-    `${path.sep}.ssh${path.sep}`,
-    `${path.sep}.aws${path.sep}`,
-    `${path.sep}.gnupg${path.sep}`,
-    `${path.sep}node_modules${path.sep}`,
-    `${path.sep}windows${path.sep}system32`,
-    `/etc/`,
-    `/bin/`,
-    `/sbin/`,
-    `/root/`,
+    '/.git/',
+    '/.ssh/',
+    '/.aws/',
+    '/.gnupg/',
+    '/node_modules/',
+    '/windows/system32',
+    '/etc/',
+    '/bin/',
+    '/sbin/',
+    '/root/',
+    '/var/',
+    '/sys/',
+    '/proc/',
   ];
 
   for (const pattern of sensitivePatterns) {
-    if (lower.includes(pattern.toLowerCase())) {
+    if (normalized.includes(pattern) || normalized.startsWith(pattern.slice(1)) || normalized.endsWith(pattern.slice(0, -1))) {
       throw new Error(`Security violation: Writing to protected directory is strictly prohibited (${pattern}).`);
     }
   }
