@@ -25,7 +25,17 @@ export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
     const action = body.action || 'analyze';
-    const targetPath = body.targetPath ? path.resolve(body.targetPath) : process.cwd();
+    const rawTarget = typeof body.targetPath === 'string' ? body.targetPath.replace(/^["']|["']$/g, '').trim() : '';
+
+    // Check if user submitted a Windows drive path (e.g. C:\...) on a Linux environment (e.g. Vercel /var/task)
+    if (rawTarget && /^[a-zA-Z]:[\\/]/.test(rawTarget) && process.platform !== 'win32') {
+      return NextResponse.json({
+        success: false,
+        error: `Cloud server cannot access local drive "${rawTarget}". You are viewing PhotoNow on a remote cloud server (Vercel). To audit local folders on your computer, run PhotoNow locally via 'npm run dev' and visit http://localhost:3000. In this cloud preview, please click [Demo Fixture] or [Root: .] to test the engine.`,
+      }, { status: 400 });
+    }
+
+    const targetPath = rawTarget ? path.resolve(rawTarget) : process.cwd();
 
     if (action === 'analyze') {
       const result = await analyzeWebAssets(targetPath, body.recursive !== false);
