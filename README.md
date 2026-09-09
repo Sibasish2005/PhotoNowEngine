@@ -139,8 +139,8 @@ Every transformation runs through client-side browser APIs:
 
 ---
 
-### 3. Agentic AI Conversion Bar
-1. Navigate to the **`[AGENTIC AI]`** tab.
+### 3. Customized Conversion Bar
+1. Navigate to the **`[CUSTOMIZED]`** tab.
 2. Choose or drop any media file (image or video).
 3. Type an instruction in plain English, or click one of the pre-built quick presets:
    - *"Convert image to WebP 80% quality with max 1200px width"*

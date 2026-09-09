@@ -105,7 +105,7 @@ export const AgenticPanel: React.FC<AgenticPanelProps> = ({ onConversionSuccess 
         paddingBottom: '8px',
       }}>
         <h2 className="marker-font" style={{ fontSize: '28px' }}>
-          AGENTIC CONVERTER.
+          CUSTOMIZED CONVERTER.
         </h2>
         <span style={{ fontSize: '11px', fontWeight: 700 }}>
           [AUTONOMOUS MCP TOOL ENGINE]

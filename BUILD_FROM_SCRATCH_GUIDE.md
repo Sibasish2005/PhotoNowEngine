@@ -606,7 +606,7 @@ The Developer MCP Hub provides:
 
 * **Photo Conversion**: Open **`[PHOTO CONVERT]`**, drop image files into the hand-drawn canvas dropzone, adjust quality/scale/filter sliders, and click **`CONVERT NOW ➔`**.
 * **Video & Audio Processing**: Open **`[VIDEO CONVERT]`**, select a video file, scrub the timeline for poster snapshots, or extract 16-bit uncompressed WAV soundtracks.
-* **Natural-Language Conversions**: Open **`[AGENTIC AI]`**, drop media, and type plain-English transformation instructions.
+* **Natural-Language Conversions**: Open **`[CUSTOMIZED]`**, drop media, and type plain-English transformation instructions.
 * **Developer MCP Hub**: Open **`[MCP PERFORMANCE HUB]`** to copy client configurations, run JSON-RPC tests, or generate tool prompts.
 * **Local Storage & ZIP Export**: Open **`[STORAGE: N]`** to inspect your persistent IndexedDB cache and download all transformed assets as a single `.zip` bundle.
 

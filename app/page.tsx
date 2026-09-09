@@ -37,7 +37,7 @@ const AgenticPanel = dynamic(
   {
     loading: () => (
       <div className="hand-box" style={{ padding: '32px', textAlign: 'center' }}>
-        [LOADING AGENTIC WORKBENCH...]
+        [LOADING CUSTOMIZED WORKBENCH...]
       </div>
     ),
   }

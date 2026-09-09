@@ -80,7 +80,7 @@ export const HeaderNav: React.FC<HeaderNavProps> = ({
             position: 'relative',
           }}
         >
-          [AGENTIC AI]
+          [CUSTOMIZED]
           <span style={{
             position: 'absolute',
             top: '-8px',
