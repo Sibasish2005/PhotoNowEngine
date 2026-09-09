@@ -54,8 +54,19 @@ const McpDeveloperHub = dynamic(
   }
 );
 
+const ProductMarketingSection = dynamic(
+  () => import('@/components/ProductMarketingSection').then((mod) => mod.ProductMarketingSection),
+  {
+    loading: () => (
+      <div className="hand-box" style={{ padding: '32px', textAlign: 'center' }}>
+        [LOADING PRODUCT SPECIFICATION & MARKETING SHOWCASE...]
+      </div>
+    ),
+  }
+);
+
 export default function Home() {
-  const [activeTab, setActiveTab] = useState<'photo' | 'video' | 'storage' | 'agent' | 'mcp' | 'performance'>('photo');
+  const [activeTab, setActiveTab] = useState<'photo' | 'video' | 'storage' | 'agent' | 'mcp' | 'performance' | 'product'>('photo');
   const [storageCount, setStorageCount] = useState<number>(0);
 
   const refreshStorageStats = async () => {
@@ -127,8 +138,19 @@ export default function Home() {
             {activeTab === 'storage' && (
               <StorageHistory onStorageUpdated={refreshStorageStats} />
             )}
+
+            {activeTab === 'product' && (
+              <ProductMarketingSection />
+            )}
           </section>
         </div>
+
+        {/* DEDICATED PRODUCT MARKETING SHOWCASE (WHEN NOT IN FOCUSED TAB VIEW) */}
+        {activeTab !== 'product' && (
+          <div style={{ marginTop: '48px' }}>
+            <ProductMarketingSection />
+          </div>
+        )}
 
         {/* AEO & SEO KNOWLEDGE BASE: AGENT CAPABILITIES & SPECIFICATION */}
         <section aria-labelledby="agent-aeo-heading" style={{ marginTop: '48px' }}>

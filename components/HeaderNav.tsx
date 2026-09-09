@@ -3,8 +3,8 @@
 import React from 'react';
 
 interface HeaderNavProps {
-  activeTab: 'photo' | 'video' | 'storage' | 'agent' | 'mcp' | 'performance';
-  setActiveTab: (tab: 'photo' | 'video' | 'storage' | 'agent' | 'mcp' | 'performance') => void;
+  activeTab: 'photo' | 'video' | 'storage' | 'agent' | 'mcp' | 'performance' | 'product';
+  setActiveTab: (tab: 'photo' | 'video' | 'storage' | 'agent' | 'mcp' | 'performance' | 'product') => void;
   storageCount: number;
 }
 
@@ -116,6 +116,30 @@ export const HeaderNav: React.FC<HeaderNavProps> = ({
             borderRadius: '2px',
           }}>
             29 TOOLS
+          </span>
+        </button>
+
+        <button
+          onClick={() => setActiveTab('product')}
+          className={`hand-btn ${activeTab === 'product' ? 'active' : ''}`}
+          style={{
+            padding: '6px 14px',
+            fontSize: '11px',
+            position: 'relative',
+          }}
+        >
+          [PRODUCT SHOWCASE]
+          <span style={{
+            position: 'absolute',
+            top: '-8px',
+            right: '-6px',
+            background: 'var(--ink)',
+            color: 'var(--ink-inverted)',
+            fontSize: '8px',
+            padding: '1px 4px',
+            borderRadius: '2px',
+          }}>
+            WHY PHOTONOW
           </span>
         </button>
 
